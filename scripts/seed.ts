@@ -20,6 +20,7 @@ import {
   notesByChapter,
   DEMO_PASSWORD,
 } from "./seed-content";
+import * as schema from "../src/db/schema";
 
 function resolveDbPath(): string {
   const raw = process.env.DATABASE_URL;
@@ -31,16 +32,6 @@ function resolveDbPath(): string {
   return raw;
 }
 
-const dbPath = resolveDbPath();
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-
-const sqlite = new Database(dbPath);
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-const db = drizzle(sqlite);
-
-// lazy imports of schema (tsx resolves types fine)
-import * as schema from "../src/db/schema";
 const {
   users,
   chapters,
@@ -122,7 +113,7 @@ const SUBJECTIVE_DONE: { handle: string; chapter: string }[] = [
   { handle: "sneha_s", chapter: "8-mathematics-1" },
 ];
 
-async function resetTables() {
+function resetTablesOn(sqlite: Database.Database) {
   // SQLite: disable FKs briefly, delete from child->parent tables, reset autoincrement.
   sqlite.exec("PRAGMA foreign_keys = OFF;");
   const tables = [
@@ -146,74 +137,89 @@ async function resetTables() {
   sqlite.exec("PRAGMA foreign_keys = ON;");
 }
 
-async function main() {
-  await resetTables();
-  const pw = hashPassword(DEMO_PASSWORD);
+/**
+ * Seed demo data. Accepts an optional existing better-sqlite3 Database instance
+ * so it can be reused in-process from the running Next server.
+ */
+export async function seedDemoData(existing?: Database.Database): Promise<void> {
+  const dbPath = resolveDbPath();
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
-  // ---- users -------------------------------------------------------
-  const userIds: Record<string, number> = {};
-  for (const u of DEMO_USERS) {
-    const [row] = await db
-      .insert(users)
-      .values({
-        handle: u.handle,
-        name: u.name,
-        email: u.email,
-        passwordHash: pw,
-        role: u.role,
-        className: u.className ?? null,
-        state: u.state ?? null,
-        school: u.school ?? null,
-        subjectSpecialization: u.spec ?? null,
-        institutionId: u.inst ?? null,
-        isGuest: !!u.guest,
-      })
-      .returning({ id: users.id });
-    userIds[u.handle] = row.id;
-  }
+  const ownsConnection = !existing;
+  const sqlite = existing ?? new Database(dbPath);
+  try {
+    sqlite.pragma("journal_mode = WAL");
+    sqlite.pragma("foreign_keys = ON");
+    const db = drizzle(sqlite);
 
-  // ---- chapters ----------------------------------------------------
-  const chapterIds: Record<string, number> = {};
-  const chapterTitles: Record<string, string> = {};
-  for (const classNo of [7, 8]) {
-    for (const sub of SUBJECTS) {
-      const rows = getChapters(classNo, sub.slug);
-      for (let i = 0; i < rows.length; i++) {
-        const r = rows[i];
-        const key = `${classNo}-${sub.slug}-${i + 1}`;
-        const nn = String(i + 1).padStart(2, "0");
-        const prefix = PREFIX[sub.slug];
-        chapterTitles[key] = r.title;
-        const [ch] = await db
-          .insert(chapters)
-          .values({
-            classNo,
-            subjectSlug: sub.slug,
-            subjectName: sub.name,
-            num: i + 1,
-            title: r.title,
-            slug: slugify(r.title) || `chapter-${i + 1}`,
-            outcomeIds: [
-              `LO-${classNo}-${prefix}-${nn}-01`,
-              `LO-${classNo}-${prefix}-${nn}-02`,
-              `LO-${classNo}-${prefix}-${nn}-03`,
-            ],
-            dikshaCode: `D-${classNo}-${prefix}-${nn}`,
-          })
-          .returning({ id: chapters.id });
-        chapterIds[key] = ch.id;
+    // reset rng so seeds are deterministic across calls
+    s = 42;
+
+    await resetTablesOn(sqlite);
+    const pw = hashPassword(DEMO_PASSWORD);
+
+    // ---- users -------------------------------------------------------
+    const userIds: Record<string, number> = {};
+    for (const u of DEMO_USERS) {
+      const [row] = await db
+        .insert(users)
+        .values({
+          handle: u.handle,
+          name: u.name,
+          email: u.email,
+          passwordHash: pw,
+          role: u.role,
+          className: u.className ?? null,
+          state: u.state ?? null,
+          school: u.school ?? null,
+          subjectSpecialization: u.spec ?? null,
+          institutionId: u.inst ?? null,
+          isGuest: !!u.guest,
+        })
+        .returning({ id: users.id });
+      userIds[u.handle] = row.id;
+    }
+
+    // ---- chapters ----------------------------------------------------
+    const chapterIds: Record<string, number> = {};
+    const chapterTitles: Record<string, string> = {};
+    for (const classNo of [7, 8]) {
+      for (const sub of SUBJECTS) {
+        const rows = getChapters(classNo, sub.slug);
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          const key = `${classNo}-${sub.slug}-${i + 1}`;
+          const nn = String(i + 1).padStart(2, "0");
+          const prefix = PREFIX[sub.slug];
+          chapterTitles[key] = r.title;
+          const [ch] = await db
+            .insert(chapters)
+            .values({
+              classNo,
+              subjectSlug: sub.slug,
+              subjectName: sub.name,
+              num: i + 1,
+              title: r.title,
+              slug: slugify(r.title) || `chapter-${i + 1}`,
+              outcomeIds: [
+                `LO-${classNo}-${prefix}-${nn}-01`,
+                `LO-${classNo}-${prefix}-${nn}-02`,
+                `LO-${classNo}-${prefix}-${nn}-03`,
+              ],
+              dikshaCode: `D-${classNo}-${prefix}-${nn}`,
+            })
+            .returning({ id: chapters.id });
+          chapterIds[key] = ch.id;
+        }
       }
     }
-  }
 
-  // ---- videos ------------------------------------------------------
-  for (const [key, list] of Object.entries(videosByChapter)) {
-    const chId = chapterIds[key];
-    if (!chId) continue;
-    for (const v of list) {
-      await db
-        .insert(videos)
-        .values({
+    // ---- videos ------------------------------------------------------
+    for (const [key, list] of Object.entries(videosByChapter)) {
+      const chId = chapterIds[key];
+      if (!chId) continue;
+      for (const v of list) {
+        await db.insert(videos).values({
           chapterId: chId,
           title: v.title,
           kind: "mp4",
@@ -226,139 +232,143 @@ async function main() {
           uploadedById: userIds.ms_anita,
           uploadedByName: "Ms. Anita Sharma (Faculty)",
         });
-    }
-  }
-
-  // ---- notes + votes ------------------------------------------------
-  for (const [key, list] of Object.entries(notesByChapter)) {
-    const chId = chapterIds[key];
-    if (!chId) continue;
-    for (const n of list) {
-      const authorId = userIds[n.author] ?? null;
-      const [note] = await db
-        .insert(notes)
-        .values({
-          chapterId: chId,
-          title: n.title,
-          content: n.content,
-          fileType: "text",
-          authorId,
-          authorName: DEMO_USERS.find((u) => u.handle === n.author)?.name ?? n.author,
-          facultyVerified: !!n.verified,
-          verifiedByName: n.verified ? "Ms. Anita Sharma" : null,
-        })
-        .returning({ id: notes.id });
-
-      const voterIds = Array.from(
-        new Set(n.votesFrom.filter((h) => userIds[h] !== undefined).map((h) => userIds[h])),
-      );
-      for (const uid of voterIds) {
-        await db
-          .insert(noteVotes)
-          .values({ noteId: note.id, userId: uid })
-          .onConflictDoNothing();
       }
-      if (voterIds.length >= 10 && authorId) {
-        await db.update(notes).set({ rewarded: true }).where(eq(notes.id, note.id));
-        await db.insert(xpEvents).values({
-          userId: authorId,
-          type: "note_upvotes",
-          amount: 50,
-          refType: "note",
-          refId: note.id,
-          note: `Note reached 10+ upvotes — "${n.title}"`,
+    }
+
+    // ---- notes + votes ------------------------------------------------
+    for (const [key, list] of Object.entries(notesByChapter)) {
+      const chId = chapterIds[key];
+      if (!chId) continue;
+      for (const n of list) {
+        const authorId = userIds[n.author] ?? null;
+        const [note] = await db
+          .insert(notes)
+          .values({
+            chapterId: chId,
+            title: n.title,
+            content: n.content,
+            fileType: "text",
+            authorId,
+            authorName: DEMO_USERS.find((u) => u.handle === n.author)?.name ?? n.author,
+            facultyVerified: !!n.verified,
+            verifiedByName: n.verified ? "Ms. Anita Sharma" : null,
+          })
+          .returning({ id: notes.id });
+
+        const voterIds = Array.from(
+          new Set(n.votesFrom.filter((h) => userIds[h] !== undefined).map((h) => userIds[h])),
+        );
+        for (const uid of voterIds) {
+          await db
+            .insert(noteVotes)
+            .values({ noteId: note.id, userId: uid })
+            .onConflictDoNothing();
+        }
+        if (voterIds.length >= 10 && authorId) {
+          await db.update(notes).set({ rewarded: true }).where(eq(notes.id, note.id));
+          await db.insert(xpEvents).values({
+            userId: authorId,
+            type: "note_upvotes",
+            amount: 50,
+            refType: "note",
+            refId: note.id,
+            note: `Note reached 10+ upvotes — "${n.title}"`,
+          });
+        }
+      }
+    }
+
+    // ---- mcq + subjective banks ---------------------------------------
+    const bankSize: Record<string, number> = {};
+    for (const [key, bank] of Object.entries(CHAPTER_CONTENT)) {
+      const chId = chapterIds[key];
+      if (!chId) continue;
+      for (const m of bank.mcqs) {
+        await db.insert(mcqQuestions).values({
+          chapterId: chId,
+          qtext: m.q,
+          options: m.options,
+          correctIndex: m.correct,
+          explanation: m.why,
+          isPyq: !!m.pyq,
+          pyqTag: m.pyq ?? "Practice",
+        });
+        bankSize[key] = (bankSize[key] ?? 0) + 1;
+      }
+      for (const sq of bank.subj) {
+        await db.insert(subjectiveQuestions).values({
+          chapterId: chId,
+          qtext: sq.q,
+          marks: sq.marks,
+          rubric: sq.rubric,
+          modelAnswer: sq.answer,
         });
       }
     }
-  }
 
-  // ---- mcq + subjective banks ---------------------------------------
-  const bankSize: Record<string, number> = {};
-  for (const [key, bank] of Object.entries(CHAPTER_CONTENT)) {
-    const chId = chapterIds[key];
-    if (!chId) continue;
-    for (const m of bank.mcqs) {
-      await db.insert(mcqQuestions).values({
-        chapterId: chId,
-        qtext: m.q,
-        options: m.options,
-        correctIndex: m.correct,
-        explanation: m.why,
-        isPyq: !!m.pyq,
-        pyqTag: m.pyq ?? "Practice",
-      });
-      bankSize[key] = (bankSize[key] ?? 0) + 1;
+    // ---- attempts + xp -------------------------------------------------
+    for (const [key, byUser] of Object.entries(ATTEMPTS)) {
+      const chId = chapterIds[key];
+      const total = bankSize[key] ?? 20;
+      for (const [handle, score] of Object.entries(byUser)) {
+        const answers = Array.from({ length: total }, (_, i) =>
+          i < score ? pick(4) : (pick(4) + 1) % 4,
+        );
+        await db.insert(mcqAttempts).values({
+          userId: userIds[handle],
+          chapterId: chId,
+          answers,
+          score,
+          total,
+          durationSec: 240 + pick(480),
+          xpEarned: 10 * score,
+        });
+        await db.insert(xpEvents).values({
+          userId: userIds[handle],
+          type: "objective",
+          amount: 10 * score,
+          refType: "chapter",
+          refId: chId,
+          note: `Objective Test · ${chapterTitles[key]} · ${score}/${total}`,
+        });
+      }
     }
-    for (const sq of bank.subj) {
-      await db.insert(subjectiveQuestions).values({
-        chapterId: chId,
-        qtext: sq.q,
-        marks: sq.marks,
-        rubric: sq.rubric,
-        modelAnswer: sq.answer,
-      });
-    }
-  }
 
-  // ---- attempts + xp -------------------------------------------------
-  for (const [key, byUser] of Object.entries(ATTEMPTS)) {
-    const chId = chapterIds[key];
-    const total = bankSize[key] ?? 20;
-    for (const [handle, score] of Object.entries(byUser)) {
-      const answers = Array.from({ length: total }, (_, i) =>
-        i < score ? pick(4) : (pick(4) + 1) % 4,
-      );
-      await db.insert(mcqAttempts).values({
-        userId: userIds[handle],
+    for (const d of SUBJECTIVE_DONE) {
+      const chId = chapterIds[d.chapter];
+      await db.insert(subjectiveAttempts).values({
+        userId: userIds[d.handle],
         chapterId: chId,
-        answers,
-        score,
-        total,
-        durationSec: 240 + pick(480),
-        xpEarned: 10 * score,
+        answers: { 1: "Self-reviewed against the model marking scheme." },
+        xpEarned: 30,
       });
       await db.insert(xpEvents).values({
-        userId: userIds[handle],
-        type: "objective",
-        amount: 10 * score,
+        userId: userIds[d.handle],
+        type: "subjective",
+        amount: 30,
         refType: "chapter",
         refId: chId,
-        note: `Objective Test · ${chapterTitles[key]} · ${score}/${total}`,
+        note: `Subjective Practice · ${chapterTitles[d.chapter]}`,
       });
     }
-  }
 
-  for (const d of SUBJECTIVE_DONE) {
-    const chId = chapterIds[d.chapter];
-    await db.insert(subjectiveAttempts).values({
-      userId: userIds[d.handle],
-      chapterId: chId,
-      answers: { 1: "Self-reviewed against the model marking scheme." },
-      xpEarned: 30,
-    });
-    await db.insert(xpEvents).values({
-      userId: userIds[d.handle],
-      type: "subjective",
-      amount: 30,
-      refType: "chapter",
-      refId: chId,
-      note: `Subjective Practice · ${chapterTitles[d.chapter]}`,
-    });
+    console.log("Seed complete.");
+    console.log(`  users:        ${DEMO_USERS.length}`);
+    console.log(`  chapters:     ${Object.keys(chapterIds).length}`);
+    console.log(`  video sets:   ${Object.keys(videosByChapter).length}`);
+    console.log(`  note sets:    ${Object.keys(notesByChapter).length}`);
+    console.log(`  MCQ banks:    ${Object.entries(bankSize).map(([k, v]) => `${k}=${v}`).join(", ")}`);
+    console.log(`  attempts:     ${Object.values(ATTEMPTS).reduce((a, b) => a + Object.keys(b).length, 0)} objective, ${SUBJECTIVE_DONE.length} subjective`);
+    void sql;
+  } finally {
+    if (ownsConnection) sqlite.close();
   }
-
-  console.log("Seed complete.");
-  console.log(`  users:        ${DEMO_USERS.length}`);
-  console.log(`  chapters:     ${Object.keys(chapterIds).length}`);
-  console.log(`  video sets:   ${Object.keys(videosByChapter).length}`);
-  console.log(`  note sets:    ${Object.keys(notesByChapter).length}`);
-  console.log(`  MCQ banks:    ${Object.entries(bankSize).map(([k, v]) => `${k}=${v}`).join(", ")}`);
-  console.log(`  attempts:     ${Object.values(ATTEMPTS).reduce((a, b) => a + Object.keys(b).length, 0)} objective, ${SUBJECTIVE_DONE.length} subjective`);
-  void sql; // silence unused-import warning if sql is removed in future edits
 }
 
-main()
-  .catch((e) => {
+// CLI entry point: `tsx scripts/seed.ts`
+if (require.main === module) {
+  seedDemoData().catch((e) => {
     console.error(e);
     process.exit(1);
-  })
-  .finally(() => sqlite.close());
+  });
+}
