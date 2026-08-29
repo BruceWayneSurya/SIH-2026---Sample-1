@@ -168,15 +168,29 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 export async function getActiveUser(): Promise<SessionUser | null> {
   const session = await getSessionUser();
   if (session) return session;
-  try {
+
+  const lookup = async () => {
     const rows = await db
       .select()
       .from(users)
       .where(eq(users.email, OPEN_GUEST_EMAIL))
       .limit(1);
-    const u = rows[0];
-    return u ? asSessionUser(u, true) : null;
+    return rows[0] ? asSessionUser(rows[0], true) : null;
+  };
+
+  try {
+    const hit = await lookup();
+    if (hit) return hit;
   } catch {
+    // DB may still be booting — fall through to ensure + retry.
+  }
+
+  try {
+    const { ensureDemoDatabase } = await import("./ensure-db");
+    await ensureDemoDatabase();
+    return await lookup();
+  } catch (err) {
+    console.error("[session] guest lookup failed", err);
     return null;
   }
 }
