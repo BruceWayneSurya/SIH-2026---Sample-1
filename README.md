@@ -3,10 +3,10 @@
 NCERT-aligned learning portal for Class 7 & 8: faculty-verified lectures,
 peer-reviewed notes, PYQ assessments and gamified leaderboards.
 
-## Quick start (login must work)
+The portal is open access — visitors are signed in automatically as a guest
+student and land on the dashboard. There is no login page.
 
-The sign-in page needs a PostgreSQL database with the schema applied and the
-demo accounts seeded. Do this once:
+## Quick start
 
 ```bash
 npm install
@@ -30,16 +30,6 @@ Copy `.env.example` to `.env` (or export `DATABASE_URL`). The app falls back
 to `postgresql://postgres:postgres@127.0.0.1:5432/app_db` in development when
 `DATABASE_URL` is unset, matching `drizzle.config.json` and the seed script.
 For production, set both `DATABASE_URL` and a strong `SESSION_SECRET`.
-
-## Demo accounts (password: `demo123`)
-
-| Role    | Name         | Email                          |
-| ------- | ------------ | ------------------------------ |
-| Student | Aarav Patel  | `aarav@student.in`             |
-| Faculty | Anita Sharma | `anita.sharma@vidyasetu.gov.in`|
-
-One-click guest access (student / faculty) is also available on the login
-panel — no credentials needed.
 
 ## Stack
 

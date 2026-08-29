@@ -32,7 +32,7 @@ export function SiteFooter() {
             assessments and a peer benchmarking engine.
           </p>
           <p className="mt-4 text-xs text-navy-300">
-            A hackathon demonstration portal. Demo accounts use the password <b>demo123</b>.
+            A hackathon demonstration portal — open access, no sign-in required.
           </p>
         </div>
       </div>

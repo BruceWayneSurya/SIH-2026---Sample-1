@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap, LogOut, Trophy, UserRound } from "lucide-react";
+import { GraduationCap, LogOut, UserRound } from "lucide-react";
 import { getSessionUser } from "@/lib/session";
 import { DataSaverToggle } from "./data-saver-toggle";
 import { db } from "@/db";
@@ -65,7 +65,7 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 border-b-2 border-saffron-500/70 bg-white/95 backdrop-blur">
       <div className="tricolor-strip h-1.5 w-full" aria-hidden="true" />
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5">
-        <Link href={user ? "/home" : "/"} className="shrink-0" aria-label="VidyaSetu home">
+        <Link href="/home" className="shrink-0" aria-label="VidyaSetu home">
           <Wordmark />
         </Link>
 
@@ -115,12 +115,12 @@ export async function SiteHeader() {
         ) : (
           <nav aria-label="Primary" className="ml-auto flex items-center gap-3">
             <DataSaverToggle />
-            <Link
-              href="/#login"
-              className="inline-flex items-center gap-1.5 rounded-md bg-navy-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-navy-700"
+            <a
+              href="/api/auth/guest?role=student"
+              className="inline-flex items-center rounded-md bg-navy-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-navy-700"
             >
-              <Trophy className="h-4 w-4" /> Sign in
-            </Link>
+              Enter portal
+            </a>
           </nav>
         )}
       </div>
