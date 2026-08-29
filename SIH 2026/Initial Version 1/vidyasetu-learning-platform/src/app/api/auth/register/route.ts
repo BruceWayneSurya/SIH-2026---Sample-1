@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { handleFromName, hashPassword, startSession } from "@/lib/session";
+import { handleFromName, hashPassword, redirectTo, startSession } from "@/lib/session";
 
 const SUBJECTS = [
   "Mathematics",
@@ -15,11 +15,24 @@ const SUBJECTS = [
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
 export async function POST(req: Request) {
+  // Browsers navigating a real form send `Accept: text/html`; fetch() sends */*
+  const wantsPage = (req.headers.get("accept") ?? "").includes("text/html");
+  const fail = (error: string, status: number) =>
+    wantsPage
+      ? redirectTo("/?error=register")
+      : Response.json({ error }, { status });
+
   let body: Record<string, unknown>;
+  const ct = (req.headers.get("content-type") ?? "").toLowerCase();
   try {
-    body = await req.json();
+    if (ct.includes("application/x-www-form-urlencoded") || ct.includes("multipart/form-data")) {
+      const fd = await req.formData();
+      body = Object.fromEntries(fd.entries());
+    } else {
+      body = await req.json();
+    }
   } catch {
-    return Response.json({ error: "Invalid request body." }, { status: 400 });
+    return fail("Invalid request body.", 400);
   }
 
   const role = body.role === "faculty" ? "faculty" : "student";
@@ -33,31 +46,28 @@ export async function POST(req: Request) {
   const institutionId = str(body.institutionId);
 
   if (name.length < 3)
-    return Response.json({ error: "Please enter your full name." }, { status: 400 });
+    return fail("Please enter your full name.", 400);
   if (name.length > 80)
-    return Response.json({ error: "Name is too long (max 80 characters)." }, { status: 400 });
+    return fail("Name is too long (max 80 characters).", 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120)
-    return Response.json({ error: "Please enter a valid email address." }, { status: 400 });
+    return fail("Please enter a valid email address.", 400);
   if (password.length < 6)
-    return Response.json({ error: "Password must be at least 6 characters." }, { status: 400 });
+    return fail("Password must be at least 6 characters.", 400);
   if (password.length > 200)
-    return Response.json({ error: "Password is too long." }, { status: 400 });
+    return fail("Password is too long.", 400);
 
   if (role === "student") {
     if (!state)
-      return Response.json({ error: "State / UT is required." }, { status: 400 });
+      return fail("State / UT is required.", 400);
     if (!school)
-      return Response.json({ error: "School name is required." }, { status: 400 });
+      return fail("School name is required.", 400);
     if (!["7", "8"].includes(className))
-      return Response.json({ error: "Select your target class (7 or 8)." }, { status: 400 });
+      return fail("Select your target class (7 or 8).", 400);
   } else {
     if (!SUBJECTS.includes(subjectSpecialization))
-      return Response.json(
-        { error: "Please choose a valid subject specialization." },
-        { status: 400 },
-      );
+      return fail("Please choose a valid subject specialization.", 400);
     if (!institutionId)
-      return Response.json({ error: "School / Institution ID is required." }, { status: 400 });
+      return fail("School / Institution ID is required.", 400);
   }
 
   try {
@@ -67,9 +77,9 @@ export async function POST(req: Request) {
       .where(eq(users.email, email))
       .limit(1);
     if (existing)
-      return Response.json(
-        { error: "An account with this email already exists. Please sign in instead." },
-        { status: 409 },
+      return fail(
+        "An account with this email already exists. Please sign in instead.",
+        409,
       );
 
     // handle is unique — retry a few times in case the random suffix collides
@@ -95,17 +105,12 @@ export async function POST(req: Request) {
     }
 
     if (!created)
-      return Response.json(
-        { error: "Could not create your account just now. Please try again." },
-        { status: 500 },
-      );
+      return fail("Could not create your account just now. Please try again.", 500);
 
     await startSession(req, created);
+    if (wantsPage) return redirectTo("/home");
     return Response.json({ ok: true, redirect: "/home", user: { name, role } });
   } catch {
-    return Response.json(
-      { error: "Registration failed due to a server error. Please try again." },
-      { status: 500 },
-    );
+    return fail("Registration failed due to a server error. Please try again.", 500);
   }
 }

@@ -51,25 +51,50 @@ export function makeSessionToken(
 }
 
 /**
- * Writes the session cookie. `Secure` is enabled only when the request actually
- * arrived over HTTPS (preview/proxy sets x-forwarded-proto) so the same code
- * works on plain-http localhost and on the https preview domain.
+ * Writes the session cookie.
+ *
+ * The app is normally reached through an HTTPS reverse proxy (e.g. the live
+ * preview at https://<port>-<sandbox>.e2b.app) where the request the server
+ * actually sees may still be plain http. In that case the cookie is marked
+ * `Secure` + `SameSite=None` + `Partitioned` (CHIPS), so modern browsers
+ * accept and send it even when the app is embedded in a cross-origin iframe —
+ * the classic cause of "login succeeds but I land back on the login page"
+ * inside preview environments.
  */
 export async function startSession(
   req: Request,
   user: { id: number; role: "student" | "faculty" },
   maxAgeSec = 60 * 60 * 24 * 14,
 ): Promise<void> {
-  const proto =
-    req.headers.get("x-forwarded-proto") ?? new URL(req.url).protocol.replace(":", "");
+  const isHttps = requestIsHttps(req);
   const store = await cookies();
   store.set(SESSION_COOKIE, makeSessionToken(user, maxAgeSec), {
     httpOnly: true,
-    sameSite: "lax",
-    secure: proto === "https",
+    // `none` is required for the cookie to be sent inside cross-origin
+    // iframes (paired with Secure + Partitioned below); plain-http
+    // localhost keeps `lax` so local `npm run dev` keeps working.
+    sameSite: isHttps ? "none" : "lax",
+    secure: isHttps,
+    partitioned: isHttps,
     maxAge: maxAgeSec,
     path: "/",
   });
+}
+
+function requestIsHttps(req: Request): boolean {
+  const fwd = req.headers.get("x-forwarded-proto");
+  if (fwd) return fwd.split(",")[0]?.trim() === "https";
+  try {
+    const url = new URL(req.url);
+    if (url.protocol === "https:") return true;
+    const host = (req.headers.get("x-forwarded-host") ?? url.host).toLowerCase();
+    // Public preview gateways terminate TLS in front of us; treat their
+    // hosts as HTTPS so the session cookie survives in the browser.
+    if (host.includes(".e2b.app")) return true;
+  } catch {
+    // ignore malformed request URLs
+  }
+  return false;
 }
 
 export async function endSession(): Promise<void> {

@@ -49,11 +49,16 @@ export async function SiteHeader() {
   const user = await getSessionUser();
   let xp = 0;
   if (user) {
-    const [row] = await db
-      .select({ x: sql<number>`coalesce(sum(${xpEvents.amount}), 0)` })
-      .from(xpEvents)
-      .where(eq(xpEvents.userId, user.id));
-    xp = Number(row?.x ?? 0);
+    try {
+      const [row] = await db
+        .select({ x: sql<number>`coalesce(sum(${xpEvents.amount}), 0)` })
+        .from(xpEvents)
+        .where(eq(xpEvents.userId, user.id));
+      xp = Number(row?.x ?? 0);
+    } catch {
+      // Never let a transient DB hiccup take down the page chrome.
+      xp = 0;
+    }
   }
 
   return (

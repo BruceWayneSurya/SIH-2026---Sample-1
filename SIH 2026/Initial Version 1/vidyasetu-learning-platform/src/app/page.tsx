@@ -44,7 +44,11 @@ export default async function Landing({
   const notice =
     error === "guest"
       ? "Guest sign-in could not be completed. Please try again or use a demo account."
-      : null;
+      : error === "invalid"
+        ? "Sign-in failed — email or password not recognised. Try one of the demo accounts below."
+        : error === "register"
+          ? "Registration could not be completed. Please check your details and try again."
+          : null;
 
   return (
     <div>

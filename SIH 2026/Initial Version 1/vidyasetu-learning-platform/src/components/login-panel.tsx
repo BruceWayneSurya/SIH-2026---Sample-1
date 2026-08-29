@@ -45,8 +45,25 @@ export function LoginPanel({ notice = null }: { notice?: string | null }) {
         .catch(() => ({}));
 
       if (res.ok && data.ok) {
+        const dest = data.redirect ?? "/home";
+        // The sign-in succeeded server-side. Before navigating, verify the
+        // browser actually kept the session cookie — inside embedded
+        // previews, privacy settings can drop it and /home would bounce
+        // straight back to this page.
+        try {
+          const probe = await fetch(dest, { redirect: "manual" });
+          if (probe.type === "opaqueredirect" || probe.status === 0) {
+            setError(
+              "Signed in, but your browser did not keep the session cookie (third-party cookies may be blocked). " +
+                "Please allow cookies for this site, or open the portal directly in a new tab.",
+            );
+            return;
+          }
+        } catch {
+          // Couldn't verify — navigate anyway and let the server decide.
+        }
         // relative path -> always resolves against the origin the user is on
-        window.location.assign(data.redirect ?? "/home");
+        window.location.assign(dest);
         return;
       }
       setError(data.error ?? `Sign-in failed (HTTP ${res.status}). Please try again.`);
@@ -110,7 +127,13 @@ export function LoginPanel({ notice = null }: { notice?: string | null }) {
         ))}
       </div>
 
-      <form ref={formRef} onSubmit={submit} className="space-y-3 border-t-2 border-saffron-500/60 p-5">
+      <form
+        ref={formRef}
+        onSubmit={submit}
+        method="post"
+        action={mode === "login" ? "/api/auth/login" : "/api/auth/register"}
+        className="space-y-3 border-t-2 border-saffron-500/60 p-5"
+      >
         {mode === "register" && (
           <div>
             <span className={labelCls}>I am a…</span>
