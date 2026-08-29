@@ -1,9 +1,9 @@
 import "dotenv/config";
 import path from "node:path";
 import fs from "node:fs";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/sql-js";
+import { migrate } from "drizzle-orm/sql-js/migrator";
+import initSqlJs from "sql.js";
 
 export function resolveDbPath(): string {
   const raw = process.env.DATABASE_URL;
@@ -15,27 +15,36 @@ export function resolveDbPath(): string {
   return raw;
 }
 
-/**
- * Run pending Drizzle migrations. Accepts an optional existing better-sqlite3
- * Database instance so it can be reused from the running Next server (avoids
- * spawning a child process, which is unreliable cross-platform on Windows).
- */
-export async function runMigrations(existing?: Database.Database): Promise<void> {
-  const dbPath = resolveDbPath();
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+/** Run pending Drizzle migrations against the SQLite file at dbPath. */
+export async function runMigrations(dbPath?: string): Promise<void> {
+  const resolved = dbPath ?? resolveDbPath();
+  fs.mkdirSync(path.dirname(resolved), { recursive: true });
 
-  const ownsConnection = !existing;
-  const sqlite = existing ?? new Database(dbPath);
+  const SQL = await initSqlJs({
+    locateFile: (file: string) =>
+      path.join(process.cwd(), "node_modules", "sql.js", "dist", file),
+  });
+
+  let sqlite: initSqlJs.Database;
+  if (fs.existsSync(resolved) && fs.statSync(resolved).size > 0) {
+    const buf = fs.readFileSync(resolved);
+    sqlite = new SQL.Database(new Uint8Array(buf));
+  } else {
+    sqlite = new SQL.Database();
+  }
+  sqlite.run("PRAGMA foreign_keys = ON;");
+
   try {
-    sqlite.pragma("journal_mode = WAL");
-    sqlite.pragma("foreign_keys = ON");
     const db = drizzle(sqlite);
-    await migrate(db, {
+    migrate(db, {
       migrationsFolder: path.join(process.cwd(), "drizzle"),
     });
-    console.log(`Migrations applied to ${dbPath}.`);
+    // Persist
+    const data = sqlite.export();
+    fs.writeFileSync(resolved, Buffer.from(data));
+    console.log(`Migrations applied to ${resolved}.`);
   } finally {
-    if (ownsConnection) sqlite.close();
+    sqlite.close();
   }
 }
 

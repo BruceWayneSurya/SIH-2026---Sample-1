@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
-import { sqlite } from "@/db";
-import { runMigrations } from "../../scripts/migrate";
+import { sqlite, db, DB_PATH } from "@/db";
+import { drizzle } from "drizzle-orm/sql-js";
+import { migrate } from "drizzle-orm/sql-js/migrator";
 import { seedDemoData } from "../../scripts/seed";
 
 const g = globalThis as typeof globalThis & {
@@ -10,41 +11,49 @@ const g = globalThis as typeof globalThis & {
 
 function usersTableReady(): boolean {
   try {
-    sqlite.prepare(`select 1 from users limit 1`).get();
+    sqlite.exec("SELECT 1 FROM users LIMIT 1;");
     return true;
   } catch {
     return false;
   }
 }
 
-function guestExists(): boolean {
+function guestCount(): number {
   try {
-    const row = sqlite
-      .prepare(`select id from users where email = ? limit 1`)
-      .get("guest.student@vidyasetu.gov.in") as { id: number } | undefined;
-    return !!row;
+    const res = sqlite.exec(
+      `SELECT COUNT(*) AS n FROM users WHERE email = 'guest.student@vidyasetu.gov.in';`,
+    );
+    if (!res.length || !res[0].values.length) return 0;
+    return Number(res[0].values[0][0] ?? 0);
   } catch {
-    return false;
+    return 0;
   }
 }
 
 async function boot(): Promise<void> {
-  const dbPath = (sqlite as unknown as { name: string }).name;
-  const needsInit = !fs.existsSync(dbPath) || fs.statSync(dbPath).size === 0;
+  const needsInit = !fs.existsSync(DB_PATH) || fs.statSync(DB_PATH).size === 0;
 
-  // Run migrations in-process (reuses the already-open SQLite connection).
   if (needsInit || !usersTableReady()) {
-    console.warn(`[db] initializing SQLite at ${dbPath}`);
-    await runMigrations(sqlite);
+    console.warn(`[db] initializing SQLite at ${DB_PATH}`);
+    migrate(drizzle(sqlite), {
+      migrationsFolder: path.join(process.cwd(), "drizzle"),
+    });
   }
 
-  // Seed demo data if missing — also in-process, on the same connection.
-  if (!guestExists()) {
+  if (guestCount() === 0) {
     console.warn("[db] demo data missing — running seed");
-    await seedDemoData(sqlite);
+    // Seed in-place against the already-open (in-memory) DB, then flush to disk.
+    await seedDemoData({
+      sqlite,
+      db,
+      persist: (sq) => {
+        const out = sq.export();
+        fs.writeFileSync(DB_PATH, Buffer.from(out));
+      },
+    });
   }
 
-  console.log(`[db] demo database ready (${path.relative(process.cwd(), dbPath)})`);
+  console.log(`[db] demo database ready (${path.relative(process.cwd(), DB_PATH)})`);
 }
 
 /** Idempotent: migrates and seeds the SIH demo SQLite database if needed. */

@@ -1,8 +1,8 @@
 import "dotenv/config";
 import path from "node:path";
 import fs from "node:fs";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/sql-js";
+import initSqlJs, { type Database as SqlJsDatabase } from "sql.js";
 import { eq, sql } from "drizzle-orm";
 import { hashPassword } from "../src/lib/session";
 import {
@@ -54,7 +54,6 @@ const PREFIX: Record<string, string> = {
   "arts-vocational": "ARTS",
 };
 
-/** deterministic pseudo-random for stable demo data */
 let s = 42;
 function rnd() {
   s = (s * 1103515245 + 12345) % 2147483648;
@@ -62,34 +61,21 @@ function rnd() {
 }
 const pick = (n: number) => Math.floor(rnd() * n);
 
-type DemoUser = {
-  handle: string;
-  name: string;
-  email: string;
-  role: "student" | "faculty";
-  className?: number;
-  state?: string;
-  school?: string;
-  spec?: string;
-  inst?: string;
-  guest?: boolean;
-};
-
-const DEMO_USERS: DemoUser[] = [
-  { handle: "ms_anita", name: "Anita Sharma", email: "anita.sharma@vidyasetu.gov.in", role: "faculty", spec: "Science", inst: "SCH-GJ-204", state: "Gujarat" },
-  { handle: "ravi_verma", name: "Ravi Verma", email: "ravi.verma@vidyasetu.gov.in", role: "faculty", spec: "Mathematics", inst: "SCH-MH-112", state: "Maharashtra" },
-  { handle: "aarav_p", name: "Aarav Patel", email: "aarav@student.in", role: "student", className: 8, state: "Gujarat", school: "Shiksha Kendra, Rajkot" },
-  { handle: "diya_m", name: "Diya Mehta", email: "diya@student.in", role: "student", className: 8, state: "Gujarat", school: "Kendriya Vidyalaya, Ahmedabad" },
-  { handle: "rohan_k", name: "Rohan Kulkarni", email: "rohan@student.in", role: "student", className: 8, state: "Maharashtra", school: "Ganesh Vidyalaya, Pune" },
-  { handle: "sneha_s", name: "Sneha Singh", email: "sneha@student.in", role: "student", className: 8, state: "Punjab", school: "GGS School, Ludhiana" },
-  { handle: "kabir_s", name: "Kabir Shah", email: "kabir@student.in", role: "student", className: 8, state: "Kerala", school: "Govt. Higher Secondary, Kochi" },
-  { handle: "ishita_r", name: "Ishita Roy", email: "ishita@student.in", role: "student", className: 8, state: "West Bengal", school: "Govt. High School, Kolkata" },
-  { handle: "arjun_t", name: "Arjun Thakur", email: "arjun@student.in", role: "student", className: 7, state: "Bihar", school: "Shiksha Kendra, Patna" },
-  { handle: "meera_n", name: "Meera Nair", email: "meera@student.in", role: "student", className: 7, state: "Kerala", school: "Govt. School, Thiruvananthapuram" },
-  { handle: "vihaan_g", name: "Vihaan Gupta", email: "vihaan@student.in", role: "student", className: 7, state: "Rajasthan", school: "Govt. Sr. Sec. School, Jaipur" },
-  { handle: "ananya_b", name: "Ananya Banerjee", email: "ananya@student.in", role: "student", className: 7, state: "Odisha", school: "GVHS, Bhubaneswar" },
-  { handle: "guest_student", name: "Guest Student", email: "guest.student@vidyasetu.gov.in", role: "student", className: 8, state: "All India", school: "VidyaSetu Guest", guest: true },
-  { handle: "guest_faculty", name: "Guest Faculty", email: "guest.faculty@vidyasetu.gov.in", role: "faculty", spec: "Science", inst: "SCH-DEMO", state: "All India", guest: true },
+const DEMO_USERS = [
+  { handle: "ms_anita", name: "Anita Sharma", email: "anita.sharma@vidyasetu.gov.in", role: "faculty" as const, spec: "Science", inst: "SCH-GJ-204", state: "Gujarat" },
+  { handle: "ravi_verma", name: "Ravi Verma", email: "ravi.verma@vidyasetu.gov.in", role: "faculty" as const, spec: "Mathematics", inst: "SCH-MH-112", state: "Maharashtra" },
+  { handle: "aarav_p", name: "Aarav Patel", email: "aarav@student.in", role: "student" as const, className: 8, state: "Gujarat", school: "Shiksha Kendra, Rajkot" },
+  { handle: "diya_m", name: "Diya Mehta", email: "diya@student.in", role: "student" as const, className: 8, state: "Gujarat", school: "Kendriya Vidyalaya, Ahmedabad" },
+  { handle: "rohan_k", name: "Rohan Kulkarni", email: "rohan@student.in", role: "student" as const, className: 8, state: "Maharashtra", school: "Ganesh Vidyalaya, Pune" },
+  { handle: "sneha_s", name: "Sneha Singh", email: "sneha@student.in", role: "student" as const, className: 8, state: "Punjab", school: "GGS School, Ludhiana" },
+  { handle: "kabir_s", name: "Kabir Shah", email: "kabir@student.in", role: "student" as const, className: 8, state: "Kerala", school: "Govt. Higher Secondary, Kochi" },
+  { handle: "ishita_r", name: "Ishita Roy", email: "ishita@student.in", role: "student" as const, className: 8, state: "West Bengal", school: "Govt. High School, Kolkata" },
+  { handle: "arjun_t", name: "Arjun Thakur", email: "arjun@student.in", role: "student" as const, className: 7, state: "Bihar", school: "Shiksha Kendra, Patna" },
+  { handle: "meera_n", name: "Meera Nair", email: "meera@student.in", role: "student" as const, className: 7, state: "Kerala", school: "Govt. School, Thiruvananthapuram" },
+  { handle: "vihaan_g", name: "Vihaan Gupta", email: "vihaan@student.in", role: "student" as const, className: 7, state: "Rajasthan", school: "Govt. Sr. Sec. School, Jaipur" },
+  { handle: "ananya_b", name: "Ananya Banerjee", email: "ananya@student.in", role: "student" as const, className: 7, state: "Odisha", school: "GVHS, Bhubaneswar" },
+  { handle: "guest_student", name: "Guest Student", email: "guest.student@vidyasetu.gov.in", role: "student" as const, className: 8, state: "All India", school: "VidyaSetu Guest", guest: true },
+  { handle: "guest_faculty", name: "Guest Faculty", email: "guest.faculty@vidyasetu.gov.in", role: "faculty" as const, spec: "Science", inst: "SCH-DEMO", state: "All India", guest: true },
 ];
 
 const CHAPTER_CONTENT: Record<
@@ -113,55 +99,73 @@ const SUBJECTIVE_DONE: { handle: string; chapter: string }[] = [
   { handle: "sneha_s", chapter: "8-mathematics-1" },
 ];
 
-function resetTablesOn(sqlite: Database.Database) {
-  // SQLite: disable FKs briefly, delete from child->parent tables, reset autoincrement.
-  sqlite.exec("PRAGMA foreign_keys = OFF;");
+function resetTables(sq: SqlJsDatabase) {
+  sq.run("PRAGMA foreign_keys = OFF;");
   const tables = [
-    "note_votes",
-    "mcq_attempts",
-    "subjective_attempts",
-    "xp_events",
-    "notes",
-    "videos",
-    "mcq_questions",
-    "subjective_questions",
-    "chapters",
-    "users",
+    "note_votes", "mcq_attempts", "subjective_attempts", "xp_events",
+    "notes", "videos", "mcq_questions", "subjective_questions",
+    "chapters", "users",
   ];
-  for (const t of tables) sqlite.exec(`DELETE FROM "${t}";`);
-  sqlite.exec(
-    "DELETE FROM sqlite_sequence WHERE name IN (" +
-      tables.map((t) => `'${t}'`).join(",") +
-      ");",
-  );
-  sqlite.exec("PRAGMA foreign_keys = ON;");
+  for (const t of tables) sq.run(`DELETE FROM "${t}";`);
+  try {
+    sq.run(
+      "DELETE FROM sqlite_sequence WHERE name IN (" +
+        tables.map((t) => `'${t}'`).join(",") + ");",
+    );
+  } catch { /* no-op */ }
+  sq.run("PRAGMA foreign_keys = ON;");
 }
 
 /**
- * Seed demo data. Accepts an optional existing better-sqlite3 Database instance
- * so it can be reused in-process from the running Next server.
+ * Seed demo data. When `existing` (a sql.js Database + pre-bound drizzle) is
+ * supplied, seeding happens in-place (used by the in-process auto-bootstrap
+ * on server start). Otherwise opens the file itself (CLI usage).
  */
-export async function seedDemoData(existing?: Database.Database): Promise<void> {
-  const dbPath = resolveDbPath();
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+export async function seedDemoData(existing?: {
+  sqlite: SqlJsDatabase;
+  db: ReturnType<typeof drizzle>;
+  persist?: (sq: SqlJsDatabase) => void;
+}): Promise<void> {
+  let sqlite: SqlJsDatabase;
+  let dbInst: ReturnType<typeof drizzle>;
+  let persist: (sq: SqlJsDatabase) => void;
+  let ownsConnection = false;
 
-  const ownsConnection = !existing;
-  const sqlite = existing ?? new Database(dbPath);
+  if (existing) {
+    sqlite = existing.sqlite;
+    dbInst = existing.db;
+    persist = existing.persist ?? (() => {});
+  } else {
+    const dbPath = resolveDbPath();
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+    const SQL = await initSqlJs({
+      locateFile: (file: string) =>
+        path.join(process.cwd(), "node_modules", "sql.js", "dist", file),
+    });
+    if (fs.existsSync(dbPath) && fs.statSync(dbPath).size > 0) {
+      const buf = fs.readFileSync(dbPath);
+      sqlite = new SQL.Database(new Uint8Array(buf));
+    } else {
+      sqlite = new SQL.Database();
+    }
+    sqlite.run("PRAGMA foreign_keys = ON;");
+    dbInst = drizzle(sqlite);
+    persist = (sq) => {
+      const out = sq.export();
+      fs.writeFileSync(dbPath, Buffer.from(out));
+    };
+    ownsConnection = true;
+  }
+
   try {
-    sqlite.pragma("journal_mode = WAL");
-    sqlite.pragma("foreign_keys = ON");
-    const db = drizzle(sqlite);
-
-    // reset rng so seeds are deterministic across calls
     s = 42;
+    resetTables(sqlite);
 
-    await resetTablesOn(sqlite);
     const pw = hashPassword(DEMO_PASSWORD);
 
-    // ---- users -------------------------------------------------------
     const userIds: Record<string, number> = {};
     for (const u of DEMO_USERS) {
-      const [row] = await db
+      const [row] = dbInst
         .insert(users)
         .values({
           handle: u.handle,
@@ -176,11 +180,11 @@ export async function seedDemoData(existing?: Database.Database): Promise<void> 
           institutionId: u.inst ?? null,
           isGuest: !!u.guest,
         })
-        .returning({ id: users.id });
+        .returning({ id: users.id })
+        .all() as { id: number }[];
       userIds[u.handle] = row.id;
     }
 
-    // ---- chapters ----------------------------------------------------
     const chapterIds: Record<string, number> = {};
     const chapterTitles: Record<string, string> = {};
     for (const classNo of [7, 8]) {
@@ -192,7 +196,7 @@ export async function seedDemoData(existing?: Database.Database): Promise<void> 
           const nn = String(i + 1).padStart(2, "0");
           const prefix = PREFIX[sub.slug];
           chapterTitles[key] = r.title;
-          const [ch] = await db
+          const [ch] = dbInst
             .insert(chapters)
             .values({
               classNo,
@@ -208,18 +212,18 @@ export async function seedDemoData(existing?: Database.Database): Promise<void> 
               ],
               dikshaCode: `D-${classNo}-${prefix}-${nn}`,
             })
-            .returning({ id: chapters.id });
+            .returning({ id: chapters.id })
+            .all() as { id: number }[];
           chapterIds[key] = ch.id;
         }
       }
     }
 
-    // ---- videos ------------------------------------------------------
     for (const [key, list] of Object.entries(videosByChapter)) {
       const chId = chapterIds[key];
       if (!chId) continue;
       for (const v of list) {
-        await db.insert(videos).values({
+        dbInst.insert(videos).values({
           chapterId: chId,
           title: v.title,
           kind: "mp4",
@@ -231,17 +235,16 @@ export async function seedDemoData(existing?: Database.Database): Promise<void> 
           slidesTitle: v.slidesTitle,
           uploadedById: userIds.ms_anita,
           uploadedByName: "Ms. Anita Sharma (Faculty)",
-        });
+        }).run();
       }
     }
 
-    // ---- notes + votes ------------------------------------------------
     for (const [key, list] of Object.entries(notesByChapter)) {
       const chId = chapterIds[key];
       if (!chId) continue;
       for (const n of list) {
         const authorId = userIds[n.author] ?? null;
-        const [note] = await db
+        const [note] = dbInst
           .insert(notes)
           .values({
             chapterId: chId,
@@ -253,38 +256,38 @@ export async function seedDemoData(existing?: Database.Database): Promise<void> 
             facultyVerified: !!n.verified,
             verifiedByName: n.verified ? "Ms. Anita Sharma" : null,
           })
-          .returning({ id: notes.id });
+          .returning({ id: notes.id })
+          .all() as { id: number }[];
 
         const voterIds = Array.from(
           new Set(n.votesFrom.filter((h) => userIds[h] !== undefined).map((h) => userIds[h])),
         );
         for (const uid of voterIds) {
-          await db
-            .insert(noteVotes)
+          dbInst.insert(noteVotes)
             .values({ noteId: note.id, userId: uid })
-            .onConflictDoNothing();
+            .onConflictDoNothing()
+            .run();
         }
         if (voterIds.length >= 10 && authorId) {
-          await db.update(notes).set({ rewarded: true }).where(eq(notes.id, note.id));
-          await db.insert(xpEvents).values({
+          dbInst.update(notes).set({ rewarded: true }).where(eq(notes.id, note.id)).run();
+          dbInst.insert(xpEvents).values({
             userId: authorId,
             type: "note_upvotes",
             amount: 50,
             refType: "note",
             refId: note.id,
             note: `Note reached 10+ upvotes — "${n.title}"`,
-          });
+          }).run();
         }
       }
     }
 
-    // ---- mcq + subjective banks ---------------------------------------
     const bankSize: Record<string, number> = {};
     for (const [key, bank] of Object.entries(CHAPTER_CONTENT)) {
       const chId = chapterIds[key];
       if (!chId) continue;
       for (const m of bank.mcqs) {
-        await db.insert(mcqQuestions).values({
+        dbInst.insert(mcqQuestions).values({
           chapterId: chId,
           qtext: m.q,
           options: m.options,
@@ -292,21 +295,20 @@ export async function seedDemoData(existing?: Database.Database): Promise<void> 
           explanation: m.why,
           isPyq: !!m.pyq,
           pyqTag: m.pyq ?? "Practice",
-        });
+        }).run();
         bankSize[key] = (bankSize[key] ?? 0) + 1;
       }
       for (const sq of bank.subj) {
-        await db.insert(subjectiveQuestions).values({
+        dbInst.insert(subjectiveQuestions).values({
           chapterId: chId,
           qtext: sq.q,
           marks: sq.marks,
           rubric: sq.rubric,
           modelAnswer: sq.answer,
-        });
+        }).run();
       }
     }
 
-    // ---- attempts + xp -------------------------------------------------
     for (const [key, byUser] of Object.entries(ATTEMPTS)) {
       const chId = chapterIds[key];
       const total = bankSize[key] ?? 20;
@@ -314,7 +316,7 @@ export async function seedDemoData(existing?: Database.Database): Promise<void> 
         const answers = Array.from({ length: total }, (_, i) =>
           i < score ? pick(4) : (pick(4) + 1) % 4,
         );
-        await db.insert(mcqAttempts).values({
+        dbInst.insert(mcqAttempts).values({
           userId: userIds[handle],
           chapterId: chId,
           answers,
@@ -322,35 +324,37 @@ export async function seedDemoData(existing?: Database.Database): Promise<void> 
           total,
           durationSec: 240 + pick(480),
           xpEarned: 10 * score,
-        });
-        await db.insert(xpEvents).values({
+        }).run();
+        dbInst.insert(xpEvents).values({
           userId: userIds[handle],
           type: "objective",
           amount: 10 * score,
           refType: "chapter",
           refId: chId,
           note: `Objective Test · ${chapterTitles[key]} · ${score}/${total}`,
-        });
+        }).run();
       }
     }
 
     for (const d of SUBJECTIVE_DONE) {
       const chId = chapterIds[d.chapter];
-      await db.insert(subjectiveAttempts).values({
+      dbInst.insert(subjectiveAttempts).values({
         userId: userIds[d.handle],
         chapterId: chId,
         answers: { 1: "Self-reviewed against the model marking scheme." },
         xpEarned: 30,
-      });
-      await db.insert(xpEvents).values({
+      }).run();
+      dbInst.insert(xpEvents).values({
         userId: userIds[d.handle],
         type: "subjective",
         amount: 30,
         refType: "chapter",
         refId: chId,
         note: `Subjective Practice · ${chapterTitles[d.chapter]}`,
-      });
+      }).run();
     }
+
+    persist(sqlite);
 
     console.log("Seed complete.");
     console.log(`  users:        ${DEMO_USERS.length}`);
@@ -365,7 +369,6 @@ export async function seedDemoData(existing?: Database.Database): Promise<void> 
   }
 }
 
-// CLI entry point: `tsx scripts/seed.ts`
 if (require.main === module) {
   seedDemoData().catch((e) => {
     console.error(e);
