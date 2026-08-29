@@ -7,7 +7,7 @@ export async function POST(
   req: Request,
   ctx: { params: Promise<{ chapterId: string }> },
 ) {
-  const user = await getSessionUser();
+  const user = await getActiveUser();
   if (!user)
     return Response.json({ error: "Please log in first." }, { status: 401 });
 

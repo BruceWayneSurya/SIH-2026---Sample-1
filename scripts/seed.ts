@@ -1,7 +1,9 @@
 import "dotenv/config";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { eq } from "drizzle-orm";
-import { Pool } from "pg";
+import path from "node:path";
+import fs from "node:fs";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import Database from "better-sqlite3";
+import { eq, sql } from "drizzle-orm";
 import { hashPassword } from "../src/lib/session";
 import {
   getChapters,
@@ -19,10 +21,23 @@ import {
   DEMO_PASSWORD,
 } from "./seed-content";
 
-const url =
-  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:5432/app_db";
-const pool = new Pool({ connectionString: url });
-const db = drizzle(pool);
+function resolveDbPath(): string {
+  const raw = process.env.DATABASE_URL;
+  if (!raw) return path.join(process.cwd(), "data", "app.db");
+  if (raw.startsWith("file://")) return raw.slice("file://".length);
+  if (raw.startsWith("postgres://") || raw.startsWith("postgresql://")) {
+    return path.join(process.cwd(), "data", "app.db");
+  }
+  return raw;
+}
+
+const dbPath = resolveDbPath();
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+const sqlite = new Database(dbPath);
+sqlite.pragma("journal_mode = WAL");
+sqlite.pragma("foreign_keys = ON");
+const db = drizzle(sqlite);
 
 // lazy imports of schema (tsx resolves types fine)
 import * as schema from "../src/db/schema";
@@ -107,10 +122,32 @@ const SUBJECTIVE_DONE: { handle: string; chapter: string }[] = [
   { handle: "sneha_s", chapter: "8-mathematics-1" },
 ];
 
-async function main() {
-  await pool.query(
-    `TRUNCATE users, chapters, videos, notes, note_votes, mcq_questions, mcq_attempts, subjective_questions, subjective_attempts, xp_events RESTART IDENTITY CASCADE`,
+async function resetTables() {
+  // SQLite: disable FKs briefly, delete from child->parent tables, reset autoincrement.
+  sqlite.exec("PRAGMA foreign_keys = OFF;");
+  const tables = [
+    "note_votes",
+    "mcq_attempts",
+    "subjective_attempts",
+    "xp_events",
+    "notes",
+    "videos",
+    "mcq_questions",
+    "subjective_questions",
+    "chapters",
+    "users",
+  ];
+  for (const t of tables) sqlite.exec(`DELETE FROM "${t}";`);
+  sqlite.exec(
+    "DELETE FROM sqlite_sequence WHERE name IN (" +
+      tables.map((t) => `'${t}'`).join(",") +
+      ");",
   );
+  sqlite.exec("PRAGMA foreign_keys = ON;");
+}
+
+async function main() {
+  await resetTables();
   const pw = hashPassword(DEMO_PASSWORD);
 
   // ---- users -------------------------------------------------------
@@ -174,7 +211,7 @@ async function main() {
     const chId = chapterIds[key];
     if (!chId) continue;
     for (const v of list) {
-      const [vid] = await db
+      await db
         .insert(videos)
         .values({
           chapterId: chId,
@@ -188,9 +225,7 @@ async function main() {
           slidesTitle: v.slidesTitle,
           uploadedById: userIds.ms_anita,
           uploadedByName: "Ms. Anita Sharma (Faculty)",
-        })
-        .returning({ id: videos.id });
-      void vid;
+        });
     }
   }
 
@@ -218,7 +253,10 @@ async function main() {
         new Set(n.votesFrom.filter((h) => userIds[h] !== undefined).map((h) => userIds[h])),
       );
       for (const uid of voterIds) {
-        await db.insert(noteVotes).values({ noteId: note.id, userId: uid }).onConflictDoNothing();
+        await db
+          .insert(noteVotes)
+          .values({ noteId: note.id, userId: uid })
+          .onConflictDoNothing();
       }
       if (voterIds.length >= 10 && authorId) {
         await db.update(notes).set({ rewarded: true }).where(eq(notes.id, note.id));
@@ -270,21 +308,15 @@ async function main() {
       const answers = Array.from({ length: total }, (_, i) =>
         i < score ? pick(4) : (pick(4) + 1) % 4,
       );
-      // guarantee exact score: correct index must equal stored correct; simplify by
-      // scoring as "answered = score correct" for demo realism
-      const [att] = await db
-        .insert(mcqAttempts)
-        .values({
-          userId: userIds[handle],
-          chapterId: chId,
-          answers,
-          score,
-          total,
-          durationSec: 240 + pick(480),
-          xpEarned: 10 * score,
-        })
-        .returning({ id: mcqAttempts.id });
-      void att;
+      await db.insert(mcqAttempts).values({
+        userId: userIds[handle],
+        chapterId: chId,
+        answers,
+        score,
+        total,
+        durationSec: 240 + pick(480),
+        xpEarned: 10 * score,
+      });
       await db.insert(xpEvents).values({
         userId: userIds[handle],
         type: "objective",
@@ -321,6 +353,7 @@ async function main() {
   console.log(`  note sets:    ${Object.keys(notesByChapter).length}`);
   console.log(`  MCQ banks:    ${Object.entries(bankSize).map(([k, v]) => `${k}=${v}`).join(", ")}`);
   console.log(`  attempts:     ${Object.values(ATTEMPTS).reduce((a, b) => a + Object.keys(b).length, 0)} objective, ${SUBJECTIVE_DONE.length} subjective`);
+  void sql; // silence unused-import warning if sql is removed in future edits
 }
 
 main()
@@ -328,4 +361,4 @@ main()
     console.error(e);
     process.exit(1);
   })
-  .finally(() => pool.end());
+  .finally(() => sqlite.close());

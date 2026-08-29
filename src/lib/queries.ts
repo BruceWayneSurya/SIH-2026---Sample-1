@@ -179,7 +179,8 @@ export async function getRankedNotes(
       verifiedByName: notes.verifiedByName,
       createdAt: notes.createdAt,
       upvotes: sql<number>`coalesce(count(${noteVotes.id}), 0)`,
-      iVoted: sql<boolean>`coalesce(bool_or(${noteVotes.userId} = ${userId ?? -1}), false)`,
+      // SQLite has no bool_or; use MAX over a CASE (1/0 -> treated as boolean below)
+      iVoted: sql<number>`coalesce(max(case when ${noteVotes.userId} = ${userId ?? -1} then 1 else 0 end), 0)`,
       rankScore: sql<number>`(coalesce(count(${noteVotes.id}), 0) * 0.7 + case when ${notes.facultyVerified} then 30 else 0 end)`,
     })
     .from(notes)
@@ -207,7 +208,7 @@ export async function getRankedNotes(
     facultyVerified: r.facultyVerified,
     verifiedByName: r.verifiedByName,
     upvotes: Number(r.upvotes),
-    iVoted: !!r.iVoted,
+    iVoted: Number(r.iVoted) === 1,
     rankScore: Number(r.rankScore),
     createdAt: r.createdAt.toISOString(),
   }));
