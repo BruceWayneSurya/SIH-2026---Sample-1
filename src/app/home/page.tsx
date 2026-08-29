@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   Trophy,
   Target,
@@ -12,7 +11,7 @@ import {
   History,
   ClipboardCheck,
 } from "lucide-react";
-import { getSessionUser } from "@/lib/session";
+import { getActiveUser } from "@/lib/session";
 import { db } from "@/db";
 import { chapters, notes } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -23,8 +22,17 @@ import { IconBox, ProgressBar, StatCard, SUBJECT_ICONS } from "@/components/ui";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const user = await getSessionUser();
-  if (!user) redirect("/");
+  const user = await getActiveUser();
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-20 text-center">
+        <h1 className="text-2xl font-extrabold text-navy-900">Portal is starting</h1>
+        <p className="mt-2 text-[15px] text-slate-600">
+          The learning database is not ready yet. Refresh this page in a moment.
+        </p>
+      </div>
+    );
+  }
 
   const classNo = user.className ?? 8;
   const stats = await getUserStats(user.id, classNo);

@@ -2,10 +2,10 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { db } from "@/db";
 import { notes } from "@/db/schema";
-import { getSessionUser } from "@/lib/session";
+import { getActiveUser } from "@/lib/session";
 
 export async function POST(req: Request) {
-  const user = await getSessionUser();
+  const user = await getActiveUser();
   if (!user)
     return Response.json({ error: "Please log in first." }, { status: 401 });
 

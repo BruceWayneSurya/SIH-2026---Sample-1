@@ -14,7 +14,7 @@ import {
   StickyNote,
   Trophy,
 } from "lucide-react";
-import { getSessionUser } from "@/lib/session";
+import { getActiveUser } from "@/lib/session";
 import { getChapters, subjectName, validClass, validSubject } from "@/lib/curriculum";
 import {
   getChapter,
@@ -48,8 +48,8 @@ export default async function ChapterPage({
   const { tab = "learn" } = await searchParams;
   if (!validClass(classNo) || !validSubject(subject)) notFound();
   if (!["learn", "objective", "subjective"].includes(tab)) notFound();
-  const user = await getSessionUser();
-  if (!user) redirect("/");
+  const user = await getActiveUser();
+  if (!user) redirect("/home");
 
   const cn = Number(classNo);
   const ch = await getChapter(cn, subject, chapter);

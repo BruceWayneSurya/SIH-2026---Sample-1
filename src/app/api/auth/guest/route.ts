@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { hashPassword, redirectTo, startSession } from "@/lib/session";
+import { hashPassword, redirectTo, redirectWithSession } from "@/lib/session";
 
 const GUESTS = {
   student: {
@@ -43,7 +43,6 @@ export async function GET(req: Request) {
       .limit(1);
 
     if (!user) {
-      // onConflictDoNothing keeps concurrent guest clicks from erroring
       const inserted = await db
         .insert(users)
         .values({
@@ -73,11 +72,10 @@ export async function GET(req: Request) {
         )[0];
     }
 
-    if (!user) return redirectTo("/?error=guest");
-
-    await startSession(req, user, GUEST_MAX_AGE);
+    if (!user) return redirectTo("/home");
+    return redirectWithSession(req, "/home", user, GUEST_MAX_AGE);
+  } catch (err) {
+    console.error("[guest]", err);
     return redirectTo("/home");
-  } catch {
-    return redirectTo("/?error=guest");
   }
 }

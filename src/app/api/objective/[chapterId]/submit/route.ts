@@ -1,13 +1,13 @@
 import { db } from "@/db";
 import { chapters, mcqAttempts, mcqQuestions, xpEvents } from "@/db/schema";
 import { and, count, eq } from "drizzle-orm";
-import { getSessionUser } from "@/lib/session";
+import { getActiveUser } from "@/lib/session";
 
 export async function POST(
   req: Request,
   ctx: { params: Promise<{ chapterId: string }> },
 ) {
-  const user = await getSessionUser();
+  const user = await getActiveUser();
   if (!user)
     return Response.json({ error: "Please log in first." }, { status: 401 });
 

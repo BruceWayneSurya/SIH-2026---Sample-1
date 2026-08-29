@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Award, Medal, Target, Trophy } from "lucide-react";
-import { getSessionUser } from "@/lib/session";
+import { getActiveUser } from "@/lib/session";
 import { db } from "@/db";
 import { chapters, mcqAttempts } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
@@ -24,8 +24,8 @@ export default async function Leaderboard({
 }: {
   searchParams: Promise<{ class?: string; chapter?: string }>;
 }) {
-  const user = await getSessionUser();
-  if (!user) redirect("/");
+  const user = await getActiveUser();
+  if (!user) redirect("/home");
   const { class: classParam, chapter: chapterParam } = await searchParams;
 
   const classNo =

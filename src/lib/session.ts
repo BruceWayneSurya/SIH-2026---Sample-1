@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 
 const SECRET = process.env.SESSION_SECRET ?? "vidyasetu-sih-demo-secret";
 const COOKIE = "vs_session";
+const OPEN_GUEST_EMAIL = "guest.student@vidyasetu.gov.in";
 
 export type SessionUser = {
   id: number;
@@ -20,6 +21,24 @@ export type SessionUser = {
   institutionId: string | null;
   isGuest: boolean;
 };
+
+type UserRow = typeof users.$inferSelect;
+
+function asSessionUser(u: UserRow, forceGuest = false): SessionUser {
+  return {
+    id: u.id,
+    handle: u.handle,
+    name: u.name,
+    email: u.email,
+    role: u.role,
+    className: u.className,
+    state: u.state,
+    school: u.school,
+    subjectSpecialization: u.subjectSpecialization,
+    institutionId: u.institutionId,
+    isGuest: forceGuest || u.isGuest,
+  };
+}
 
 export function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
@@ -50,31 +69,70 @@ export function makeSessionToken(
   return `${body}.${sign(body)}`;
 }
 
+function isHttps(req: Request): boolean {
+  const proto =
+    req.headers.get("x-forwarded-proto") ?? new URL(req.url).protocol.replace(":", "");
+  return proto === "https";
+}
+
+/** Cookie header that works inside a cross-origin HTTPS preview iframe. */
+export function sessionSetCookie(req: Request, token: string, maxAgeSec: number): string {
+  const https = isHttps(req);
+  const parts = [
+    `${COOKIE}=${token}`,
+    "Path=/",
+    "HttpOnly",
+    `Max-Age=${maxAgeSec}`,
+    https ? "Secure" : null,
+    https ? "SameSite=None" : "SameSite=Lax",
+  ].filter(Boolean);
+  return parts.join("; ");
+}
+
 /**
- * Writes the session cookie. `Secure` is enabled only when the request actually
- * arrived over HTTPS (preview/proxy sets x-forwarded-proto) so the same code
- * works on plain-http localhost and on the https preview domain.
+ * Writes the session cookie. Prefer attaching Set-Cookie on the Response
+ * (see `redirectWithSession`) — `cookies().set` can throw in some proxy
+ * request contexts and then the whole guest sign-in aborts.
  */
 export async function startSession(
   req: Request,
   user: { id: number; role: "student" | "faculty" },
   maxAgeSec = 60 * 60 * 24 * 14,
 ): Promise<void> {
-  const proto =
-    req.headers.get("x-forwarded-proto") ?? new URL(req.url).protocol.replace(":", "");
+  const https = isHttps(req);
   const store = await cookies();
   store.set(SESSION_COOKIE, makeSessionToken(user, maxAgeSec), {
     httpOnly: true,
-    sameSite: "lax",
-    secure: proto === "https",
+    sameSite: https ? "none" : "lax",
+    secure: https,
     maxAge: maxAgeSec,
     path: "/",
   });
 }
 
+export function redirectWithSession(
+  req: Request,
+  path: string,
+  user: { id: number; role: "student" | "faculty" },
+  maxAgeSec = 60 * 60 * 24 * 14,
+): Response {
+  const token = makeSessionToken(user, maxAgeSec);
+  return new Response(null, {
+    status: 303,
+    headers: {
+      Location: path,
+      "Set-Cookie": sessionSetCookie(req, token, maxAgeSec),
+    },
+  });
+}
+
 export async function endSession(): Promise<void> {
-  const store = await cookies();
-  store.delete(SESSION_COOKIE);
+  try {
+    const store = await cookies();
+    store.delete(SESSION_COOKIE);
+  } catch {
+    // ignore
+  }
 }
 
 /**
@@ -87,30 +145,37 @@ export function redirectTo(path: string): Response {
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
-  const store = await cookies();
-  const token = store.get(COOKIE)?.value;
-  if (!token) return null;
-  const [body, sig] = token.split(".");
-  if (!body || !sig || sign(body) !== sig) return null;
   try {
+    const store = await cookies();
+    const token = store.get(COOKIE)?.value;
+    if (!token) return null;
+    const [body, sig] = token.split(".");
+    if (!body || !sig || sign(body) !== sig) return null;
     const data = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
     if (typeof data?.u !== "number" || data.e < Date.now()) return null;
     const rows = await db.select().from(users).where(eq(users.id, data.u)).limit(1);
     const u = rows[0];
-    if (!u) return null;
-    return {
-      id: u.id,
-      handle: u.handle,
-      name: u.name,
-      email: u.email,
-      role: u.role,
-      className: u.className,
-      state: u.state,
-      school: u.school,
-      subjectSpecialization: u.subjectSpecialization,
-      institutionId: u.institutionId,
-      isGuest: u.isGuest,
-    };
+    return u ? asSessionUser(u) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Open-access identity: a signed-in user if a cookie is present, otherwise the
+ * seeded guest student. Pages never bounce to a login screen.
+ */
+export async function getActiveUser(): Promise<SessionUser | null> {
+  const session = await getSessionUser();
+  if (session) return session;
+  try {
+    const rows = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, OPEN_GUEST_EMAIL))
+      .limit(1);
+    const u = rows[0];
+    return u ? asSessionUser(u, true) : null;
   } catch {
     return null;
   }

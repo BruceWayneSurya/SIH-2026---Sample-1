@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { GraduationCap, LogOut, UserRound } from "lucide-react";
-import { getSessionUser } from "@/lib/session";
+import { GraduationCap, UserRound } from "lucide-react";
+import { getActiveUser } from "@/lib/session";
 import { DataSaverToggle } from "./data-saver-toggle";
 import { db } from "@/db";
 import { xpEvents } from "@/db/schema";
@@ -46,7 +46,7 @@ export const Wordmark = ({ light = false }: { light?: boolean }) => (
 );
 
 export async function SiteHeader() {
-  const user = await getSessionUser();
+  const user = await getActiveUser();
   let xp = 0;
   if (user) {
     try {
@@ -56,7 +56,6 @@ export async function SiteHeader() {
         .where(eq(xpEvents.userId, user.id));
       xp = Number(row?.x ?? 0);
     } catch {
-      // Never let a transient DB hiccup take down the page chrome.
       xp = 0;
     }
   }
@@ -69,26 +68,26 @@ export async function SiteHeader() {
           <Wordmark />
         </Link>
 
-        {user ? (
-          <>
-            <nav aria-label="Primary" className="order-3 flex w-full items-center gap-1 text-[15px] font-semibold sm:order-none sm:w-auto sm:flex-1">
-              {[
-                { href: "/home", label: "Dashboard" },
-                { href: "/leaderboard", label: "Leaderboard" },
-                { href: "/account", label: "My Account" },
-              ].map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className="rounded-md px-3 py-1.5 text-navy-700 transition hover:bg-navy-50 hover:text-navy-900"
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
+        <nav aria-label="Primary" className="order-3 flex w-full items-center gap-1 text-[15px] font-semibold sm:order-none sm:w-auto sm:flex-1">
+          {[
+            { href: "/home", label: "Dashboard" },
+            { href: "/leaderboard", label: "Leaderboard" },
+            { href: "/account", label: "My Account" },
+          ].map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="rounded-md px-3 py-1.5 text-navy-700 transition hover:bg-navy-50 hover:text-navy-900"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </nav>
 
-            <div className="ml-auto flex items-center gap-2 sm:ml-0">
-              <DataSaverToggle />
+        <div className="ml-auto flex items-center gap-2 sm:ml-0">
+          <DataSaverToggle />
+          {user && (
+            <>
               <span
                 className="hidden items-center gap-1.5 rounded-full border border-saffron-200 bg-saffron-50 px-3 py-1 text-sm font-bold text-saffron-700 md:inline-flex"
                 title="Total experience points"
@@ -102,27 +101,9 @@ export async function SiteHeader() {
                   {user.isGuest ? "Guest" : user.role}
                 </span>
               </span>
-              <a
-                href="/api/auth/logout"
-                className="rounded-md p-2 text-navy-500 transition hover:bg-rose-50 hover:text-rose-600"
-                aria-label="Log out"
-                title="Log out"
-              >
-                <LogOut className="h-5 w-5" />
-              </a>
-            </div>
-          </>
-        ) : (
-          <nav aria-label="Primary" className="ml-auto flex items-center gap-3">
-            <DataSaverToggle />
-            <a
-              href="/api/auth/guest?role=student"
-              className="inline-flex items-center rounded-md bg-navy-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-navy-700"
-            >
-              Enter portal
-            </a>
-          </nav>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

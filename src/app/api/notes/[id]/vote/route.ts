@@ -1,10 +1,10 @@
 import { db } from "@/db";
 import { noteVotes, notes, xpEvents } from "@/db/schema";
 import { and, count, eq } from "drizzle-orm";
-import { getSessionUser } from "@/lib/session";
+import { getActiveUser } from "@/lib/session";
 
 export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const user = await getSessionUser();
+  const user = await getActiveUser();
   if (!user)
     return Response.json({ error: "Please log in first." }, { status: 401 });
 

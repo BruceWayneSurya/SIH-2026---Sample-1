@@ -12,7 +12,7 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
-import { getSessionUser } from "@/lib/session";
+import { getActiveUser } from "@/lib/session";
 import { getUserStats } from "@/lib/queries";
 import { allBadges } from "@/lib/badges";
 import { StatCard } from "@/components/ui";
@@ -20,8 +20,8 @@ import { StatCard } from "@/components/ui";
 export const dynamic = "force-dynamic";
 
 export default async function Account() {
-  const user = await getSessionUser();
-  if (!user) redirect("/");
+  const user = await getActiveUser();
+  if (!user) redirect("/home");
 
   const stats = await getUserStats(user.id, user.className);
   const badges = allBadges(await (async () => {

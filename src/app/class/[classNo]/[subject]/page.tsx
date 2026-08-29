@@ -10,7 +10,7 @@ import {
   MapPinned,
   BookMarked,
 } from "lucide-react";
-import { getSessionUser } from "@/lib/session";
+import { getActiveUser } from "@/lib/session";
 import { getChapters, subjectName, validClass, validSubject } from "@/lib/curriculum";
 import { getChapterList } from "@/lib/queries";
 import { IconBox, ProgressBar, SUBJECT_ICONS } from "@/components/ui";
@@ -25,8 +25,8 @@ export default async function SubjectIndex({
 }) {
   const { classNo, subject } = await params;
   if (!validClass(classNo) || !validSubject(subject)) notFound();
-  const user = await getSessionUser();
-  if (!user) redirect("/");
+  const user = await getActiveUser();
+  if (!user) redirect("/home");
 
   const cn = Number(classNo);
   const meta = SUBJECTS.find((s) => s.slug === subject)!;
