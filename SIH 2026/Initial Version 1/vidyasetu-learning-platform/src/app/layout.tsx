@@ -1,19 +1,88 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Mukta, Noto_Serif_Devanagari } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { SiteHeader } from "@/components/header";
 import { SiteFooter } from "@/components/footer";
 
-const mukta = Mukta({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+/**
+ * Self-hosted fonts (via @fontsource) instead of next/font/google: the portal
+ * must build and run on restricted/low-bandwidth networks where Google Fonts
+ * is unreachable, and next/font/google hard-fails `next build` there.
+ */
+const mukta = localFont({
+  src: [
+    {
+      path: "../../node_modules/@fontsource/mukta/files/mukta-latin-400-normal.woff2",
+      weight: "400",
+    },
+    {
+      path: "../../node_modules/@fontsource/mukta/files/mukta-devanagari-400-normal.woff2",
+      weight: "400",
+    },
+    {
+      path: "../../node_modules/@fontsource/mukta/files/mukta-latin-500-normal.woff2",
+      weight: "500",
+    },
+    {
+      path: "../../node_modules/@fontsource/mukta/files/mukta-devanagari-500-normal.woff2",
+      weight: "500",
+    },
+    {
+      path: "../../node_modules/@fontsource/mukta/files/mukta-latin-600-normal.woff2",
+      weight: "600",
+    },
+    {
+      path: "../../node_modules/@fontsource/mukta/files/mukta-devanagari-600-normal.woff2",
+      weight: "600",
+    },
+    {
+      path: "../../node_modules/@fontsource/mukta/files/mukta-latin-700-normal.woff2",
+      weight: "700",
+    },
+    {
+      path: "../../node_modules/@fontsource/mukta/files/mukta-devanagari-700-normal.woff2",
+      weight: "700",
+    },
+    {
+      path: "../../node_modules/@fontsource/mukta/files/mukta-latin-800-normal.woff2",
+      weight: "800",
+    },
+    {
+      path: "../../node_modules/@fontsource/mukta/files/mukta-devanagari-800-normal.woff2",
+      weight: "800",
+    },
+  ],
   variable: "--font-mukta",
 });
 
-const deva = Noto_Serif_Devanagari({
-  subsets: ["devanagari"],
-  weight: ["500", "600", "700"],
+const deva = localFont({
+  src: [
+    {
+      path: "../../node_modules/@fontsource/noto-serif-devanagari/files/noto-serif-devanagari-devanagari-500-normal.woff2",
+      weight: "500",
+    },
+    {
+      path: "../../node_modules/@fontsource/noto-serif-devanagari/files/noto-serif-devanagari-latin-500-normal.woff2",
+      weight: "500",
+    },
+    {
+      path: "../../node_modules/@fontsource/noto-serif-devanagari/files/noto-serif-devanagari-devanagari-600-normal.woff2",
+      weight: "600",
+    },
+    {
+      path: "../../node_modules/@fontsource/noto-serif-devanagari/files/noto-serif-devanagari-latin-600-normal.woff2",
+      weight: "600",
+    },
+    {
+      path: "../../node_modules/@fontsource/noto-serif-devanagari/files/noto-serif-devanagari-devanagari-700-normal.woff2",
+      weight: "700",
+    },
+    {
+      path: "../../node_modules/@fontsource/noto-serif-devanagari/files/noto-serif-devanagari-latin-700-normal.woff2",
+      weight: "700",
+    },
+  ],
   variable: "--font-deva",
 });
 
