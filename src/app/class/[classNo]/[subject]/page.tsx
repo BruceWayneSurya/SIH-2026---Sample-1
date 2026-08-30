@@ -10,11 +10,11 @@ import {
   MapPinned,
   BookMarked,
 } from "lucide-react";
-import { getActiveUser } from "@/lib/session";
-import { getChapters, subjectName, validClass, validSubject } from "@/lib/curriculum";
-import { getChapterList } from "@/lib/queries";
+import { getActiveUser } from "@/server/auth/session";
+import { getChapters, subjectName, validClass, validSubject } from "@/shared/curriculum";
+import { getChapterList } from "@/server/data/queries";
 import { IconBox, ProgressBar, SUBJECT_ICONS } from "@/components/ui";
-import { SUBJECTS } from "@/lib/curriculum";
+import { SUBJECTS } from "@/shared/curriculum";
 
 export const dynamic = "force-dynamic";
 

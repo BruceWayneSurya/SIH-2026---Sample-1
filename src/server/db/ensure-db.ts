@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
-import { sqlite, db, DB_PATH } from "@/db";
+import { sqlite, db, DB_PATH } from "@/server/db";
 import { drizzle } from "drizzle-orm/sql-js";
 import { migrate } from "drizzle-orm/sql-js/migrator";
-import { seedDemoData } from "../../scripts/seed";
+import { seedDemoData } from "../../../scripts/seed";
 
 const g = globalThis as typeof globalThis & {
   __vsEnsureDb?: Promise<void>;

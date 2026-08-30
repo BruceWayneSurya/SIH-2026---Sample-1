@@ -1,7 +1,7 @@
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import { db } from "@/server/db";
+import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { startSession, verifyPassword } from "@/lib/session";
+import { startSession, verifyPassword } from "@/server/auth/session";
 
 const INVALID = "Invalid email or password. Try a demo account below.";
 

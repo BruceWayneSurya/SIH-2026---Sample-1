@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { db } from "@/db";
-import { notes } from "@/db/schema";
-import { getActiveUser } from "@/lib/session";
+import { db } from "@/server/db";
+import { notes } from "@/server/db/schema";
+import { getActiveUser } from "@/server/auth/session";
 
 export async function POST(req: Request) {
   const user = await getActiveUser();

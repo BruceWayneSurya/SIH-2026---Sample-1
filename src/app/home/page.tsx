@@ -11,12 +11,12 @@ import {
   History,
   ClipboardCheck,
 } from "lucide-react";
-import { getActiveUser } from "@/lib/session";
-import { db } from "@/db";
-import { chapters, notes } from "@/db/schema";
+import { getActiveUser } from "@/server/auth/session";
+import { db } from "@/server/db";
+import { chapters, notes } from "@/server/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { SUBJECTS, getChapters } from "@/lib/curriculum";
-import { getClassLeaderboard, getChapterList, getUserStats } from "@/lib/queries";
+import { SUBJECTS, getChapters } from "@/shared/curriculum";
+import { getClassLeaderboard, getChapterList, getUserStats } from "@/server/data/queries";
 import { IconBox, ProgressBar, StatCard, SUBJECT_ICONS } from "@/components/ui";
 
 export const dynamic = "force-dynamic";

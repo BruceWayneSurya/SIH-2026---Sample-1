@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Award, Medal, Target, Trophy } from "lucide-react";
-import { getActiveUser } from "@/lib/session";
-import { db } from "@/db";
-import { chapters, mcqAttempts } from "@/db/schema";
+import { getActiveUser } from "@/server/auth/session";
+import { db } from "@/server/db";
+import { chapters, mcqAttempts } from "@/server/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import {
   getClassLeaderboard,
   getChapterLeaderboard,
-} from "@/lib/queries";
-import { BADGES } from "@/lib/badges";
+} from "@/server/data/queries";
+import { BADGES } from "@/shared/badges";
 
 export const dynamic = "force-dynamic";
 

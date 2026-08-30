@@ -1,7 +1,7 @@
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import { db } from "@/server/db";
+import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { handleFromName, hashPassword, startSession } from "@/lib/session";
+import { handleFromName, hashPassword, startSession } from "@/server/auth/session";
 
 const SUBJECTS = [
   "Mathematics",
