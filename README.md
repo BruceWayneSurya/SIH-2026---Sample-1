@@ -1,4 +1,4 @@
-﻿# Pragyan (प्रज्ञान) — Open Digital Learning & Assessment Portal
+# Pragyan (प्रज्ञान) — Open Digital Learning & Assessment Portal
 
 > **Smart India Hackathon (SIH 2026)**  
 > **Team Name:** PRAGYAN  
@@ -122,50 +122,88 @@ Open your browser and visit:
 
 ## 📂 6. Project Structure
 
+The repo is organized into clean **frontend** and **backend** layers inside one Next.js deployment — push it to any web host and both sides ship together (no separate API server, no CORS setup).
+
 ```
-SIH-PRAGYAN-2026/
-├── drizzle/                     # SQL migration files & schema snapshots
-├── public/
-│   └── slides/                  # Downloadable Markdown & presentation decks
-├── scripts/
-│   ├── migrate.ts               # Drizzle SQLite migration runner
-│   ├── seed.ts                  # Database seeding script
-│   └── seed-content.ts          # Curated NCERT questions, MCQs, and rubrics
+SIH-2026---Sample-1/
 ├── src/
-│   ├── app/
-│   │   ├── account/page.tsx     # Student/Faculty profile & Evaluator Sandbox
-│   │   ├── api/                 # REST APIs (Auth, Notes, Quizzes, Votes)
-│   │   ├── class/[classNo]/     # Class & Subject chapter indices
-│   │   ├── home/page.tsx        # Main student/faculty dashboard
-│   │   ├── leaderboard/page.tsx # Class-wide & Chapter-specific leaderboards
-│   │   ├── login/page.tsx       # Unified NIC-themed login with 1-click demo access
-│   │   ├── register/page.tsx    # Unified student/faculty registration
-│   │   ├── globals.css          # Tailwind CSS 4 theme rules & animations
-│   │   └── layout.tsx           # Global root layout & national portal header
-│   ├── components/
-│   │   ├── data-saver-toggle.tsx# Low-bandwidth mode controller
-│   │   ├── header.tsx           # National portal navigation bar
-│   │   ├── notes-section.tsx    # Upvoting & faculty verification component
-│   │   ├── objective-quiz.tsx   # Timed 20-MCQ PYQ assessment engine
-│   │   ├── subjective-practice.tsx # 15-question subjective rubric reveal engine
-│   │   ├── ui.tsx               # Reusable UI cards, wordmarks & progress bars
-│   │   └── video-player.tsx     # Lecture video player with chapter markers
-│   ├── db/
-│   │   ├── index.ts             # sql.js WASM SQLite connection & disk persistence
-│   │   └── schema.ts            # Drizzle ORM relational schema
-│   └── lib/
-│       ├── badges.ts            # Gamification badge definitions
-│       ├── curriculum.ts        # NCERT Class 7 & 8 subject/chapter mappings
-│       ├── queries.ts           # Type-safe database queries
-│       └── session.ts           # RBAC authentication & session helpers
-├── package.json
-├── tsconfig.json
-└── README.md
+│   ├── app/                                # Routes (Next.js App Router)
+│   │   ├── api/                            # 🖥️ BACKEND — REST API endpoints
+│   │   │   ├── auth/                       #    login · register · guest · logout
+│   │   │   ├── health/route.ts             #    service health check
+│   │   │   ├── notes/                      #    community notes · votes · faculty verify
+│   │   │   ├── objective/[chapterId]/      #    MCQ submission & scoring
+│   │   │   └── subjective/[chapterId]/     #    subjective submission & scoring
+│   │   ├── account/page.tsx                # 🎨 FRONTEND — profile & Evaluator Sandbox
+│   │   ├── class/[classNo]/[subject]/      # 🎨 FRONTEND — class / subject / chapter pages
+│   │   ├── home/page.tsx                   # 🎨 FRONTEND — student & faculty dashboard
+│   │   ├── leaderboard/page.tsx            # 🎨 FRONTEND — class-wide & chapter leaderboards
+│   │   ├── login/ · register/              # 🎨 FRONTEND — NIC-themed auth screens
+│   │   ├── globals.css                     # 🎨 FRONTEND — Tailwind CSS 4 theme & animations
+│   │   └── layout.tsx                      # 🎨 FRONTEND — root layout & portal header
+│   ├── components/                         # 🎨 FRONTEND — React UI components
+│   │   ├── data-saver-toggle.tsx           #    low-bandwidth mode controller
+│   │   ├── header.tsx · footer.tsx         #    national portal navigation
+│   │   ├── notes-section.tsx               #    upvoting & faculty verification UI
+│   │   ├── objective-quiz.tsx              #    timed 20-MCQ PYQ assessment engine
+│   │   ├── subjective-practice.tsx         #    15-question rubric reveal engine
+│   │   ├── video-player.tsx                #    lecture player with chapter markers
+│   │   └── ui.tsx                          #    reusable cards, wordmarks, progress bars
+│   ├── server/                             # 🖥️ BACKEND — server-only modules (never reach the browser)
+│   │   ├── auth/                           #    HMAC-signed cookie sessions · scrypt hashing
+│   │   │   ├── session.ts
+│   │   │   └── password.ts
+│   │   ├── data/
+│   │   │   └── queries.ts                  #    type-safe database read queries
+│   │   └── db/                             #    SQLite (sql.js WASM) client & persistence
+│   │       ├── index.ts                    #      single shared connection + auto-flush to disk
+│   │       ├── schema.ts                   #      Drizzle ORM relational schema
+│   │       └── ensure-db.ts                #      migrate + seed bootstrap on first boot
+│   ├── shared/                             # 🔁 SHARED — used by both frontend & backend
+│   │   ├── curriculum.ts                   #    NCERT Class 7 & 8 subject/chapter mappings
+│   │   └── badges.ts                       #    gamification badge definitions
+│   └── instrumentation.ts                  # 🖥️ BACKEND — DB bootstrap on server start
+├── scripts/                                # 🖥️ BACKEND — database CLI (npm run db:…)
+│   ├── migrate.ts                          #    Drizzle SQLite migration runner
+│   ├── seed.ts                             #    database seeding script
+│   └── seed-content.ts                     #    curated NCERT questions, MCQs, and rubrics
+├── drizzle/                                # 🖥️ BACKEND — SQL migration files & snapshots
+├── public/                                 # 🎨 FRONTEND — static assets (videos, slide decks)
+├── drizzle.config.json                     # 🖥️ BACKEND — Drizzle Kit config (points at src/server/db/schema.ts)
+├── next.config.ts · tsconfig.json · eslint.config.mjs · postcss.config.mjs
+└── package.json · README.md
 ```
+
+### Frontend ↔ Backend map
+
+| Concern | Location |
+| :--- | :--- |
+| Pages & UI (frontend) | `src/app/**` page files + `src/components/**` |
+| HTTP endpoints (backend) | `src/app/api/**` — Next.js *requires* route handlers to live here |
+| Auth, database, queries (backend) | `src/server/**` |
+| Curriculum & badge constants (shared) | `src/shared/**` |
+
+> **Why one project?** Next.js serves the React frontend and the Node backend from the same build. Keeping the backend logic in `src/server/` gives a clean separation of concerns while the whole app still deploys as a single unit — `npm run build && npm run start` (or a one-click Vercel/Render import) puts it on the web with zero extra configuration.
 
 ---
 
-## 📜 7. Available Scripts
+## 🌐 7. Deploying to the Web
+
+The app is a **single Next.js deployment** — no separate backend server to host.
+
+1. **Push this repo to GitHub.**
+2. Pick a host:
+   - **Any Node host (Render, Railway, Fly.io, VPS…)** — recommended for full data persistence:
+     - Build command: `npm run build` · Start command: `npm run start`
+     - Set `SESSION_SECRET` to a long random value (required).
+     - `DATABASE_URL` is optional — defaults to `data/app.db`; mount a **persistent disk** at the project root so student data survives redeploys.
+   - **Vercel** — import the repo and deploy with zero config. Note: serverless file systems are ephemeral, so the demo SQLite file resets between cold starts (fine for showcasing; use a Node host with a disk or a hosted Postgres for durable data).
+3. **No manual DB setup needed** — on first boot the server automatically runs migrations and seeds the demo database (students, faculty, chapters, MCQ banks, notes, leaderboards).
+
+---
+
+## 📜 8. Available Scripts
+
 
 | Command | Description |
 | :--- | :--- |
@@ -179,6 +217,6 @@ SIH-PRAGYAN-2026/
 
 ---
 
-## 🇮🇳 8. Team PRAGYAN (SIH 2026)
+## 🇮🇳 9. Team PRAGYAN (SIH 2026)
 Developed for the **Smart India Hackathon 2026** to empower government and rural school students across India with accessible, high-quality NCERT foundational education.
 

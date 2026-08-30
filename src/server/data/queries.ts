@@ -1,4 +1,4 @@
-import { db } from "@/db";
+import { db } from "@/server/db";
 import {
   chapters,
   users,
@@ -10,7 +10,7 @@ import {
   subjectiveQuestions,
   subjectiveAttempts,
   xpEvents,
-} from "@/db/schema";
+} from "@/server/db/schema";
 import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 
 /* ----------------------------- chapters ----------------------------- */

@@ -13,7 +13,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import type { RankedNote } from "@/lib/queries";
+import type { RankedNote } from "@/server/data/queries";
 
 type Props = {
   chapterId: number;

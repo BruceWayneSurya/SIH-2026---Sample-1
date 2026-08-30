@@ -14,15 +14,15 @@ import {
   StickyNote,
   Trophy,
 } from "lucide-react";
-import { getActiveUser } from "@/lib/session";
-import { getChapters, subjectName, validClass, validSubject } from "@/lib/curriculum";
+import { getActiveUser } from "@/server/auth/session";
+import { getChapters, subjectName, validClass, validSubject } from "@/shared/curriculum";
 import {
   getChapter,
   getContentForChapter,
   getRankedNotes,
   getBestAttempt,
   getChapterLeaderboard,
-} from "@/lib/queries";
+} from "@/server/data/queries";
 import { EmptyState } from "@/components/ui";
 import { VideoPlayer } from "@/components/video-player";
 import { NotesSection } from "@/components/notes-section";

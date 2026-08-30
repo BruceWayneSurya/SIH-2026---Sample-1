@@ -4,12 +4,12 @@ import fs from "node:fs";
 import { drizzle } from "drizzle-orm/sql-js";
 import initSqlJs, { type Database as SqlJsDatabase } from "sql.js";
 import { eq, sql } from "drizzle-orm";
-import { hashPassword } from "../src/lib/password";
+import { hashPassword } from "../src/server/auth/password";
 import {
   getChapters,
   SUBJECTS,
   slugify,
-} from "../src/lib/curriculum";
+} from "../src/shared/curriculum";
 import {
   combustionMcqs,
   combustionSubj,
@@ -21,7 +21,7 @@ import {
   notesByChapter,
   DEMO_PASSWORD,
 } from "./seed-content";
-import * as schema from "../src/db/schema";
+import * as schema from "../src/server/db/schema";
 
 function resolveDbPath(): string {
   const raw = process.env.DATABASE_URL;

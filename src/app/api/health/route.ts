@@ -1,4 +1,4 @@
-import { sqlite } from "@/db";
+import { sqlite } from "@/server/db";
 
 export const dynamic = "force-dynamic";
 

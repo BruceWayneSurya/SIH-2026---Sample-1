@@ -1,7 +1,7 @@
-import { db } from "@/db";
-import { chapters, subjectiveAttempts, xpEvents } from "@/db/schema";
+import { db } from "@/server/db";
+import { chapters, subjectiveAttempts, xpEvents } from "@/server/db/schema";
 import { and, count, eq } from "drizzle-orm";
-import { getActiveUser } from "@/lib/session";
+import { getActiveUser } from "@/server/auth/session";
 
 export async function POST(
   req: Request,

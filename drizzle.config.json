@@ -1,6 +1,6 @@
 {
   "dialect": "sqlite",
-  "schema": "./src/db/schema.ts",
+  "schema": "./src/server/db/schema.ts",
   "dbCredentials": {
     "url": "file:./data/app.db"
   }

@@ -1,7 +1,7 @@
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import { db } from "@/server/db";
+import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { hashPassword, redirectTo, redirectWithSession } from "@/lib/session";
+import { hashPassword, redirectTo, redirectWithSession } from "@/server/auth/session";
 
 const GUESTS = {
   student: {

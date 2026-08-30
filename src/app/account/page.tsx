@@ -13,9 +13,9 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
-import { getActiveUser } from "@/lib/session";
-import { getUserStats } from "@/lib/queries";
-import { allBadges } from "@/lib/badges";
+import { getActiveUser } from "@/server/auth/session";
+import { getUserStats } from "@/server/data/queries";
+import { allBadges } from "@/shared/badges";
 import { StatCard } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ export default async function Account() {
 
   const stats = await getUserStats(user.id, user.className);
   const badges = allBadges(await (async () => {
-    const { getBadgesForUser } = await import("@/lib/queries");
+    const { getBadgesForUser } = await import("@/server/data/queries");
     return getBadgesForUser(user.id);
   })());
 

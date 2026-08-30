@@ -174,7 +174,7 @@ export async function getActiveUser(): Promise<SessionUser | null> {
   }
 
   try {
-    const { ensureDemoDatabase } = await import("./ensure-db");
+    const { ensureDemoDatabase } = await import("../db/ensure-db");
     await ensureDemoDatabase();
     return await lookup();
   } catch (err) {

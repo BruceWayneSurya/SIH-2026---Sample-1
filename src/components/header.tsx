@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { GraduationCap, UserRound } from "lucide-react";
-import { getActiveUser } from "@/lib/session";
+import { getActiveUser } from "@/server/auth/session";
 import { DataSaverToggle } from "./data-saver-toggle";
 import { ThemeToggle } from "./theme-toggle";
-import { db } from "@/db";
-import { xpEvents } from "@/db/schema";
+import { db } from "@/server/db";
+import { xpEvents } from "@/server/db/schema";
 import { eq, sql } from "drizzle-orm";
 
 import { Wordmark } from "./ui";

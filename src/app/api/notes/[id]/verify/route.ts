@@ -1,7 +1,7 @@
-import { db } from "@/db";
-import { notes } from "@/db/schema";
+import { db } from "@/server/db";
+import { notes } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { getActiveUser } from "@/lib/session";
+import { getActiveUser } from "@/server/auth/session";
 
 export async function POST(
   req: Request,

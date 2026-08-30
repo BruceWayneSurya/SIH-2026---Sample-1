@@ -1,7 +1,7 @@
-import { db } from "@/db";
-import { noteVotes, notes, xpEvents } from "@/db/schema";
+import { db } from "@/server/db";
+import { noteVotes, notes, xpEvents } from "@/server/db/schema";
 import { and, count, eq } from "drizzle-orm";
-import { getActiveUser } from "@/lib/session";
+import { getActiveUser } from "@/server/auth/session";
 
 export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getActiveUser();

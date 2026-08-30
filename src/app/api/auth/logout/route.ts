@@ -1,4 +1,4 @@
-import { endSession, redirectTo } from "@/lib/session";
+import { endSession, redirectTo } from "@/server/auth/session";
 
 export async function GET() {
   await endSession();
