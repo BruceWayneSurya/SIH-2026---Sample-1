@@ -182,6 +182,7 @@ export default async function ChapterPage({
                   </span>
                 </h2>
                 <NotesSection
+                  key={`${ch.id}:${user.id}`}
                   chapterId={ch.id}
                   initial={notesList}
                   isFaculty={user.role === "faculty"}

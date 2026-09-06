@@ -12,5 +12,8 @@ next-env.d.ts
 .env.local
 .env.*.local
 
+# runtime note attachments (Google Drive documents are stored as links)
+public/uploads/
+
 # logs
 npm-debug.log*

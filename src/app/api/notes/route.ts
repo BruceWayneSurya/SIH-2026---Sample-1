@@ -1,7 +1,10 @@
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
+import { randomUUID } from "node:crypto";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { notes } from "@/db/schema";
+import { chapters, notes } from "@/db/schema";
+import { validateNoteUpload } from "@/lib/note-upload";
 import { getActiveUser } from "@/lib/session";
 
 export async function POST(req: Request) {
@@ -16,58 +19,55 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid form data." }, { status: 400 });
   }
 
-  const chapterId = Number(form.get("chapterId"));
-  const title = String(form.get("title") ?? "").trim();
-  const content = String(form.get("content") ?? "").trim();
-  const file = form.get("file");
+  const result = validateNoteUpload(form);
+  if (result.error !== undefined) {
+    return Response.json({ error: result.error }, { status: 400 });
+  }
+  const { chapterId, title, content, file, fileType, fileName } = result.data;
+  let { fileUrl } = result.data;
+  let uploadedPath: string | null = null;
 
-  if (!Number.isInteger(chapterId) || chapterId <= 0)
-    return Response.json({ error: "Missing chapter." }, { status: 400 });
-  if (title.length < 4)
-    return Response.json({ error: "Please give your notes a title (min 4 characters)." }, { status: 400 });
+  try {
+    const [chapter] = await db
+      .select({ id: chapters.id })
+      .from(chapters)
+      .where(eq(chapters.id, chapterId))
+      .limit(1);
+    if (!chapter) {
+      return Response.json({ error: "Chapter not found." }, { status: 404 });
+    }
 
-  let fileType: "text" | "pdf" | "image" = "text";
-  let fileUrl: string | null = null;
-  let fileName: string | null = null;
+    if (file) {
+      const dir = path.join(process.cwd(), "public", "uploads");
+      await mkdir(dir, { recursive: true });
+      const safeName = `n${randomUUID()}-${fileName}`;
+      uploadedPath = path.join(dir, safeName);
+      await writeFile(uploadedPath, Buffer.from(await file.arrayBuffer()), { flag: "wx" });
+      fileUrl = `/uploads/${safeName}`;
+    }
 
-  if (file && typeof file !== "string" && file.size > 0) {
-    fileName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
-    const lower = fileName.toLowerCase();
-    if (lower.endsWith(".pdf")) fileType = "pdf";
-    else if (/\.(png|jpe?g|webp)$/.test(lower)) fileType = "image";
-    else
-      return Response.json(
-        { error: "Only PDF and image files can be uploaded." },
-        { status: 400 },
-      );
-    if (file.size > 8 * 1024 * 1024)
-      return Response.json({ error: "File too large (max 8 MB)." }, { status: 400 });
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const dir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(dir, { recursive: true });
-    const safeName = `n${Date.now()}-${fileName}`;
-    await writeFile(path.join(dir, safeName), bytes);
-    fileUrl = `/uploads/${safeName}`;
-  } else if (!content) {
+    const [row] = await db
+      .insert(notes)
+      .values({
+        chapterId,
+        title,
+        content,
+        fileName,
+        fileUrl,
+        fileType,
+        authorId: user.id,
+        authorName: user.name,
+      })
+      .returning({ id: notes.id });
+
+    return Response.json({ ok: true, id: row.id }, { status: 201 });
+  } catch (error) {
+    // Don't leave orphaned local files if the database insert failed.
+    if (uploadedPath) await unlink(uploadedPath).catch(() => undefined);
+    console.error("[notes:upload]", error);
     return Response.json(
-      { error: "Add some content or attach a PDF / image file." },
-      { status: 400 },
+      { error: "Could not publish your note. Please try again." },
+      { status: 500 },
     );
   }
-
-  const [row] = await db
-    .insert(notes)
-    .values({
-      chapterId,
-      title,
-      content: content || null,
-      fileName,
-      fileUrl,
-      fileType,
-      authorId: user.id,
-      authorName: user.name,
-    })
-    .returning({ id: notes.id });
-
-  return Response.json({ ok: true, id: row.id });
 }
