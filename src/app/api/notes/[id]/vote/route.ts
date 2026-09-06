@@ -29,13 +29,14 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
   try {
     const result = await db.transaction(async (tx) => {
-      // Serialize votes on this note. Counting, toggling and the one-time XP
-      // reward must commit together, even when several classmates vote at once.
+      // libSQL begins a SQLite IMMEDIATE write transaction before this callback.
+      // Counting, toggling and the one-time XP reward therefore commit together,
+      // even when several classmates vote at once (no PostgreSQL row locks).
       const [note] = await tx
         .select()
         .from(notes)
         .where(eq(notes.id, noteId))
-        .for("update");
+        .limit(1);
       if (!note) return null;
 
       const voteFilter = and(eq(noteVotes.noteId, noteId), eq(noteVotes.userId, user.id));

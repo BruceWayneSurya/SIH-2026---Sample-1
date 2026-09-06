@@ -32,3 +32,12 @@ export function normalizeGoogleDriveUrl(value: string): string | null {
     return null;
   }
 }
+
+/** Drive's embeddable viewer uses /preview, not the ordinary /view share page. */
+export function googleDrivePreviewUrl(value: string): string | null {
+  const canonical = normalizeGoogleDriveUrl(value);
+  if (!canonical) return null;
+  const url = new URL(canonical);
+  url.pathname = url.pathname.replace(/\/view$/, "/preview");
+  return url.toString();
+}

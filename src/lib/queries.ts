@@ -179,7 +179,7 @@ export async function getRankedNotes(
       verifiedByName: notes.verifiedByName,
       createdAt: notes.createdAt,
       upvotes: sql<number>`coalesce(count(${noteVotes.id}), 0)`,
-      iVoted: sql<boolean>`coalesce(bool_or(${noteVotes.userId} = ${userId ?? -1}), false)`,
+      iVoted: sql<number>`coalesce(max(case when ${noteVotes.userId} = ${userId ?? -1} then 1 else 0 end), 0)`,
       rankScore: sql<number>`(coalesce(count(${noteVotes.id}), 0) * 0.7 + case when ${notes.facultyVerified} then 30 else 0 end)`,
     })
     .from(notes)

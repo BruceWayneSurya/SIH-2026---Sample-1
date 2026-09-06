@@ -5,7 +5,7 @@ import { unlink } from "node:fs/promises";
 import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { and, eq, inArray } from "drizzle-orm";
-import { db, pool } from "../src/db";
+import { db, client, initializeDatabase } from "../src/db";
 import { chapters, notes, noteVotes, users, xpEvents } from "../src/db/schema";
 import { getRankedNotes } from "../src/lib/queries";
 import { makeSessionToken, SESSION_COOKIE } from "../src/lib/session";
@@ -61,6 +61,7 @@ async function vote(noteId: number, userId: number, voted?: boolean) {
 }
 
 before(async () => {
+  await initializeDatabase();
   // Trigger local demo bootstrap before creating any test fixtures.
   const health = await fetch(`${baseUrl}/api/health`);
   assert.equal(health.status, 200, "Start the app before running integration tests.");
@@ -97,7 +98,7 @@ after(async () => {
     if (chapterId) await db.delete(chapters).where(eq(chapters.id, chapterId));
     if (fixtureUserIds.length) await db.delete(users).where(inArray(users.id, fixtureUserIds));
   } finally {
-    await pool.end();
+    client.close();
   }
 });
 

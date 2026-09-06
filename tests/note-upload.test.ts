@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { normalizeGoogleDriveUrl } from "../src/lib/google-drive";
+import { googleDrivePreviewUrl, normalizeGoogleDriveUrl } from "../src/lib/google-drive";
 import {
   MAX_DRIVE_URL_LENGTH,
   MAX_NOTE_CONTENT_LENGTH,
@@ -36,6 +36,16 @@ describe("Google Drive PDF links", () => {
       assert.equal(normalizeGoogleDriveUrl(input), canonical);
     });
   }
+
+  it("creates an in-page preview URL from view, open, download and preview links", () => {
+    for (const link of [canonical, `${canonical}?usp=sharing`, `https://drive.google.com/open?id=${fileId}`, `https://drive.google.com/uc?id=${fileId}&export=download`, canonical.replace("/view", "/preview")]) {
+      assert.equal(googleDrivePreviewUrl(link), canonical.replace("/view", "/preview"));
+    }
+    assert.equal(googleDrivePreviewUrl(`${canonical}?resourcekey=0-Ab_c&usp=sharing`), `${canonical.replace("/view", "/preview")}?resourcekey=0-Ab_c`);
+    assert.equal(googleDrivePreviewUrl("https://example.com/notes.pdf"), null);
+    assert.equal(googleDrivePreviewUrl("https://drive.google.com/drive/folders/folder123"), null);
+    assert.equal(googleDrivePreviewUrl("javascript:alert(1)"), null);
+  });
 
   it("preserves access resource keys while removing tracking parameters", () => {
     assert.equal(

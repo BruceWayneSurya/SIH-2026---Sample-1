@@ -1,41 +1,33 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/libsql";
+import type { Client } from "@libsql/client";
+import { resolveSqlitePath } from "./config";
+import { openSqliteClient } from "./sqlite-client";
 
-/**
- * Matches the default in drizzle.config.json and scripts/seed.ts so the demo
- * runs with zero configuration on a local machine. Set DATABASE_URL to
- * override (e.g. a hosted PostgreSQL instance).
- */
-const DEFAULT_DATABASE_URL =
-  "postgresql://postgres:postgres@127.0.0.1:5432/app_db";
-
-const databaseUrl = process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL;
-
-if (!process.env.DATABASE_URL && process.env.NODE_ENV !== "production") {
-  console.warn(
-    "[db] DATABASE_URL is not set — falling back to the local demo database " +
-      "at 127.0.0.1:5432/app_db. Run `npm run db:setup` to create and seed it.",
-  );
-}
+export const databasePath = resolveSqlitePath();
 
 const globalForDb = globalThis as typeof globalThis & {
-  __arenaNextJsPostgresqlPool?: Pool;
+  __vsSqlite?: { path: string; client: Client; ready?: Promise<void> };
 };
 
-/**
- * The pool is created lazily-friendly: `new Pool()` never connects until the
- * first query, so importing this module can't crash the app (or the login
- * page) when the database is temporarily unavailable. Routes surface a
- * friendly error instead.
- */
-export const pool =
-  globalForDb.__arenaNextJsPostgresqlPool ??
-  new Pool({
-    connectionString: databaseUrl,
-  });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.__arenaNextJsPostgresqlPool = pool;
+// Reuse the connection pool and initialization promise across Next.js HMR and
+// server bundles. A blank DATABASE_URL is intentional, not a PostgreSQL URL.
+if (!globalForDb.__vsSqlite || globalForDb.__vsSqlite.path !== databasePath || globalForDb.__vsSqlite.client.closed) {
+  globalForDb.__vsSqlite = { path: databasePath, client: openSqliteClient(databasePath) };
 }
+const connection = globalForDb.__vsSqlite;
+export const client = connection.client;
+export const db = drizzle(client);
 
-export const db = drizzle(pool);
+export function initializeDatabase(): Promise<void> {
+  if (!connection.ready) {
+    connection.ready = (async () => {
+      // WAL permits reads while a vote/upload transaction is committing.
+      await client.execute("PRAGMA journal_mode = WAL");
+      await client.execute("PRAGMA foreign_keys = ON");
+    })().catch((error) => {
+      connection.ready = undefined;
+      throw error;
+    });
+  }
+  return connection.ready;
+}

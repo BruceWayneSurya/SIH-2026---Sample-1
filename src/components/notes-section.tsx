@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   ArrowBigUp,
   BadgeCheck,
-  ExternalLink,
   FileText,
   Image as ImageIcon,
   Link2,
@@ -22,6 +21,7 @@ import {
   MAX_NOTE_TITLE_LENGTH,
 } from "@/lib/note-upload";
 import type { RankedNote } from "@/lib/queries";
+import { GoogleDrivePreview } from "./google-drive-preview";
 
 type Props = {
   chapterId: number;
@@ -41,6 +41,7 @@ export function NotesSection({ chapterId, initial, isFaculty }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadErr, setUploadErr] = useState<string | null>(null);
   const [driveUrl, setDriveUrl] = useState("");
+  const [draftPreview, setDraftPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const voteInFlight = useRef(false);
@@ -154,6 +155,7 @@ export function NotesSection({ chapterId, initial, isFaculty }: Props) {
       if (!res.ok || !data?.ok) throw new Error(data?.error ?? "Could not publish your note. Please try again.");
       setShowForm(false);
       setDriveUrl("");
+      setDraftPreview(null);
       setFileName(null);
       setNotice("Your note has been published.");
       router.refresh();
@@ -165,6 +167,7 @@ export function NotesSection({ chapterId, initial, isFaculty }: Props) {
     }
   };
 
+  const draftDriveLink = normalizeGoogleDriveUrl(driveUrl);
   const sorted = [...notesState.items].sort((a, b) => b.rankScore - a.rankScore || a.id - b.id);
 
   return (
@@ -190,6 +193,7 @@ export function NotesSection({ chapterId, initial, isFaculty }: Props) {
             setShowForm((v) => !v);
             setUploadErr(null);
             setDriveUrl("");
+            setDraftPreview(null);
             setFileName(null);
           }}
           disabled={uploading}
@@ -243,7 +247,10 @@ export function NotesSection({ chapterId, initial, isFaculty }: Props) {
                 type="url"
                 name="driveUrl"
                 value={driveUrl}
-                onChange={(e) => setDriveUrl(e.target.value)}
+                onChange={(e) => {
+                  setDriveUrl(e.target.value);
+                  setDraftPreview(null);
+                }}
                 disabled={fileName !== null}
                 maxLength={MAX_DRIVE_URL_LENGTH}
                 placeholder="https://drive.google.com/file/d/…/view"
@@ -253,9 +260,22 @@ export function NotesSection({ chapterId, initial, isFaculty }: Props) {
               <p id={`note-drive-help-${chapterId}`} className="mt-2 text-[12px] leading-relaxed text-slate-500">
                 Upload your PDF to Google Drive, set General access to <b>Anyone with the link · Viewer</b>,
                 then paste its file-sharing link here. Use a PDF file, not a folder or Google Doc.
-                Only the link is saved; the document stays in your Drive. Optional for text-only notes.
+                Only the link is saved; the document stays in your Drive and is previewed here. Optional for text-only notes.
               </p>
               {fileName && <p className="mt-1 text-[12px] text-slate-500">Remove the local attachment below to use a Drive link instead.</p>}
+              <button
+                type="button"
+                disabled={!draftDriveLink || fileName !== null}
+                onClick={() => setDraftPreview(draftDriveLink)}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-navy-200 bg-navy-50 px-3 py-1.5 text-sm font-bold text-navy-700 hover:border-navy-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <FileText className="h-4 w-4" /> Preview PDF before publishing
+              </button>
+              {draftPreview && (
+                <div className="mt-3">
+                  <GoogleDrivePreview key={draftPreview} url={draftPreview} title="Document draft" />
+                </div>
+              )}
             </div>
             <details className="text-sm text-slate-600">
               <summary className="cursor-pointer font-semibold text-navy-700">Or attach a local PDF / image</summary>
@@ -384,17 +404,14 @@ export function NotesSection({ chapterId, initial, isFaculty }: Props) {
                         {n.content}
                       </pre>
                     )}
-                    {n.fileUrl && (
+                    {n.fileUrl && !driveLink && (
                       <a
-                        href={driveLink ?? n.fileUrl}
-                        target={driveLink ? "_blank" : undefined}
-                        rel={driveLink ? "noopener noreferrer" : undefined}
-                        download={driveLink ? undefined : n.fileName ?? undefined}
+                        href={n.fileUrl}
+                        download={n.fileName ?? undefined}
                         className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-md border border-navy-200 bg-navy-50 px-3 py-1.5 text-sm font-bold text-navy-700 hover:border-navy-400"
                       >
                         {n.fileType === "image" ? <ImageIcon className="h-4 w-4 shrink-0" /> : <FileText className="h-4 w-4 shrink-0" />}
-                        <span className="break-all">{driveLink ? "Open PDF in Google Drive" : n.fileName ?? "Download file"}</span>
-                        {driveLink && <><ExternalLink className="h-3.5 w-3.5 shrink-0" /><span className="sr-only">(opens in a new tab)</span></>}
+                        <span className="break-all">{n.fileName ?? "Download file"}</span>
                       </a>
                     )}
                   </div>
@@ -419,6 +436,11 @@ export function NotesSection({ chapterId, initial, isFaculty }: Props) {
                     </button>
                   )}
                 </div>
+                {driveLink && (
+                  <div className="mt-3">
+                    <GoogleDrivePreview key={driveLink} url={driveLink} title={n.title} />
+                  </div>
+                )}
                 {actionError?.noteId === n.id && (
                   <p role="alert" className="mt-3 rounded-md bg-rose-50 p-2 text-sm font-bold text-rose-600">{actionError.message}</p>
                 )}

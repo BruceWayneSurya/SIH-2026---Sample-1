@@ -1,5 +1,5 @@
 {
-  "name": "nextjs-postgresql-template",
+  "name": "vidyasetu-learning-portal",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -18,20 +18,19 @@
   "dependencies": {
     "@fontsource/mukta": "^5.3.0",
     "@fontsource/noto-serif-devanagari": "^5.3.0",
+    "@libsql/client": "^0.18.0",
     "dotenv": "17.3.1",
     "drizzle-orm": "0.45.2",
-    "embedded-postgres": "^18.4.0-beta.17",
     "lucide-react": "^1.35.0",
     "next": "16.2.6",
-    "pg": "8.20.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
+    "server-only": "^0.0.1",
     "tsx": "^4.23.12"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.17",
     "@types/node": "22.19.15",
-    "@types/pg": "8.18.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "drizzle-kit": "0.31.10",

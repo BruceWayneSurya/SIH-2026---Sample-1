@@ -12,6 +12,16 @@ next-env.d.ts
 .env.local
 .env.*.local
 
+# SQLite databases and local test artifacts (never commit user data)
+data/
+.cache/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
 # runtime note attachments (Google Drive documents are stored as links)
 public/uploads/
 
