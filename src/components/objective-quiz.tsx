@@ -1,5 +1,7 @@
 "use client";
 
+import { TranslatedText as T } from "@/components/language-provider";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -46,14 +48,24 @@ export function ObjectiveQuiz({
 }) {
   const [phase, setPhase] = useState<"intro" | "test" | "result">("intro");
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(() => questions.map(() => null));
+  const [answers, setAnswers] = useState<(number | null)[]>(() =>
+    questions.map(() => null),
+  );
   const [timeLeft, setTimeLeft] = useState(TOTAL_SECONDS);
   const [submitting, setSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [result, setResult] = useState<{ score: number; total: number; xpEarned: number; firstTime: boolean } | null>(null);
+  const [result, setResult] = useState<{
+    score: number;
+    total: number;
+    xpEarned: number;
+    firstTime: boolean;
+  } | null>(null);
   const startedAt = useRef(0);
 
-  const pyqCount = useMemo(() => questions.filter((q) => q.isPyq).length, [questions]);
+  const pyqCount = useMemo(
+    () => questions.filter((q) => q.isPyq).length,
+    [questions],
+  );
   const answered = answers.filter((a) => a !== null).length;
 
   const doSubmit = async () => {
@@ -64,7 +76,10 @@ export function ObjectiveQuiz({
       const res = await fetch(`/api/objective/${chapterId}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: answers.map((a) => a ?? -1), durationSec }),
+        body: JSON.stringify({
+          answers: answers.map((a) => a ?? -1),
+          durationSec,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Submission failed");
@@ -127,11 +142,22 @@ export function ObjectiveQuiz({
               </span>
             </div>
             <ul className="mt-4 space-y-1.5 text-[15px] text-slate-600">
-              <li>• Each question is annotated with its source exam (CBSE / State Board / Exemplar).</li>
-              <li>• Instant auto-evaluation with step-by-step solution explanations.</li>
+              <li>
+                • Each question is annotated with its source exam (CBSE / State
+                Board / Exemplar).
+              </li>
+              <li>
+                • Instant auto-evaluation with step-by-step solution
+                explanations.
+              </li>
               {best && (
                 <li>
-                  • Your best so far: <b className="text-navy-800">{best.score}/{best.total}</b> — you can retake any time, but XP is awarded on your first submission.
+                  • Your best so far:{" "}
+                  <b className="text-navy-800">
+                    {best.score}/{best.total}
+                  </b>{" "}
+                  — you can retake any time, but XP is awarded on your first
+                  submission.
                 </li>
               )}
             </ul>
@@ -147,7 +173,7 @@ export function ObjectiveQuiz({
             }}
             className="inline-flex items-center gap-2 rounded-md bg-navy-800 px-6 py-3 text-[16px] font-bold text-white transition hover:bg-navy-700"
           >
-            <Timer className="h-5 w-5 text-saffron-400" /> Start Test
+            <Timer className="h-5 w-5 text-saffron-400" /> <T>Start Test</T>
           </button>
         </div>
       </div>
@@ -162,7 +188,9 @@ export function ObjectiveQuiz({
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <span
               className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-lg font-extrabold tabular-nums ${
-                low ? "vs-pulse bg-rose-50 text-rose-600" : "bg-navy-50 text-navy-800"
+                low
+                  ? "vs-pulse bg-rose-50 text-rose-600"
+                  : "bg-navy-50 text-navy-800"
               }`}
               aria-live="polite"
             >
@@ -177,7 +205,9 @@ export function ObjectiveQuiz({
                 style={{ width: `${(answered / questions.length) * 100}%` }}
               />
             </div>
-            <span className="text-[13px] font-bold text-slate-500">{answered} answered</span>
+            <span className="text-[13px] font-bold text-slate-500">
+              {answered} answered
+            </span>
             <button
               type="button"
               onClick={() => setConfirmOpen(true)}
@@ -186,7 +216,10 @@ export function ObjectiveQuiz({
               <Send className="h-4 w-4" /> Submit
             </button>
           </div>
-          <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Question palette">
+          <div
+            className="mt-2 flex flex-wrap gap-1.5"
+            aria-label="Question palette"
+          >
             {questions.map((_, i) => (
               <button
                 key={i}
@@ -207,15 +240,24 @@ export function ObjectiveQuiz({
           </div>
         </div>
 
-        <div className="vsv-enter mt-4 rounded-lg border border-line bg-white p-5 shadow-sm" key={current}>
+        <div
+          className="vsv-enter mt-4 rounded-lg border border-line bg-white p-5 shadow-sm"
+          key={current}
+        >
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-md bg-navy-800 px-2.5 py-1 text-sm font-extrabold text-white">
               Q{current + 1}
             </span>
             {q.pyqTag && <PyqTag tag={q.pyqTag} />}
           </div>
-          <h3 className="mt-3 text-[18px] font-bold leading-relaxed text-navy-950">{q.qtext}</h3>
-          <div className="mt-4 grid gap-2.5" role="radiogroup" aria-label="Answer options">
+          <h3 className="mt-3 text-[18px] font-bold leading-relaxed text-navy-950">
+            {q.qtext}
+          </h3>
+          <div
+            className="mt-4 grid gap-2.5"
+            role="radiogroup"
+            aria-label="Answer options"
+          >
             {q.options.map((opt, i) => {
               const sel = answers[current] === i;
               return (
@@ -225,7 +267,9 @@ export function ObjectiveQuiz({
                   role="radio"
                   aria-checked={sel}
                   onClick={() =>
-                    setAnswers((prev) => prev.map((a, j) => (j === current ? i : a)))
+                    setAnswers((prev) =>
+                      prev.map((a, j) => (j === current ? i : a)),
+                    )
                   }
                   className={`flex items-center gap-3 rounded-md border-2 px-4 py-3 text-left text-[15px] font-semibold transition ${
                     sel
@@ -235,7 +279,9 @@ export function ObjectiveQuiz({
                 >
                   <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${
-                      sel ? "bg-navy-800 text-white" : "bg-slate-100 text-slate-500"
+                      sel
+                        ? "bg-navy-800 text-white"
+                        : "bg-slate-100 text-slate-500"
                     }`}
                   >
                     {String.fromCharCode(65 + i)}
@@ -252,15 +298,17 @@ export function ObjectiveQuiz({
               disabled={current === 0}
               className="inline-flex items-center gap-1 rounded-md border border-line px-4 py-2 text-sm font-bold text-navy-700 transition hover:border-navy-300 disabled:opacity-40"
             >
-              <ChevronLeft className="h-4 w-4" /> Previous
+              <ChevronLeft className="h-4 w-4" /> <T>Previous</T>
             </button>
             {current < questions.length - 1 ? (
               <button
                 type="button"
-                onClick={() => setCurrent((c) => Math.min(questions.length - 1, c + 1))}
+                onClick={() =>
+                  setCurrent((c) => Math.min(questions.length - 1, c + 1))
+                }
                 className="inline-flex items-center gap-1 rounded-md bg-navy-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-navy-700"
               >
-                Next <ChevronRight className="h-4 w-4" />
+                <T>Next</T> <ChevronRight className="h-4 w-4" />
               </button>
             ) : (
               <button
@@ -275,14 +323,20 @@ export function ObjectiveQuiz({
         </div>
 
         {confirmOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/60 p-4" role="dialog" aria-modal="true" aria-label="Confirm submission">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/60 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirm submission"
+          >
             <div className="vsv-enter w-full max-w-md rounded-lg bg-white p-6 shadow-2xl">
               <h3 className="flex items-center gap-2 text-lg font-extrabold text-navy-900">
-                <AlertTriangle className="h-5 w-5 text-saffron-600" /> Submit test?
+                <AlertTriangle className="h-5 w-5 text-saffron-600" /> Submit
+                test?
               </h3>
               <p className="mt-2 text-[15px] text-slate-600">
-                You have answered <b>{answered}</b> of <b>{questions.length}</b> questions.
-                Unanswered questions will be marked incorrect.
+                You have answered <b>{answered}</b> of <b>{questions.length}</b>{" "}
+                questions. Unanswered questions will be marked incorrect.
               </p>
               <div className="mt-5 flex gap-2">
                 <button
@@ -298,7 +352,11 @@ export function ObjectiveQuiz({
                   disabled={submitting}
                   className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-navy-800 px-4 py-2 text-sm font-bold text-white hover:bg-navy-700 disabled:opacity-60"
                 >
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {submitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                   Submit now
                 </button>
               </div>
@@ -313,17 +371,22 @@ export function ObjectiveQuiz({
   const r = result!;
   const pct = Math.round((r.score / r.total) * 100);
   const msg =
-    pct >= 90 ? "Outstanding! You are chapter-master material." :
-    pct >= 70 ? "Great work — a revision pass and you'll be on top." :
-    pct >= 50 ? "Solid attempt. Review the explanations below and retake." :
-    "Keep going — use the Learning Hub, then retake the test.";
+    pct >= 90
+      ? "Outstanding! You are chapter-master material."
+      : pct >= 70
+        ? "Great work — a revision pass and you'll be on top."
+        : pct >= 50
+          ? "Solid attempt. Review the explanations below and retake."
+          : "Keep going — use the Learning Hub, then retake the test.";
   return (
     <div>
       <div className="vsv-enter rounded-lg border-2 border-navy-800 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center gap-5">
           <div
             className={`flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-full border-4 ${
-              pct >= 50 ? "border-leaf-500 text-leaf-700" : "border-saffron-500 text-saffron-700"
+              pct >= 50
+                ? "border-leaf-500 text-leaf-700"
+                : "border-saffron-500 text-saffron-700"
             }`}
           >
             <span className="text-3xl font-extrabold">{pct}%</span>
@@ -337,7 +400,9 @@ export function ObjectiveQuiz({
             <div className="mt-3 flex flex-wrap gap-2">
               <span
                 className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-extrabold ${
-                  r.xpEarned > 0 ? "bg-saffron-500 text-navy-950" : "bg-slate-100 text-slate-500"
+                  r.xpEarned > 0
+                    ? "bg-saffron-500 text-navy-950"
+                    : "bg-slate-100 text-slate-500"
                 }`}
               >
                 <Award className="h-4 w-4" />
@@ -357,7 +422,8 @@ export function ObjectiveQuiz({
               href={`/leaderboard?chapter=${chapterId}`}
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-navy-800 px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-700 sm:flex-none"
             >
-              <Trophy className="h-4 w-4 text-saffron-400" /> Chapter leaderboard
+              <Trophy className="h-4 w-4 text-saffron-400" /> Chapter
+              leaderboard
             </Link>
             <button
               type="button"
@@ -371,37 +437,57 @@ export function ObjectiveQuiz({
       </div>
 
       <h3 className="mt-6 mb-3 text-lg font-extrabold text-navy-900">
-        Step-by-step solutions ({r.score} correct · {r.total - r.score} to review)
+        Step-by-step solutions ({r.score} correct · {r.total - r.score} to
+        review)
       </h3>
       <ol className="space-y-3">
         {questions.map((q, i) => {
           const mine = answers[i];
           const correct = mine === q.correctIndex;
           return (
-            <li key={q.id} className={`rounded-lg border-l-4 bg-white p-4 shadow-sm ${correct ? "border-leaf-500" : "border-rose-400"} border border-line`}>
+            <li
+              key={q.id}
+              className={`rounded-lg border-l-4 bg-white p-4 shadow-sm ${correct ? "border-leaf-500" : "border-rose-400"} border border-line`}
+            >
               <div className="flex flex-wrap items-center gap-2">
                 {correct ? (
                   <CheckCircle2 className="h-5 w-5 text-leaf-600" />
                 ) : (
                   <XCircle className="h-5 w-5 text-rose-500" />
                 )}
-                <span className="text-sm font-extrabold text-navy-800">Q{i + 1}</span>
+                <span className="text-sm font-extrabold text-navy-800">
+                  Q{i + 1}
+                </span>
                 {q.pyqTag && <PyqTag tag={q.pyqTag} />}
               </div>
-              <p className="mt-1.5 text-[15px] font-bold text-navy-950">{q.qtext}</p>
+              <p className="mt-1.5 text-[15px] font-bold text-navy-950">
+                {q.qtext}
+              </p>
               <p className="mt-1 text-sm text-slate-600">
                 {mine === null || mine === -1 ? (
-                  <span className="font-bold text-rose-600">Not answered</span>
+                  <span className="font-bold text-rose-600">
+                    <T>Not answered</T>
+                  </span>
                 ) : !correct ? (
                   <>
-                    Your answer: <b className="text-rose-600">{String.fromCharCode(65 + mine)}. {q.options[mine]}</b>
+                    <T>Your answer:</T>{" "}
+                    <b className="text-rose-600">
+                      {String.fromCharCode(65 + mine)}. {q.options[mine]}
+                    </b>
                   </>
                 ) : null}
                 <br />
-                Correct: <b className="text-leaf-700">{String.fromCharCode(65 + q.correctIndex)}. {q.options[q.correctIndex]}</b>
+                <T>Correct:</T>{" "}
+                <b className="text-leaf-700">
+                  {String.fromCharCode(65 + q.correctIndex)}.{" "}
+                  {q.options[q.correctIndex]}
+                </b>
               </p>
               <p className="mt-2 rounded-md bg-navy-50 p-3 text-sm leading-relaxed text-navy-800">
-                <b className="text-navy-950">Why:</b> {q.explanation}
+                <b className="text-navy-950">
+                  <T>Why:</T>
+                </b>{" "}
+                {q.explanation}
               </p>
             </li>
           );

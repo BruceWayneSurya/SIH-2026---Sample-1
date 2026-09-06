@@ -1,6 +1,8 @@
+import { TranslatedText as T } from "@/components/language-provider";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { LanguageProvider } from "@/components/language-provider";
 import { FloatingAiTutor } from "@/components/ai-tutor";
 
 // Fonts are self-hosted via @fontsource CSS with correct Unicode ranges.
@@ -15,17 +17,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('vs_theme');var d=t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.classList.toggle('dark',d);document.documentElement.dataset.saver=localStorage.getItem('vs_saver')==='1'?'1':'0'}catch(e){}})()` }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('vs_theme');var d=t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.classList.toggle('dark',d);document.documentElement.dataset.saver=localStorage.getItem('vs_saver')==='1'?'1':'0'}catch(e){}})()`,
+          }}
+        />
       </head>
       <body className="font-sans antialiased">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:bg-saffron-500 focus:px-4 focus:py-2 focus:font-bold focus:text-navy-950"
-        >
-          Skip to main content
-        </a>
-        {children}
-        <FloatingAiTutor />
+        <LanguageProvider>
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:bg-saffron-500 focus:px-4 focus:py-2 focus:font-bold focus:text-navy-950"
+          >
+            <T>Skip to main content</T>
+          </a>
+          {children}
+          <FloatingAiTutor />
+        </LanguageProvider>
       </body>
     </html>
   );

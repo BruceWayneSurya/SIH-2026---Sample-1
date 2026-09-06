@@ -1,3 +1,4 @@
+import { TranslatedText as T } from "@/components/language-provider";
 import { AccountActions } from "@/components/account-actions";
 import { DatabaseSetup } from "@/components/database-setup";
 
@@ -26,17 +27,30 @@ export default async function Account() {
   if (!user) return <DatabaseSetup />;
 
   const stats = await getUserStats(user.id, user.className);
-  const badges = allBadges(await (async () => {
-    const { getBadgesForUser } = await import("@/lib/queries");
-    return getBadgesForUser(user.id);
-  })());
+  const badges = allBadges(
+    await (async () => {
+      const { getBadgesForUser } = await import("@/lib/queries");
+      return getBadgesForUser(user.id);
+    })(),
+  );
 
   const rows: [string, string | null][] = [
     ["Handle", `@${user.handle}`],
-    ["Role", user.isGuest ? `Guest ${user.role}` : user.role === "faculty" ? "Faculty / Teacher" : "Student"],
+    [
+      "Role",
+      user.isGuest
+        ? `Guest ${user.role}`
+        : user.role === "faculty"
+          ? "Faculty / Teacher"
+          : "Student",
+    ],
     [
       user.role === "faculty" ? "Specialization" : "Class",
-      user.role === "faculty" ? user.subjectSpecialization : user.className ? `Class ${user.className}` : null,
+      user.role === "faculty"
+        ? user.subjectSpecialization
+        : user.className
+          ? `Class ${user.className}`
+          : null,
     ],
     ["State / UT", user.state],
     [
@@ -55,7 +69,10 @@ export default async function Account() {
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-extrabold text-navy-900">{user.name}</h1>
           <p className="text-[14px] font-semibold text-slate-500">
-            @{user.handle} · {user.role === "faculty" ? "Faculty" : `Class ${user.className ?? "—"}`}
+            @{user.handle} ·{" "}
+            {user.role === "faculty"
+              ? "Faculty"
+              : `Class ${user.className ?? "—"}`}
           </p>
           {user.isGuest && (
             <span className="mt-1 inline-block rounded-sm bg-saffron-100 px-2 py-0.5 text-[12px] font-bold text-saffron-700">
@@ -63,14 +80,21 @@ export default async function Account() {
             </span>
           )}
         </div>
-        <BadgeCheck className="h-8 w-8 text-leaf-500" aria-label="Verified portal account" />
+        <BadgeCheck
+          className="h-8 w-8 text-leaf-500"
+          aria-label="Verified portal account"
+        />
       </div>
 
       <AccountActions />
 
       <div className="vsv-enter mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard icon={Zap} label="Total XP" value={stats.xp} tone="saffron" />
-        <StatCard icon={Medal} label="Class Rank" value={stats.rank ? `#${stats.rank}` : "—"} />
+        <StatCard
+          icon={Medal}
+          label="Class Rank"
+          value={stats.rank ? `#${stats.rank}` : "—"}
+        />
         <StatCard
           icon={Target}
           label="Accuracy"
@@ -82,10 +106,15 @@ export default async function Account() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-extrabold text-navy-900">Profile</h2>
+          <h2 className="text-lg font-extrabold text-navy-900">
+            <T>Profile</T>
+          </h2>
           <dl className="mt-3 divide-y divide-line">
             {rows.map(([k, v]) => (
-              <div key={k} className="flex items-center gap-3 py-2.5 text-[15px]">
+              <div
+                key={k}
+                className="flex items-center gap-3 py-2.5 text-[15px]"
+              >
                 <dt className="flex w-40 shrink-0 items-center gap-2 font-bold text-slate-500">
                   {k === "Email" ? (
                     <Mail className="h-4 w-4" />
@@ -98,30 +127,49 @@ export default async function Account() {
                   ) : (
                     <Building2 className="h-4 w-4" />
                   )}
-                  {k}
+                  <T>{k}</T>
                 </dt>
-                <dd className="min-w-0 truncate font-semibold text-navy-900">{v ?? "—"}</dd>
+                <dd className="min-w-0 truncate font-semibold text-navy-900">
+                  {v ?? "—"}
+                </dd>
               </div>
             ))}
           </dl>
         </section>
 
-        <section className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm" style={{ animationDelay: "60ms" }}>
-          <h2 className="text-lg font-extrabold text-navy-900">Badges</h2>
+        <section
+          className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm"
+          style={{ animationDelay: "60ms" }}
+        >
+          <h2 className="text-lg font-extrabold text-navy-900">
+            <T>Badges</T>
+          </h2>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {badges.map((b) => (
               <li
                 key={b.id}
                 className={`flex items-start gap-2.5 rounded-md border p-3 ${
-                  b.earned ? "border-saffron-200 bg-saffron-50" : "border-line bg-paper opacity-70"
+                  b.earned
+                    ? "border-saffron-200 bg-saffron-50"
+                    : "border-line bg-paper opacity-70"
                 }`}
               >
-                <span className={`rounded-full p-1.5 ${b.earned ? "bg-saffron-500 text-navy-950" : "bg-slate-200 text-slate-500"}`}>
-                  {b.earned ? <Award className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                <span
+                  className={`rounded-full p-1.5 ${b.earned ? "bg-saffron-500 text-navy-950" : "bg-slate-200 text-slate-500"}`}
+                >
+                  {b.earned ? (
+                    <Award className="h-4 w-4" />
+                  ) : (
+                    <Lock className="h-4 w-4" />
+                  )}
                 </span>
                 <div>
-                  <p className="text-[14px] font-extrabold text-navy-900">{b.name}</p>
-                  <p className="text-[12px] leading-snug text-slate-600">{b.desc}</p>
+                  <p className="text-[14px] font-extrabold text-navy-900">
+                    {b.name}
+                  </p>
+                  <p className="text-[12px] leading-snug text-slate-600">
+                    {b.desc}
+                  </p>
                 </div>
               </li>
             ))}
@@ -143,9 +191,16 @@ export default async function Account() {
                   +{e.amount}
                 </span>
                 <div className="min-w-0">
-                  <p className="truncate text-[14px] font-bold text-navy-800">{e.note}</p>
+                  <p className="truncate text-[14px] font-bold text-navy-800">
+                    {e.note}
+                  </p>
                   <p className="text-[12px] text-slate-500">
-                    {new Date(e.createdAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    {new Date(e.createdAt).toLocaleString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </p>
                 </div>
                 <span className="ml-auto rounded-sm bg-navy-50 px-2 py-0.5 text-[11px] font-bold uppercase text-navy-500">

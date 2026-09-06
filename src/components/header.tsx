@@ -1,8 +1,9 @@
+import { TranslatedText as T } from "@/components/language-provider";
 import Link from "next/link";
 import { GraduationCap, UserRound } from "lucide-react";
 import { getActiveUser } from "@/lib/session";
 import { DataSaverToggle } from "./data-saver-toggle";
-import { ThemeToggle } from "./theme-toggle";
+import { AppearanceControls } from "./appearance-controls";
 import { db } from "@/db";
 import { xpEvents } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
@@ -33,7 +34,10 @@ export async function SiteHeader() {
           <Wordmark />
         </Link>
 
-        <nav aria-label="Primary" className="order-3 flex w-full min-w-0 flex-wrap items-center gap-1 text-[15px] font-semibold sm:order-none sm:w-auto sm:flex-1">
+        <nav
+          aria-label="Primary"
+          className="order-3 flex w-full min-w-0 flex-wrap items-center gap-1 text-[15px] font-semibold sm:order-none sm:w-auto sm:flex-1"
+        >
           {[
             { href: "/home", label: "Dashboard" },
             { href: "/leaderboard", label: "Leaderboard" },
@@ -44,13 +48,13 @@ export async function SiteHeader() {
               href={l.href}
               className="rounded-md px-2 py-1.5 sm:px-3 text-navy-700 transition hover:bg-navy-50 hover:text-navy-900"
             >
-              {l.label}
+              <T>{l.label}</T>
             </Link>
           ))}
         </nav>
 
         <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2 sm:ml-0">
-          <ThemeToggle />
+          <AppearanceControls />
           <DataSaverToggle />
           {user && (
             <>
@@ -60,11 +64,16 @@ export async function SiteHeader() {
               >
                 <GraduationCap className="h-4 w-4" /> {xp} XP
               </span>
-              <Link href="/account" className="inline-flex min-w-0 max-w-[155px] sm:max-w-[190px] items-center gap-2 rounded-full border border-line bg-white px-3 py-1">
+              <Link
+                href="/account"
+                className="inline-flex min-w-0 max-w-[155px] sm:max-w-[190px] items-center gap-2 rounded-full border border-line bg-white px-3 py-1"
+              >
                 <UserRound className="h-4 w-4 shrink-0 text-navy-600" />
-                <span className="truncate text-sm font-semibold text-navy-800">{user.name}</span>
+                <span className="truncate text-sm font-semibold text-navy-800">
+                  {user.name}
+                </span>
                 <span className="shrink-0 rounded-sm bg-navy-800 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                  {user.isGuest ? "Guest" : user.role}
+                  <T>{user.isGuest ? "Guest" : user.role}</T>
                 </span>
               </Link>
             </>

@@ -1,3 +1,4 @@
+import { TranslatedText as T } from "@/components/language-provider";
 import { DatabaseSetup } from "@/components/database-setup";
 import Link from "next/link";
 
@@ -6,10 +7,7 @@ import { getActiveUser } from "@/lib/session";
 import { db } from "@/db";
 import { chapters, mcqAttempts } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
-import {
-  getClassLeaderboard,
-  getChapterLeaderboard,
-} from "@/lib/queries";
+import { getClassLeaderboard, getChapterLeaderboard } from "@/lib/queries";
 import { BADGES } from "@/lib/badges";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +30,7 @@ export default async function Leaderboard({
   const classNo =
     classParam === "7" || classParam === "8"
       ? Number(classParam)
-      : user.className ?? 8;
+      : (user.className ?? 8);
 
   const board = await getClassLeaderboard(classNo);
 
@@ -49,15 +47,25 @@ export default async function Leaderboard({
     .where(inArray(chapters.classNo, [classNo]))
     .orderBy(chapters.num);
   const seen = new Set<number>();
-  const opts = chapterOpts.filter((c) => (seen.has(c.id) ? false : (seen.add(c.id), true)));
+  const opts = chapterOpts.filter((c) =>
+    seen.has(c.id) ? false : (seen.add(c.id), true),
+  );
 
   const chapterId = chapterParam ? Number(chapterParam) : null;
   const chapterBoard =
-    chapterId && !Number.isNaN(chapterId) ? await getChapterLeaderboard(chapterId) : null;
+    chapterId && !Number.isNaN(chapterId)
+      ? await getChapterLeaderboard(chapterId)
+      : null;
   const chapterMeta =
     chapterBoard && chapterId
-      ? opts.find((o) => o.id === chapterId) ??
-        (await db.select().from(chapters).where(eq(chapters.id, chapterId)).limit(1))[0]
+      ? (opts.find((o) => o.id === chapterId) ??
+        (
+          await db
+            .select()
+            .from(chapters)
+            .where(eq(chapters.id, chapterId))
+            .limit(1)
+        )[0])
       : null;
 
   const myRank = board.findIndex((r) => r.id === user.id) + 1;
@@ -70,7 +78,7 @@ export default async function Leaderboard({
             Peer Benchmarking Engine
           </p>
           <h1 className="mt-1 flex items-center gap-3 text-3xl font-extrabold text-navy-900">
-            <Trophy className="h-8 w-8 text-saffron-500" /> Leaderboard
+            <Trophy className="h-8 w-8 text-saffron-500" /> <T>Leaderboard</T>
           </h1>
           <p className="mt-1 text-[15px] text-slate-600">
             {user.role === "faculty"
@@ -79,7 +87,11 @@ export default async function Leaderboard({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-md border border-line bg-white p-1" role="tablist" aria-label="Class scope">
+          <div
+            className="flex rounded-md border border-line bg-white p-1"
+            role="tablist"
+            aria-label="Class scope"
+          >
             {[7, 8].map((c) => (
               <Link
                 key={c}
@@ -87,10 +99,12 @@ export default async function Leaderboard({
                 role="tab"
                 aria-selected={classNo === c}
                 className={`rounded px-4 py-1.5 text-sm font-bold transition ${
-                  classNo === c ? "bg-navy-800 text-white" : "text-navy-600 hover:text-navy-900"
+                  classNo === c
+                    ? "bg-navy-800 text-white"
+                    : "text-navy-600 hover:text-navy-900"
                 }`}
               >
-                Class {c}
+                <T>Class</T> {c}
               </Link>
             ))}
           </div>
@@ -112,18 +126,29 @@ export default async function Leaderboard({
             <table className="w-full min-w-[640px] text-left text-[14px]">
               <thead>
                 <tr className="border-b border-line bg-navy-50/70 text-[12px] uppercase tracking-wide text-navy-500">
-                  <th className="px-4 py-2.5 font-bold">Rank</th>
-                  <th className="px-4 py-2.5 font-bold">Learner</th>
-                  <th className="px-4 py-2.5 font-bold">Badges</th>
+                  <th className="px-4 py-2.5 font-bold">
+                    <T>Rank</T>
+                  </th>
+                  <th className="px-4 py-2.5 font-bold">
+                    <T>Learner</T>
+                  </th>
+                  <th className="px-4 py-2.5 font-bold">
+                    <T>Badges</T>
+                  </th>
                   <th className="px-4 py-2.5 text-right font-bold">Tests</th>
-                  <th className="px-4 py-2.5 text-right font-bold">Accuracy</th>
+                  <th className="px-4 py-2.5 text-right font-bold">
+                    <T>Accuracy</T>
+                  </th>
                   <th className="px-4 py-2.5 text-right font-bold">XP</th>
                 </tr>
               </thead>
               <tbody>
                 {board.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                    <td
+                      colSpan={6}
+                      className="px-4 py-8 text-center text-slate-500"
+                    >
                       No learners in this class yet.
                     </td>
                   </tr>
@@ -134,7 +159,11 @@ export default async function Leaderboard({
                     <tr
                       key={r.id}
                       className={`border-b border-line/70 last:border-0 ${
-                        me ? "bg-saffron-50/80" : i % 2 ? "bg-paper/60" : "bg-white"
+                        me
+                          ? "bg-saffron-50/80"
+                          : i % 2
+                            ? "bg-paper/60"
+                            : "bg-white"
                       }`}
                     >
                       <td className="px-4 py-2.5">
@@ -149,7 +178,11 @@ export default async function Leaderboard({
                       <td className="px-4 py-2.5">
                         <p className="font-bold text-navy-900">
                           @{r.handle}
-                          {me && <span className="ml-1.5 rounded-sm bg-saffron-500 px-1.5 py-0.5 text-[10px] font-extrabold uppercase text-navy-950">You</span>}
+                          {me && (
+                            <span className="ml-1.5 rounded-sm bg-saffron-500 px-1.5 py-0.5 text-[10px] font-extrabold uppercase text-navy-950">
+                              <T>You</T>
+                            </span>
+                          )}
                         </p>
                         <p className="text-[12px] text-slate-500">
                           {r.name}
@@ -159,7 +192,9 @@ export default async function Leaderboard({
                       <td className="px-4 py-2.5">
                         <div className="flex max-w-56 flex-wrap gap-1">
                           {r.badges.length === 0 ? (
-                            <span className="text-[12px] text-slate-400">—</span>
+                            <span className="text-[12px] text-slate-400">
+                              —
+                            </span>
                           ) : (
                             r.badges.slice(0, 2).map((b) => (
                               <span
@@ -178,7 +213,9 @@ export default async function Leaderboard({
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-2.5 text-right font-bold text-navy-700">{r.attempts}</td>
+                      <td className="px-4 py-2.5 text-right font-bold text-navy-700">
+                        {r.attempts}
+                      </td>
                       <td className="px-4 py-2.5 text-right">
                         {r.accuracy !== null ? (
                           <span
@@ -202,16 +239,22 @@ export default async function Leaderboard({
         </section>
 
         <aside className="space-y-4">
-          <section className="vsv-enter rounded-lg border border-line bg-white p-4 shadow-sm" style={{ animationDelay: "60ms" }}>
+          <section
+            className="vsv-enter rounded-lg border border-line bg-white p-4 shadow-sm"
+            style={{ animationDelay: "60ms" }}
+          >
             <h3 className="flex items-center gap-2 text-[15px] font-extrabold text-navy-900">
-              <Target className="h-4 w-4 text-saffron-600" /> Chapter-Wise Masters
+              <Target className="h-4 w-4 text-saffron-600" /> Chapter-Wise
+              Masters
             </h3>
             <p className="mt-1 text-[13px] text-slate-500">
               Ranks based solely on test performance in a single chapter.
             </p>
             <div className="mt-3 space-y-1.5">
               {opts.length === 0 ? (
-                <p className="text-[13px] text-slate-400">No assessed chapters in Class {classNo} yet.</p>
+                <p className="text-[13px] text-slate-400">
+                  No assessed chapters in Class {classNo} yet.
+                </p>
               ) : (
                 opts.map((o) => (
                   <Link
@@ -228,7 +271,9 @@ export default async function Leaderboard({
                     </span>
                     <span
                       className={`ml-auto shrink-0 rounded-sm px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${
-                        chapterId === o.id ? "bg-saffron-500 text-navy-950" : "bg-navy-50 text-navy-500"
+                        chapterId === o.id
+                          ? "bg-saffron-500 text-navy-950"
+                          : "bg-navy-50 text-navy-500"
                       }`}
                     >
                       {o.subjectName}
@@ -244,9 +289,13 @@ export default async function Leaderboard({
               <h3 className="text-[15px] font-extrabold text-navy-900">
                 Top Performers · Ch {chapterMeta.num}: {chapterMeta.title}
               </h3>
-              <p className="text-[12px] font-semibold text-slate-500">{chapterMeta.subjectName}</p>
+              <p className="text-[12px] font-semibold text-slate-500">
+                {chapterMeta.subjectName}
+              </p>
               {chapterBoard.length === 0 ? (
-                <p className="mt-3 text-[13px] text-slate-500">No attempts on this chapter yet.</p>
+                <p className="mt-3 text-[13px] text-slate-500">
+                  No attempts on this chapter yet.
+                </p>
               ) : (
                 <ol className="mt-3 space-y-2">
                   {chapterBoard.slice(0, 8).map((r, i) => {
@@ -268,10 +317,13 @@ export default async function Leaderboard({
                         <div className="min-w-0">
                           <p className="truncate text-[13px] font-bold text-navy-800">
                             @{r.handle}
-                            {me && <span className="text-saffron-600"> (you)</span>}
+                            {me && (
+                              <span className="text-saffron-600"> (you)</span>
+                            )}
                           </p>
                           <p className="text-[11px] text-slate-500">
-                            best {r.bestScore ?? "—"}/{r.bestTotal ?? "—"} · {r.attempts} attempt{r.attempts === 1 ? "" : "s"}
+                            best {r.bestScore ?? "—"}/{r.bestTotal ?? "—"} ·{" "}
+                            {r.attempts} attempt{r.attempts === 1 ? "" : "s"}
                           </p>
                         </div>
                         <span className="ml-auto shrink-0 text-[14px] font-extrabold text-navy-800">

@@ -1,3 +1,4 @@
+import { TranslatedText as T } from "@/components/language-provider";
 import { DatabaseSetup } from "@/components/database-setup";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,7 +13,12 @@ import {
   BookMarked,
 } from "lucide-react";
 import { getActiveUser } from "@/lib/session";
-import { getChapters, subjectName, validClass, validSubject } from "@/lib/curriculum";
+import {
+  getChapters,
+  subjectName,
+  validClass,
+  validSubject,
+} from "@/lib/curriculum";
 import { getChapterList } from "@/lib/queries";
 import { IconBox, ProgressBar, SUBJECT_ICONS } from "@/components/ui";
 import { SUBJECTS } from "@/lib/curriculum";
@@ -37,7 +43,13 @@ export default async function SubjectIndex({
   const practiced = dbList.filter((c) => c.bestScore !== null).length;
 
   // group chapters by book (Social Science / Hindi)
-  const groups: { book: string | null; items: { row: (typeof staticRows)[number]; data: (typeof dbList)[number] | undefined }[] }[] = [];
+  const groups: {
+    book: string | null;
+    items: {
+      row: (typeof staticRows)[number];
+      data: (typeof dbList)[number] | undefined;
+    }[];
+  }[] = [];
   staticRows.forEach((row, i) => {
     const data = dbList[i];
     const book = row.book ?? null;
@@ -48,12 +60,20 @@ export default async function SubjectIndex({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-slate-500" aria-label="Breadcrumb">
-        <Link href="/home" className="inline-flex items-center gap-1 hover:text-navy-700 hover:underline">
-          <ArrowLeft className="h-3.5 w-3.5" /> Dashboard
+      <nav
+        className="mb-4 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-slate-500"
+        aria-label="Breadcrumb"
+      >
+        <Link
+          href="/home"
+          className="inline-flex items-center gap-1 hover:text-navy-700 hover:underline"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> <T>Dashboard</T>
         </Link>
         <span aria-hidden="true">/</span>
-        <span>Class {cn}</span>
+        <span>
+          <T>Class</T> {cn}
+        </span>
         <span aria-hidden="true">/</span>
         <span className="text-navy-800">{subjectName(subject)}</span>
       </nav>
@@ -62,14 +82,18 @@ export default async function SubjectIndex({
         <IconBox icon={Icon} tint={meta.tint} size="lg" />
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-bold uppercase tracking-wider text-saffron-600">
-            Class {cn} · Chapter Index
+            <T>Class</T> {cn} · Chapter Index
           </p>
-          <h1 className="text-2xl font-extrabold text-navy-900">{subjectName(subject)}</h1>
+          <h1 className="text-2xl font-extrabold text-navy-900">
+            {subjectName(subject)}
+          </h1>
         </div>
         <div className="w-full sm:w-64">
           <div className="mb-1 flex justify-between text-[13px] font-bold text-navy-600">
             <span>Your progress</span>
-            <span>{practiced}/{dbList.length}</span>
+            <span>
+              {practiced}/{dbList.length}
+            </span>
           </div>
           <ProgressBar value={practiced} max={dbList.length} />
         </div>
@@ -84,11 +108,12 @@ export default async function SubjectIndex({
           )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {g.items.map(({ row, data }) => {
-              const href = data
-                ? `/class/${cn}/${subject}/${data.slug}`
-                : `#`;
+              const href = data ? `/class/${cn}/${subject}/${data.slug}` : `#`;
               const hasContent = data
-                ? data.videoCount > 0 || data.noteCount > 0 || data.mcqCount > 0 || data.subjCount > 0
+                ? data.videoCount > 0 ||
+                  data.noteCount > 0 ||
+                  data.mcqCount > 0 ||
+                  data.subjCount > 0
                 : false;
               return (
                 <Link
@@ -111,22 +136,27 @@ export default async function SubjectIndex({
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {data && data.videoCount > 0 && (
                           <span className="inline-flex items-center gap-1 rounded-sm bg-navy-50 px-1.5 py-0.5 text-[11px] font-bold text-navy-600">
-                            <Clapperboard className="h-3 w-3" /> {data.videoCount} video{data.videoCount > 1 ? "s" : ""}
+                            <Clapperboard className="h-3 w-3" />{" "}
+                            {data.videoCount} video
+                            {data.videoCount > 1 ? "s" : ""}
                           </span>
                         )}
                         {data && data.noteCount > 0 && (
                           <span className="inline-flex items-center gap-1 rounded-sm bg-navy-50 px-1.5 py-0.5 text-[11px] font-bold text-navy-600">
-                            <StickyNote className="h-3 w-3" /> {data.noteCount} notes
+                            <StickyNote className="h-3 w-3" /> {data.noteCount}{" "}
+                            notes
                           </span>
                         )}
                         {data && data.mcqCount > 0 && (
                           <span className="inline-flex items-center gap-1 rounded-sm bg-saffron-50 px-1.5 py-0.5 text-[11px] font-bold text-saffron-700">
-                            <ListChecks className="h-3 w-3" /> {data.mcqCount} MCQs · {data.pyqPct}% PYQ
+                            <ListChecks className="h-3 w-3" /> {data.mcqCount}{" "}
+                            MCQs · {data.pyqPct}% PYQ
                           </span>
                         )}
                         {data && data.subjCount > 0 && (
                           <span className="inline-flex items-center gap-1 rounded-sm bg-saffron-50 px-1.5 py-0.5 text-[11px] font-bold text-saffron-700">
-                            <PenLine className="h-3 w-3" /> {data.subjCount} descriptive
+                            <PenLine className="h-3 w-3" /> {data.subjCount}{" "}
+                            descriptive
                           </span>
                         )}
                         {!hasContent && (

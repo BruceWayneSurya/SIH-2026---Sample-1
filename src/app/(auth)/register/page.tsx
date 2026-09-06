@@ -1,5 +1,7 @@
 "use client";
 
+import { TranslatedText as T } from "@/components/language-provider";
+
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -113,13 +115,17 @@ export default function RegisterPage() {
 
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data?.error ?? "Registration failed. Please check your details.");
+        throw new Error(
+          data?.error ?? "Registration failed. Please check your details.",
+        );
       }
 
       router.push("/home");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+      );
     } finally {
       inFlight.current = false;
       setLoading(false);
@@ -130,10 +136,12 @@ export default function RegisterPage() {
     <div className="mx-auto max-w-2xl px-4 py-10">
       <div className="text-center">
         <div className="inline-flex justify-center">
-          <Link href="/" aria-label="Pragyan home"><Wordmark /></Link>
+          <Link href="/" aria-label="Pragyan home">
+            <Wordmark />
+          </Link>
         </div>
         <h1 className="mt-4 text-2xl font-extrabold text-navy-900 sm:text-3xl">
-          Create Your Pragyan (प्रज्ञान) Account
+          <T>Create Your Pragyan (प्रज्ञान) Account</T>
         </h1>
         <p className="mt-1.5 text-sm text-slate-600">
           NCERT-Aligned Learning &amp; Assessment Portal for Class 7 &amp; 8
@@ -156,7 +164,7 @@ export default function RegisterPage() {
             }`}
           >
             <UserRound className="h-4 w-4" />
-            Student Account
+            <T>Student Account</T>
           </button>
           <button
             type="button"
@@ -176,7 +184,10 @@ export default function RegisterPage() {
         </div>
 
         {error && (
-          <div role="alert" className="mb-5 flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3.5 text-sm text-rose-800">
+          <div
+            role="alert"
+            className="mb-5 flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3.5 text-sm text-rose-800"
+          >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
             <span>{error}</span>
           </div>
@@ -184,14 +195,18 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="register-name" className="block text-xs font-bold uppercase tracking-wider text-navy-800">
-              Full Name *
+            <label
+              htmlFor="register-name"
+              className="block text-xs font-bold uppercase tracking-wider text-navy-800"
+            >
+              <T>Full Name</T> *
             </label>
             <input
               type="text"
               required
               minLength={3}
-              id="register-name" value={name}
+              id="register-name"
+              value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Diya Mehta"
               className="mt-1.5 w-full rounded-lg border border-line bg-paper px-3.5 py-2.5 text-[15px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
@@ -200,15 +215,21 @@ export default function RegisterPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="register-email" className="block text-xs font-bold uppercase tracking-wider text-navy-800">
-                Email Address *
+              <label
+                htmlFor="register-email"
+                className="block text-xs font-bold uppercase tracking-wider text-navy-800"
+              >
+                <T>Email Address</T> *
               </label>
               <div className="relative mt-1.5">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
-                  type="email" autoComplete="email" maxLength={120}
+                  type="email"
+                  autoComplete="email"
+                  maxLength={120}
                   required
-                  id="register-email" value={email}
+                  id="register-email"
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@school.edu.in"
                   className="w-full rounded-lg border border-line bg-paper py-2.5 pl-9 pr-3 text-[15px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
@@ -217,16 +238,22 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="register-password" className="block text-xs font-bold uppercase tracking-wider text-navy-800">
-                Password * (min 6 chars)
+              <label
+                htmlFor="register-password"
+                className="block text-xs font-bold uppercase tracking-wider text-navy-800"
+              >
+                <T>Password * (min 6 chars)</T>
               </label>
               <div className="relative mt-1.5">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
-                  type="password" autoComplete="new-password" maxLength={200}
+                  type="password"
+                  autoComplete="new-password"
+                  maxLength={200}
                   required
                   minLength={6}
-                  id="register-password" value={password}
+                  id="register-password"
+                  value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full rounded-lg border border-line bg-paper py-2.5 pl-9 pr-3 text-[15px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
@@ -240,10 +267,17 @@ export default function RegisterPage() {
             <>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <p id="register-className" className="block text-xs font-bold uppercase tracking-wider text-navy-800">
-                    Target Class (NCERT) *
+                  <p
+                    id="register-className"
+                    className="block text-xs font-bold uppercase tracking-wider text-navy-800"
+                  >
+                    <T>Target Class (NCERT) *</T>
                   </p>
-                  <div role="radiogroup" aria-labelledby="register-className" className="mt-1.5 flex gap-3">
+                  <div
+                    role="radiogroup"
+                    aria-labelledby="register-className"
+                    className="mt-1.5 flex gap-3"
+                  >
                     {["7", "8"].map((c) => (
                       <label
                         key={c}
@@ -261,20 +295,24 @@ export default function RegisterPage() {
                           onChange={(e) => setClassName(e.target.value)}
                           className="sr-only"
                         />
-                        Class {c}
+                        <T>Class</T> {c}
                       </label>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="register-state" className="block text-xs font-bold uppercase tracking-wider text-navy-800">
-                    State / UT *
+                  <label
+                    htmlFor="register-state"
+                    className="block text-xs font-bold uppercase tracking-wider text-navy-800"
+                  >
+                    <T>State / UT</T> *
                   </label>
                   <div className="relative mt-1.5">
                     <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <select
-                      id="register-state" value={state}
+                      id="register-state"
+                      value={state}
                       onChange={(e) => setState(e.target.value)}
                       className="w-full rounded-lg border border-line bg-paper py-2.5 pl-9 pr-3 text-[14px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
                     >
@@ -289,15 +327,19 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label htmlFor="register-school" className="block text-xs font-bold uppercase tracking-wider text-navy-800">
-                  School Name *
+                <label
+                  htmlFor="register-school"
+                  className="block text-xs font-bold uppercase tracking-wider text-navy-800"
+                >
+                  <T>School Name</T> *
                 </label>
                 <div className="relative mt-1.5">
                   <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     required
-                    id="register-school" value={school}
+                    id="register-school"
+                    value={school}
                     onChange={(e) => setSchool(e.target.value)}
                     placeholder="e.g. Kendriya Vidyalaya, Sector 4"
                     className="w-full rounded-lg border border-line bg-paper py-2.5 pl-9 pr-3 text-[15px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
@@ -312,13 +354,17 @@ export default function RegisterPage() {
             <>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="register-subjectSpecialization" className="block text-xs font-bold uppercase tracking-wider text-navy-800">
-                    Subject Specialization *
+                  <label
+                    htmlFor="register-subjectSpecialization"
+                    className="block text-xs font-bold uppercase tracking-wider text-navy-800"
+                  >
+                    <T>Subject Specialization</T> *
                   </label>
                   <div className="relative mt-1.5">
                     <BookOpen className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <select
-                      id="register-subjectSpecialization" value={subjectSpecialization}
+                      id="register-subjectSpecialization"
+                      value={subjectSpecialization}
                       onChange={(e) => setSubjectSpecialization(e.target.value)}
                       className="w-full rounded-lg border border-line bg-paper py-2.5 pl-9 pr-3 text-[14px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
                     >
@@ -332,15 +378,19 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="register-institutionId" className="block text-xs font-bold uppercase tracking-wider text-navy-800">
-                    School / Institution ID *
+                  <label
+                    htmlFor="register-institutionId"
+                    className="block text-xs font-bold uppercase tracking-wider text-navy-800"
+                  >
+                    <T>School / Institution ID</T> *
                   </label>
                   <div className="relative mt-1.5">
                     <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
                       required
-                      id="register-institutionId" value={institutionId}
+                      id="register-institutionId"
+                      value={institutionId}
                       onChange={(e) => setInstitutionId(e.target.value)}
                       placeholder="e.g. SCH-GJ-204"
                       className="w-full rounded-lg border border-line bg-paper py-2.5 pl-9 pr-3 text-[15px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
@@ -350,13 +400,17 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label htmlFor="register-state" className="block text-xs font-bold uppercase tracking-wider text-navy-800">
-                  State / UT (Institution Location) *
+                <label
+                  htmlFor="register-state"
+                  className="block text-xs font-bold uppercase tracking-wider text-navy-800"
+                >
+                  <T>State / UT (Institution Location) *</T>
                 </label>
                 <div className="relative mt-1.5">
                   <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <select
-                    id="register-state" value={state}
+                    id="register-state"
+                    value={state}
                     onChange={(e) => setState(e.target.value)}
                     className="w-full rounded-lg border border-line bg-paper py-2.5 pl-9 pr-3 text-[14px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
                   >
@@ -380,7 +434,7 @@ export default function RegisterPage() {
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
-                Register &amp; Launch Portal
+                <T>Register &amp; Launch Portal</T>
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -393,7 +447,7 @@ export default function RegisterPage() {
             href="/login"
             className="font-bold text-navy-800 underline underline-offset-2 hover:text-saffron-600"
           >
-            Sign In Here
+            <T>Sign In Here</T>
           </Link>
         </p>
       </div>

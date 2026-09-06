@@ -1,3 +1,4 @@
+import { TranslatedText as T } from "@/components/language-provider";
 import { Wordmark } from "./ui";
 
 export function SiteFooter() {
@@ -8,13 +9,16 @@ export function SiteFooter() {
         <div>
           <Wordmark light />
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-navy-200">
-            An open digital learning &amp; assessment portal aligned with the official NCERT
-            curriculum, built for Class 7 &amp; 8 students and educators.
+            <T>
+              An open digital learning &amp; assessment portal aligned with the
+              official NCERT curriculum, built for Class 7 &amp; 8 students and
+              educators.
+            </T>
           </p>
         </div>
         <div className="text-sm">
           <h3 className="mb-2 font-bold uppercase tracking-wider text-saffron-400">
-            Compliance &amp; Mapping
+            <T>Compliance &amp; Mapping</T>
           </h3>
           <ul className="space-y-1.5 text-navy-200">
             <li>• NCERT learning-outcome IDs on every chapter</li>
@@ -28,11 +32,12 @@ export function SiteFooter() {
             Smart India Hackathon
           </h3>
           <p className="text-navy-200">
-            SIH Edition — verified faculty content, crowdsourced notes with moderation, PYQ-driven
-            assessments and a peer benchmarking engine.
+            SIH Edition — verified faculty content, crowdsourced notes with
+            moderation, PYQ-driven assessments and a peer benchmarking engine.
           </p>
           <p className="mt-4 text-xs text-navy-300">
-            Smart India Hackathon 2026 · Team PRAGYAN. Guest access or your own account.
+            Smart India Hackathon 2026 · Team PRAGYAN. Guest access or your own
+            account.
           </p>
         </div>
       </div>

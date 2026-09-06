@@ -1,9 +1,15 @@
 "use client";
 
+import {
+  TranslatedText as T,
+  useTranslation,
+} from "@/components/language-provider";
+
 import { setDataSaver, useDataSaver } from "@/lib/ui-preferences";
 import { WifiOff, Wifi } from "lucide-react";
 
 export function DataSaverToggle() {
+  const { t } = useTranslation();
   const on = useDataSaver();
   const toggle = () => setDataSaver(!on);
 
@@ -12,7 +18,9 @@ export function DataSaverToggle() {
       type="button"
       onClick={toggle}
       aria-pressed={on}
-      title="Data saver mode: lazy-loads video streams, removes animations. Built for low-bandwidth government schools."
+      title={t(
+        "Data saver mode: lazy-loads video streams, removes animations. Built for low-bandwidth government schools.",
+      )}
       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] font-bold transition ${
         on
           ? "border-leaf-500 bg-leaf-50 text-leaf-700"
@@ -20,11 +28,11 @@ export function DataSaverToggle() {
       }`}
     >
       {on ? <WifiOff className="h-4 w-4" /> : <Wifi className="h-4 w-4" />}
-      Data Saver
+      <T>Data Saver</T>
       <span
         className={`rounded-sm px-1 text-[10px] ${on ? "bg-leaf-500 text-white" : "bg-navy-100 text-navy-600"}`}
       >
-        {on ? "ON" : "OFF"}
+        <T>{on ? "ON" : "OFF"}</T>
       </span>
     </button>
   );

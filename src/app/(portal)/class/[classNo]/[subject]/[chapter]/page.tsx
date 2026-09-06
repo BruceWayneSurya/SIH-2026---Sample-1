@@ -1,3 +1,4 @@
+import { TranslatedText as T } from "@/components/language-provider";
 import { DatabaseSetup } from "@/components/database-setup";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,7 +18,12 @@ import {
   Trophy,
 } from "lucide-react";
 import { getActiveUser } from "@/lib/session";
-import { getChapters, subjectName, validClass, validSubject } from "@/lib/curriculum";
+import {
+  getChapters,
+  subjectName,
+  validClass,
+  validSubject,
+} from "@/lib/curriculum";
 import {
   getChapter,
   getContentForChapter,
@@ -72,13 +78,22 @@ export default async function ChapterPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-slate-500" aria-label="Breadcrumb">
-        <Link href="/home" className="inline-flex items-center gap-1 hover:text-navy-700 hover:underline">
-          <ArrowLeft className="h-3.5 w-3.5" /> Dashboard
+      <nav
+        className="mb-4 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-slate-500"
+        aria-label="Breadcrumb"
+      >
+        <Link
+          href="/home"
+          className="inline-flex items-center gap-1 hover:text-navy-700 hover:underline"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> <T>Dashboard</T>
         </Link>
         <span aria-hidden="true">/</span>
-        <Link href={`/class/${cn}/${subject}`} className="hover:text-navy-700 hover:underline">
-          Class {cn} · {subjectName(subject)}
+        <Link
+          href={`/class/${cn}/${subject}`}
+          className="hover:text-navy-700 hover:underline"
+        >
+          <T>Class</T> {cn} · {subjectName(subject)}
         </Link>
         <span aria-hidden="true">/</span>
         <span className="text-navy-800">Chapter {ch.num}</span>
@@ -95,10 +110,18 @@ export default async function ChapterPage({
                 {staticRow.book}
               </p>
             )}
-            <h1 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">{ch.title}</h1>
-            <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Curriculum mapping">
+            <h1 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">
+              {ch.title}
+            </h1>
+            <div
+              className="mt-2 flex flex-wrap gap-1.5"
+              aria-label="Curriculum mapping"
+            >
               {ch.outcomeIds.map((o) => (
-                <span key={o} className="rounded-sm border border-navy-200 bg-navy-50 px-1.5 py-0.5 font-mono text-[11px] font-bold text-navy-700">
+                <span
+                  key={o}
+                  className="rounded-sm border border-navy-200 bg-navy-50 px-1.5 py-0.5 font-mono text-[11px] font-bold text-navy-700"
+                >
                   {o}
                 </span>
               ))}
@@ -109,21 +132,37 @@ export default async function ChapterPage({
           </div>
           <div className="hidden shrink-0 gap-2 text-right sm:flex">
             <div className="rounded-md border border-line bg-paper px-3 py-2">
-              <p className="text-[11px] font-bold uppercase text-slate-400">Videos</p>
-              <p className="text-lg font-extrabold text-navy-800">{videos.length}</p>
+              <p className="text-[11px] font-bold uppercase text-slate-400">
+                Videos
+              </p>
+              <p className="text-lg font-extrabold text-navy-800">
+                {videos.length}
+              </p>
             </div>
             <div className="rounded-md border border-line bg-paper px-3 py-2">
-              <p className="text-[11px] font-bold uppercase text-slate-400">Notes</p>
-              <p className="text-lg font-extrabold text-navy-800">{notesList.length}</p>
+              <p className="text-[11px] font-bold uppercase text-slate-400">
+                <T>Notes</T>
+              </p>
+              <p className="text-lg font-extrabold text-navy-800">
+                {notesList.length}
+              </p>
             </div>
             <div className="rounded-md border border-saffron-200 bg-saffron-50 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase text-saffron-600">PYQ MCQs</p>
-              <p className="text-lg font-extrabold text-saffron-700">{mcqs.length}</p>
+              <p className="text-[11px] font-bold uppercase text-saffron-600">
+                PYQ MCQs
+              </p>
+              <p className="text-lg font-extrabold text-saffron-700">
+                {mcqs.length}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-1 rounded-md bg-navy-50 p-1 sm:grid-cols-2 lg:grid-cols-4" role="tablist" aria-label="Chapter sub-portals">
+        <div
+          className="mt-4 grid grid-cols-1 gap-1 rounded-md bg-navy-50 p-1 sm:grid-cols-2 lg:grid-cols-4"
+          role="tablist"
+          aria-label="Chapter sub-portals"
+        >
           {TABS.map((t) => (
             <Link
               key={t.id}
@@ -136,7 +175,7 @@ export default async function ChapterPage({
                   : "text-navy-600 hover:bg-white hover:text-navy-900"
               }`}
             >
-              <t.icon className="h-4 w-4" /> {t.label}
+              <t.icon className="h-4 w-4" /> <T>{t.label}</T>
             </Link>
           ))}
         </div>
@@ -144,13 +183,22 @@ export default async function ChapterPage({
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]">
         <div className="min-w-0 space-y-5">
-          {tab === "ai" && <AiTutor key={`tutor-${ch.id}`} chapterId={ch.id} chapterTitle={`${subjectName(subject)} · ${ch.title}`} />}
-          {tab === "objective" && <AiStudyTools key={`quiz-${ch.id}`} chapterId={ch.id} quiz />}
+          {tab === "ai" && (
+            <AiTutor
+              key={`tutor-${ch.id}`}
+              chapterId={ch.id}
+              chapterTitle={`${subjectName(subject)} · ${ch.title}`}
+            />
+          )}
+          {tab === "objective" && (
+            <AiStudyTools key={`quiz-${ch.id}`} chapterId={ch.id} quiz />
+          )}
           {tab === "learn" && (
             <div className="space-y-8">
               <section>
                 <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-navy-900">
-                  <MonitorPlay className="h-5 w-5 text-saffron-600" /> Faculty Video Lectures
+                  <MonitorPlay className="h-5 w-5 text-saffron-600" />{" "}
+                  <T>Faculty Video Lectures</T>
                 </h2>
                 {videos.length === 0 ? (
                   <EmptyState
@@ -183,9 +231,12 @@ export default async function ChapterPage({
 
               <section>
                 <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-navy-900">
-                  <StickyNote className="h-5 w-5 text-saffron-600" /> Community Notes &amp; Handouts
+                  <StickyNote className="h-5 w-5 text-saffron-600" />{" "}
+                  <T>Community Notes &amp; Handouts</T>
                   <span className="rounded-full bg-navy-50 px-2 py-0.5 text-[12px] font-bold text-navy-600">
-                    {user.role === "faculty" ? "you can verify" : "upvote the useful ones"}
+                    {user.role === "faculty"
+                      ? "you can verify"
+                      : "upvote the useful ones"}
                   </span>
                 </h2>
                 <NotesSection
@@ -250,7 +301,8 @@ export default async function ChapterPage({
         <aside className="space-y-4">
           <section className="rounded-lg border border-line bg-white p-4 shadow-sm">
             <h3 className="flex items-center gap-2 text-[15px] font-extrabold text-navy-900">
-              <Trophy className="h-4 w-4 text-saffron-600" /> Top performers · this chapter
+              <Trophy className="h-4 w-4 text-saffron-600" /> Top performers ·
+              this chapter
             </h3>
             {top.length === 0 ? (
               <p className="mt-2 text-[13px] text-slate-500">
@@ -262,7 +314,9 @@ export default async function ChapterPage({
                   <li
                     key={r.id}
                     className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm ${
-                      r.id === user.id ? "bg-saffron-50 ring-1 ring-saffron-300" : ""
+                      r.id === user.id
+                        ? "bg-saffron-50 ring-1 ring-saffron-300"
+                        : ""
                     }`}
                   >
                     <span
@@ -280,7 +334,9 @@ export default async function ChapterPage({
                     </span>
                     <span className="truncate font-bold text-navy-800">
                       @{r.handle}
-                      {r.id === user.id && <span className="text-saffron-600"> (you)</span>}
+                      {r.id === user.id && (
+                        <span className="text-saffron-600"> (you)</span>
+                      )}
                     </span>
                     <span className="ml-auto shrink-0 font-extrabold text-navy-700">
                       {r.chapterXp} XP
@@ -299,10 +355,14 @@ export default async function ChapterPage({
 
           <section className="rounded-lg border border-navy-200 bg-navy-800 p-4 text-white shadow-sm">
             <h3 className="flex items-center gap-2 text-[15px] font-extrabold">
-              <ShieldCheck className="h-4 w-4 text-saffron-400" /> XP available here
+              <ShieldCheck className="h-4 w-4 text-saffron-400" /> XP available
+              here
             </h3>
             <ul className="mt-2 space-y-1.5 text-[13px] text-navy-100">
-              <li>• {mcqs.length > 0 ? `+${mcqs.length * 10} XP max` : "—"} · objective test (10 per correct)</li>
+              <li>
+                • {mcqs.length > 0 ? `+${mcqs.length * 10} XP max` : "—"} ·
+                objective test (10 per correct)
+              </li>
               <li>• +30 XP · complete subjective set</li>
               <li>• +50 XP · note reaching 10 upvotes</li>
             </ul>

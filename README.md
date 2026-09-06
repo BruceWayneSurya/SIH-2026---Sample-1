@@ -121,6 +121,27 @@ backup mechanism (or stop the app before copying the DB and WAL files).
 References: [Vercel local-storage limitation](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel),
 [Turso TypeScript/libSQL connection guide](https://docs.turso.tech/sdk/ts/quickstart#remote-libsql-database-@libsql/client).
 
+## Interface language
+
+Use the language dropdown beside the light/dark-mode switch. **English is the
+default**, with **Telugu (తెలుగు), Hindi (हिन्दी), Tamil (தமிழ்), Kannada (ಕನ್ನಡ),
+and Malayalam (മലയാളം)** available. The same controls appear on the welcome,
+portal, and sign-in/register pages.
+
+The browser remembers the choice in `pragyan_language`, including after reloads
+and navigation, and synchronizes it across tabs. If browser storage is blocked,
+it still works for the current tab. Switching updates navigation, key page copy,
+form labels, and study controls without reloading or clearing drafts/answers.
+English is the fallback for untranslated text. Script fonts are self-hosted;
+interface translations do not require a Groq key or an external translation
+widget.
+
+New AI chat, notes, and practice-quiz requests include the selected language.
+The server validates it against the six-language allowlist. Existing user notes,
+PDFs/videos, textbook material, and the stored assessment questions remain in
+their original language; their contents and saved answers are never rewritten.
+Translation dictionaries are in `src/lib/i18n/messages.ts`.
+
 ## Notes and embedded Drive previews
 
 Open a chapter → **Community Notes & Handouts → Contribute notes**:
