@@ -1,9 +1,10 @@
+import { withDatabase } from "@/lib/database-route";
 import { db } from "@/db";
 import { chapters, subjectiveAttempts, xpEvents } from "@/db/schema";
 import { and, count, eq } from "drizzle-orm";
 import { getActiveUser } from "@/lib/session";
 
-export async function POST(
+async function handlePOST(
   req: Request,
   ctx: { params: Promise<{ chapterId: string }> },
 ) {
@@ -62,3 +63,8 @@ export async function POST(
 
   return Response.json({ ok: true, xpEarned, firstTime });
 }
+
+export const POST = withDatabase(handlePOST);
+
+export const runtime = "nodejs";
+export const maxDuration = 60;

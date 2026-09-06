@@ -1,7 +1,8 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { createClient, type Client } from "@libsql/client";
+import { createRequire } from "node:module";
+import type { Client } from "@libsql/client";
 
 /**
  * libSQL's local driver is synchronous underneath its async API. A native busy
@@ -26,8 +27,16 @@ export async function retrySqliteBusy<T>(operation: () => Promise<T>, timeoutMs 
 }
 
 export function openSqliteClient(filename: string): Client {
+  // Load the native driver ONLY for a local file. Hosted Vercel requests use
+  // @libsql/client/web and never evaluate a platform-specific native binding.
+  const require = createRequire(path.join(process.cwd(), "package.json"));
+  const { createClient } = require("@libsql/client/node") as typeof import("@libsql/client/node");
   mkdirSync(path.dirname(filename), { recursive: true });
   const raw = createClient({ url: pathToFileURL(filename).href, intMode: "number", timeout: 0 });
+  return withBusyRetries(raw);
+}
+
+export function withBusyRetries(raw: Client): Client {
   const retryable = new Set(["execute", "batch", "transaction", "migrate"]);
 
   // Bind methods to the original client: the driver uses private class fields.

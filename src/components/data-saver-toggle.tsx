@@ -1,24 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { setDataSaver, useDataSaver } from "@/lib/ui-preferences";
 import { WifiOff, Wifi } from "lucide-react";
 
 export function DataSaverToggle() {
-  const [on, setOn] = useState(false);
-
-  useEffect(() => {
-    const v = typeof window !== "undefined" && window.localStorage.getItem("vs_saver") === "1";
-    setOn(v);
-    document.documentElement.dataset.saver = v ? "1" : "0";
-  }, []);
-
-  const toggle = () => {
-    const next = !on;
-    setOn(next);
-    window.localStorage.setItem("vs_saver", next ? "1" : "0");
-    document.documentElement.dataset.saver = next ? "1" : "0";
-    window.dispatchEvent(new CustomEvent("vs-saver", { detail: next }));
-  };
+  const on = useDataSaver();
+  const toggle = () => setDataSaver(!on);
 
   return (
     <button

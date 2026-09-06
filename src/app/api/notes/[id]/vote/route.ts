@@ -1,9 +1,10 @@
+import { withDatabase } from "@/lib/database-route";
 import { db } from "@/db";
 import { noteVotes, notes, xpEvents } from "@/db/schema";
 import { and, count, eq } from "drizzle-orm";
 import { getActiveUser } from "@/lib/session";
 
-export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handlePOST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getActiveUser();
   if (!user)
     return Response.json({ error: "Please log in first." }, { status: 401 });
@@ -88,3 +89,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     );
   }
 }
+
+export const POST = withDatabase(handlePOST);
+
+export const runtime = "nodejs";
+export const maxDuration = 60;

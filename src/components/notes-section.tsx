@@ -27,9 +27,10 @@ type Props = {
   chapterId: number;
   initial: RankedNote[];
   isFaculty: boolean;
+  allowLocalUploads?: boolean;
 };
 
-export function NotesSection({ chapterId, initial, isFaculty }: Props) {
+export function NotesSection({ chapterId, initial, isFaculty, allowLocalUploads = true }: Props) {
   const router = useRouter();
   const [notesState, setNotesState] = useState({ initial, items: initial });
   const [voting, setVoting] = useState<number | null>(null);
@@ -277,7 +278,7 @@ export function NotesSection({ chapterId, initial, isFaculty }: Props) {
                 </div>
               )}
             </div>
-            <details className="text-sm text-slate-600">
+            {allowLocalUploads ? <details className="text-sm text-slate-600">
               <summary className="cursor-pointer font-semibold text-navy-700">Or attach a local PDF / image</summary>
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <label className={`inline-flex items-center gap-2 rounded-md border border-line bg-white px-3 py-2 text-sm font-bold text-navy-700 ${driveUrl.trim() ? "opacity-50" : "cursor-pointer hover:border-navy-300"}`}>
@@ -311,7 +312,7 @@ export function NotesSection({ chapterId, initial, isFaculty }: Props) {
                 )}
               </div>
               {driveUrl.trim() && <p className="mt-1 text-[12px]">Clear the Drive link to attach a local file instead.</p>}
-            </details>
+            </details> : <p className="text-xs text-slate-500">Hosted uploads use Google Drive links so documents remain available across deployments. Local file attachments are only available when running the portal locally.</p>}
             {uploadErr && <p role="alert" className="text-sm font-bold text-rose-600">{uploadErr}</p>}
             <div className="flex justify-end">
               <button

@@ -1,6 +1,8 @@
+import { withDatabase } from "@/lib/database-route";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
+import { GUEST_EMAILS } from "@/lib/guest-accounts";
 import { hashPassword, redirectTo, redirectWithSession } from "@/lib/session";
 
 const GUESTS = {
@@ -30,7 +32,7 @@ const GUESTS = {
 
 const GUEST_MAX_AGE = 60 * 60 * 24 * 2;
 
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
   const role =
     new URL(req.url).searchParams.get("role") === "faculty" ? "faculty" : "student";
   const g = GUESTS[role];
@@ -39,7 +41,7 @@ export async function GET(req: Request) {
     let [user] = await db
       .select({ id: users.id, role: users.role })
       .from(users)
-      .where(eq(users.email, g.email))
+      .where(and(inArray(users.email, GUEST_EMAILS[role]), eq(users.isGuest, true)))
       .limit(1);
 
     if (!user) {
@@ -67,7 +69,7 @@ export async function GET(req: Request) {
           await db
             .select({ id: users.id, role: users.role })
             .from(users)
-            .where(eq(users.email, g.email))
+            .where(and(inArray(users.email, GUEST_EMAILS[role]), eq(users.isGuest, true)))
             .limit(1)
         )[0];
     }
@@ -79,3 +81,8 @@ export async function GET(req: Request) {
     return redirectTo("/home");
   }
 }
+
+export const GET = withDatabase(handleGET);
+
+export const runtime = "nodejs";
+export const maxDuration = 60;

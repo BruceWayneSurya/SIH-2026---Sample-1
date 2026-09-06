@@ -1,3 +1,4 @@
+import { withDatabase } from "@/lib/database-route";
 import { randomUUID } from "node:crypto";
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -7,7 +8,7 @@ import { chapters, notes } from "@/db/schema";
 import { validateNoteUpload } from "@/lib/note-upload";
 import { getActiveUser } from "@/lib/session";
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const user = await getActiveUser();
   if (!user)
     return Response.json({ error: "Please log in first." }, { status: 401 });
@@ -24,6 +25,9 @@ export async function POST(req: Request) {
     return Response.json({ error: result.error }, { status: 400 });
   }
   const { chapterId, title, content, file, fileType, fileName } = result.data;
+  if (file && process.env.VERCEL === "1") {
+    return Response.json({ error: "Local file uploads are unavailable on Vercel. Upload your PDF to Google Drive and paste its sharing link instead." }, { status: 400 });
+  }
   let { fileUrl } = result.data;
   let uploadedPath: string | null = null;
 
@@ -71,3 +75,8 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export const POST = withDatabase(handlePOST);
+
+export const runtime = "nodejs";
+export const maxDuration = 60;

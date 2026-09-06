@@ -1,4 +1,6 @@
-import { redirect } from "next/navigation";
+import { AccountActions } from "@/components/account-actions";
+import { DatabaseSetup } from "@/components/database-setup";
+
 import {
   Award,
   BadgeCheck,
@@ -21,7 +23,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Account() {
   const user = await getActiveUser();
-  if (!user) redirect("/home");
+  if (!user) return <DatabaseSetup />;
 
   const stats = await getUserStats(user.id, user.className);
   const badges = allBadges(await (async () => {
@@ -57,12 +59,14 @@ export default async function Account() {
           </p>
           {user.isGuest && (
             <span className="mt-1 inline-block rounded-sm bg-saffron-100 px-2 py-0.5 text-[12px] font-bold text-saffron-700">
-              Guest session — data persists for the demo
+              Shared demo guest — sign in for your own notes, votes, and scores
             </span>
           )}
         </div>
         <BadgeCheck className="h-8 w-8 text-leaf-500" aria-label="Verified portal account" />
       </div>
+
+      <AccountActions />
 
       <div className="vsv-enter mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard icon={Zap} label="Total XP" value={stats.xp} tone="saffron" />

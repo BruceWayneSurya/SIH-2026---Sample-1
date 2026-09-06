@@ -1,5 +1,6 @@
+import { DatabaseSetup } from "@/components/database-setup";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
@@ -26,7 +27,7 @@ export default async function SubjectIndex({
   const { classNo, subject } = await params;
   if (!validClass(classNo) || !validSubject(subject)) notFound();
   const user = await getActiveUser();
-  if (!user) redirect("/home");
+  if (!user) return <DatabaseSetup />;
 
   const cn = Number(classNo);
   const meta = SUBJECTS.find((s) => s.slug === subject)!;

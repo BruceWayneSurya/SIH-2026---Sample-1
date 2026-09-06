@@ -1,137 +1,200 @@
-# VidyaSetu — Open Digital Learning & Assessment Portal (SIH Edition)
+# Pragyan (प्रज्ञान) — Learning & Assessment Portal
 
-NCERT-aligned learning portal for Class 7 & 8: faculty-verified lectures,
-peer-reviewed notes, PYQ assessments and gamified leaderboards.
+Smart India Hackathon 2026 · Team PRAGYAN. NCERT-aligned Class 7/8 learning,
+faculty videos, community notes, assessments, leaderboards and AI study tools.
 
-The portal is open access — visitors use a guest student account and land on
-the dashboard. There is no login page.
+The welcome page, sign-in/register screens, demo personas, theme toggle,
+floating AI assistant and chapter tools follow the supplied
+[Pragyan reference](https://pragyan-sih-2026.vercel.app/). The existing text/Drive
+PDF upload, embedded preview and concurrent voting fixes are retained.
 
-## Quick start
+## Local development — keep your existing .env
 
-Use Node.js 22 or newer. Keep your existing `.env`, or copy `.env.example`:
+Use **Node.js 22**. Keep your `.env`, or copy `.env.example` if you do not have one:
 
 ```bash
-npm install
+npm ci
 npm run db:setup
-npm run dev          # http://localhost:3000
+npm run dev
 ```
 
-No PostgreSQL installation or server is needed. The app also applies SQLite
-migrations and seeds a **fresh, empty** database automatically on server start.
-Setup and seeding are repeatable: existing notes, votes, users and assessment
-results are preserved, and only missing demo guest accounts are added.
+Open `http://localhost:3000`. A blank/unset `DATABASE_URL` still uses
+`./data/app.db`. Absolute paths, relative paths and `file://` URLs also work.
+No PostgreSQL server or separate backend is required. Setup is automatic on
+local server start and repeatable; existing records are not deleted/reset.
 
-## Environment configuration
+## Vercel deployment
 
-All configuration comes from your existing `.env` (Next.js) / `dotenv`
-(migration and seed scripts). Do not commit this file or share your real key.
+### Why the local version failed on Vercel
 
-```dotenv
-DATABASE_URL=
-SESSION_SECRET=replace-with-a-long-random-secret-in-production
-GROQ_API_KEY=
-GROQ_MODEL=openai/gpt-oss-120b
-```
+The old connection tried to create `data/app.db` inside the deployed project.
+Vercel Functions do not provide a shared, permanent writable filesystem.
+Copying a database to `/tmp` would only hide the error and would lose or split
+accounts, notes, votes and scores across instances.
 
-### SQLite
+This version uses **permanent hosted SQLite/libSQL on Vercel**. There is no
+in-memory or temporary-file fallback. Public pages build/render without a DB
+connection; missing deployment settings produce a setup screen and a JSON 503
+from database APIs, rather than a crashing import or an endless refresh loop.
 
-An **empty, whitespace-only or unset `DATABASE_URL`** uses `./data/app.db` in
-the project root. The parent directory is created automatically. You can also
-use a relative path (`./data/learning.db`), an absolute path, or a `file://`
-URL. The app, migration scripts, seed and Drizzle Kit all use the same resolver.
-SQLite databases and their journal/WAL files are gitignored.
+### 1. Create a hosted database
 
-| Command | What it does |
+Create a **libSQL-compatible SQLite database in Turso**. Its URL should start
+with `libsql://` (an HTTPS libSQL endpoint is also supported). This adapter is
+for libSQL; do not select the newer `turso://` engine for this configuration.
+Obtain the URL and a database access token from the provider. Keep tokens private.
+
+### 2. Configure the Vercel project
+
+- Framework preset: **Next.js**.
+- Root directory: **the repository root**, not `frontend/`, `src/`, or `backend/`.
+- Node.js: **22.x**.
+- Install command: `npm ci`; build command: `npm run build`.
+- Leave the Next.js output-directory setting at its default.
+- Deploy the branch containing this fix: **`arena/01a07506-sih-2026-sample-1`**.
+  A push to this branch does **not** update a production deployment configured
+  to build `main`. Select this branch for the deployment, or merge the fix
+  through your normal review process before redeploying your production branch.
+
+Add the following under **Project Settings → Environment Variables** for the
+appropriate Production/Preview environment:
+
+| Variable | Vercel value |
 | --- | --- |
-| `npm run db:setup` | Apply migrations, then seed an empty database safely |
-| `npm run db:migrate` | Apply migrations from `drizzle/sqlite/` |
-| `npm run db:seed` | Ensure schema + demo data; never reset existing records |
-| `npm run db:generate` | Generate a SQLite migration from schema edits |
-| `npm run db:push` | Push the schema directly (development only; review changes) |
+| `DATABASE_URL` | Your `libsql://…turso.io` database URL; **must not be blank or a file path** |
+| `DATABASE_AUTH_TOKEN` | The database access token; server-only |
+| `SESSION_SECRET` | A randomly generated secret, at least 32 characters; not the example/demo value |
+| `GROQ_API_KEY` | Your Groq key, if you want AI features |
+| `GROQ_MODEL` | `openai/gpt-oss-120b`, or your supported Groq model |
 
-Back up an existing database before upgrading. Historical PostgreSQL migrations
-remain in `drizzle/` for reference, but are **not executed** by this version.
-This change does not automatically copy data from an old PostgreSQL database.
-The initial SQLite migration can adopt compatible existing SQLite tables without
-deleting their data. An incompatible pre-existing schema needs a separate
-migration; it is not silently overwritten.
+`TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are accepted aliases. Explicit
+nonblank `DATABASE_URL` / `DATABASE_AUTH_TOKEN` values take precedence.
+Use a separate database for preview/testing if you do not want those
+instances to modify production data.
 
-For deployment, run the Node.js server with persistent, writable storage for
-`data/app.db` (or the path in `DATABASE_URL`). A temporary/serverless filesystem
-will not retain a local SQLite database across deployments. Back up the database
-using SQLite's backup mechanism, or stop the app before copying the DB and its
-WAL files. Use a strong `SESSION_SECRET` outside this demo.
-
-### Groq (server-side only)
-
-Keep your real key in `GROQ_API_KEY`. `GROQ_MODEL` is honored exactly, including
-`openai/gpt-oss-120b`; when blank/unset it defaults to `llama-3.3-70b-versatile`.
-Do **not** prefix the key with `NEXT_PUBLIC_`. Restart the server after changing
-`.env`.
-
-This branch now provides **`POST /api/ai/chat`** for AI requests. Example client
-request (no key is sent from the browser):
-
-```js
-fetch("/api/ai/chat", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    messages: [{ role: "user", content: "Explain the fire triangle." }],
-  }),
-});
-// Success: { ok: true, reply: "..." }
-```
-
-The endpoint validates message sizes/roles, has a 30-second upstream timeout and
-a basic 10-requests-per-minute/account demo limit, and never forwards raw provider
-errors or credentials. Production deployments should add gateway rate limiting.
-No AI chat UI is added by this change. A missing/blank/masked key disables AI
-with a clear 503 response; **notes, PDF previews, voting and quizzes still work**.
-PDF previews do not use Groq and do not send your documents to an AI provider.
-
-## Community notes and embedded PDF previews
-
-Open **Community Notes & Handouts → Contribute notes** in a chapter. Add a
-note title and text, a Google Drive PDF link, or both:
-
-1. Upload the PDF to Google Drive.
-2. Set **Share → General access → Anyone with the link → Viewer**.
-3. Paste the file-sharing link into **PDF document · Google Drive**.
-4. Use **Preview PDF before publishing** to check it inside the form, then publish.
-
-Published PDF notes display an embedded Drive viewer **inside the website**,
-with a show/hide control and an **Open PDF in Google Drive** fallback. Standard
-`/file/d/…/view`, `/open?id=…` and `/uc?id=…` links are normalized to Drive's
-`/preview` URL for embedding; access resource keys are retained.
-
-Only the link is saved, not a copy of the Drive document. Google controls
-permissions, file availability and whether embedding is allowed. A private,
-removed or organization-restricted file may show an access screen; the portal
-cannot bypass this. The contributor must ensure the shared file is a PDF. Local
-PDF/image attachments (up to 8 MB) remain an alternative.
-
-The helpful button adds/removes one saved upvote per active account, updates
-ranking, and displays errors beside the note. SQLite write transactions preserve
-the one-time +50 XP reward at 10 votes; duplicate requests for the same vote state
-cannot double-count a vote. As elsewhere in this open demo, visitors without a
-signed-in account use the shared Guest Student account.
-
-## Checks
+Generate a session secret locally, for example:
 
 ```bash
-npm test                  # SQLite, environment, notes, previews and mocked Groq tests
-npm run typecheck
-npm run build
-npm run test:integration  # running app required: notes, concurrent votes and XP
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
 ```
 
-Integration tests default to `http://127.0.0.1:3000` and must use the **same
-SQLite file and SESSION_SECRET as the app**. Set `TEST_BASE_URL` to override the
-address. Use a development/test database: only uniquely named test fixtures are
-created and deleted. Groq unit tests use a mock transport and never spend API
-credits or require a real key.
+**Your local `.env` is intentionally not committed or uploaded to Vercel.**
+Setting a variable on your laptop does not configure a Vercel Function.
+Never use `NEXT_PUBLIC_` for database tokens, session secrets or Groq keys.
 
-## Stack
+### 3. Redeploy and check
 
-Next.js 16 (App Router) · SQLite / libSQL · Drizzle ORM · Tailwind CSS 4 · Groq.
+Redeploy after saving the environment variables. On the first database request,
+the app applies `drizzle/sqlite/` migrations and seeds an empty database safely.
+Batched inserts keep hosted initialization short; subsequent starts preserve
+data and only add missing guest accounts. Migrations are included in the
+function bundle. The hosted HTTP driver never loads native SQLite bindings,
+changes remote journal pragmas, or writes a local replica.
+
+For an operator-controlled initialization, run `npm run db:setup` with the
+**hosted** URL/token configured in your local server environment before deployment.
+For future schema changes, run migrations as one coordinated deployment step
+rather than making concurrent deployments migrate the same database.
+
+Check `https://YOUR-DEPLOYMENT/api/health`. A working hosted deployment returns:
+
+```json
+{"ok":true,"storage":"remote-sqlite","persistent":true}
+```
+
+Then test guest/sign-in access, publish a text + Drive PDF note, vote, and reload
+from another session. Shared state lives in the hosted database, not a Vercel
+instance. If health returns 503, read its sanitized configuration message and
+check the project environment scope, database URL/token and session secret.
+
+### Existing data and backups
+
+Connecting a new hosted database does not automatically upload `data/app.db`
+or merge an old PostgreSQL database. Back up existing data first and use your
+provider's supported SQLite import/export procedure if you want to move it.
+The initial migration can adopt a compatible existing SQLite schema without
+resetting records. Incompatible schemas need a separate migration.
+
+For self-hosting with local SQLite, use a persistent writable disk and SQLite's
+backup mechanism (or stop the app before copying the DB and WAL files).
+
+References: [Vercel local-storage limitation](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel),
+[Turso TypeScript/libSQL connection guide](https://docs.turso.tech/sdk/ts/quickstart#remote-libsql-database-@libsql/client).
+
+## Notes and embedded Drive previews
+
+Open a chapter → **Community Notes & Handouts → Contribute notes**:
+
+1. Add a title and text, a Google Drive PDF link, or both.
+2. For a PDF, set Drive sharing to **Anyone with the link → Viewer**.
+3. Paste the file link in **PDF document · Google Drive**.
+4. Select **Preview PDF before publishing**, then publish.
+
+Saved PDFs render **inside the website** with show/hide controls and an external
+Drive fallback. File `/view`, `/open?id=…` and `/uc?id=…` URLs are normalized to
+`/preview`; access resource keys are preserved. Only validated HTTPS Drive file
+URLs are embedded. The app stores the link, not a copy of the document.
+
+Google controls file existence, permissions and embedding. A private, deleted
+or organization-restricted file can show an access screen. The app cannot bypass
+that or guarantee a file's MIME type. Contributors must share an actual PDF.
+
+**On Vercel, use Drive links:** writing to `public/uploads` is disabled, with a
+clear UI/API explanation, because those files would not persist. Local installs
+still allow PDF/image attachments up to 8 MB. Existing local attachments are not
+automatically uploaded when moving to Vercel.
+
+Each account has one saved vote per note. Desired-state requests are idempotent,
+ranking updates immediately, and write transactions keep the +50 XP milestone
+at ten votes one-time. Guest Student/Faculty are shared demo identities; sign in
+with separate accounts for separate votes and progress.
+
+## AI features
+
+- **Ask Pragyan AI**: a floating, keyboard-accessible chat on every page.
+- **AI Tutor** tab: chapter-scoped conversation.
+- **AI Quiz Generator**: 3/5/7/10 original practice questions on the objective tab,
+  answer checking and explanations. Generated questions are **not official PYQs**
+  and do not award XP or change the stored assessment bank.
+- **AI Study Notes**: summary, key points or a simpler explanation in the learning tab.
+
+Browser requests go to same-origin `POST /api/ai/chat` or `/api/ai/study`.
+Only the server calls Groq. The configured model is passed unchanged; a blank
+model defaults to `llama-3.3-70b-versatile`. Missing/masked keys return a clear
+503 without breaking notes, quizzes or previews. No document is sent to Groq
+by the PDF preview feature. Conversations are not automatically saved.
+
+Requests have bounded input, a 30-second provider timeout, validated quiz output,
+sanitized errors and a **best-effort per-instance** 10-request/minute/account
+limit shared across AI endpoints. For a public deployment, also configure
+provider spending limits and distributed/gateway rate limiting; an in-process
+map does not enforce a global limit across Vercel instances.
+
+This is a hackathon demo with public guest/faculty personas, not a verified
+school identity service. Harden account provisioning and moderation before use
+with real student records. AI can make mistakes; confirm important answers
+against NCERT or a teacher, and do not enter private personal information.
+
+## Checks and database commands
+
+```bash
+npm test
+npm run typecheck
+npm run lint
+npm run build
+npm run test:integration  # running local test app required
+
+npm run db:setup         # migrate + seed, non-destructive
+npm run db:migrate
+npm run db:seed
+npm run db:generate
+npm run db:push          # development only; review schema changes
+```
+
+Integration tests create/delete uniquely named fixtures. Run them against a
+local test database using the same file and SESSION_SECRET as the running app,
+not against a production deployment. `TEST_BASE_URL` defaults to
+`http://127.0.0.1:3000`. Groq and hosted-driver unit tests mock transport: they do
+not need real keys, spend credits, or claim to validate a live cloud database.
+
+Next.js 16 · React 19 · SQLite/libSQL · Drizzle ORM · Tailwind CSS 4 · Groq.

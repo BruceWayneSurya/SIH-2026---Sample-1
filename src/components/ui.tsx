@@ -9,6 +9,50 @@ import {
   type LucideProps,
 } from "lucide-react";
 
+export function ChakraMark({ className = "h-10 w-10" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 40 40" className={className} aria-hidden="true">
+      <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" strokeWidth="2.4" />
+      <circle cx="20" cy="20" r="3.2" fill="currentColor" />
+      {Array.from({ length: 24 }).map((_, i) => (
+        <line
+          key={i}
+          x1="20"
+          y1="20"
+          x2="20"
+          y2="4.5"
+          stroke="currentColor"
+          strokeWidth="1.1"
+          transform={`rotate(${i * 15} 20 20)`}
+        />
+      ))}
+    </svg>
+  );
+}
+
+export const Wordmark = ({ light = false }: { light?: boolean }) => (
+  <span className="flex items-center gap-2.5">
+    <ChakraMark className={light ? "h-9 w-9 text-saffron-400" : "h-9 w-9 text-[#133b5c] dark:text-saffron-400"} />
+    <span className="leading-none">
+      <span
+        className={`block text-[22px] font-black tracking-tight ${
+          light ? "text-white" : "text-[#0c2a43] dark:text-white"
+        }`}
+        style={{ fontFamily: "var(--font-deva), 'Noto Serif Devanagari', 'Mukta', serif" }}
+      >
+        प्रज्ञान
+      </span>
+      <span
+        className={`block text-[10.5px] font-bold uppercase tracking-[0.14em] ${
+          light ? "text-navy-200" : "text-[#1d5080] dark:text-slate-300"
+        }`}
+      >
+        Pragyan · Learning Portal
+      </span>
+    </span>
+  </span>
+);
+
 export const SUBJECT_ICONS: Record<string, LucideIcon> = {
   calculator: Calculator,
   flask: FlaskConical,

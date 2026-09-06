@@ -92,6 +92,11 @@ describe("SQLite storage", () => {
       assert.match(command(pathToFileURL(filename).href), /existing data preserved/);
       assert.equal((await client.execute("SELECT COUNT(*) AS n FROM notes")).rows[0].n, Number(initial.rows[0].n) + 1);
       assert.equal((await client.execute("SELECT content FROM notes WHERE title = 'Keep this note'")).rows[0].content, "Custom user data");
+      // Other Pragyan versions use the new guest email domain with the same IDs.
+      const guestIds = (await client.execute("SELECT id FROM users WHERE is_guest = 1 ORDER BY id")).rows.map((row) => row.id);
+      await client.execute("UPDATE users SET email = replace(email, '@vidyasetu.gov.in', '@pragyan.gov.in') WHERE is_guest = 1");
+      assert.match(command(filename), /existing data preserved/);
+      assert.deepEqual((await client.execute("SELECT id FROM users WHERE is_guest = 1 ORDER BY id")).rows.map((row) => row.id), guestIds);
     } finally { client.close(); }
   });
 });

@@ -1,10 +1,10 @@
 import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
-import { resolveSqlitePath } from "./src/db/config";
+import { resolveDatabaseConfig } from "./src/db/config";
 
-export default defineConfig({
-  dialect: "sqlite",
-  schema: "./src/db/schema.ts",
-  out: "./drizzle/sqlite",
-  dbCredentials: { url: resolveSqlitePath() },
-});
+const config = resolveDatabaseConfig();
+const shared = { schema: "./src/db/schema.ts", out: "./drizzle/sqlite" };
+
+export default config.kind === "remote"
+  ? defineConfig({ ...shared, dialect: "turso", dbCredentials: { url: config.url, authToken: config.authToken } })
+  : defineConfig({ ...shared, dialect: "sqlite", dbCredentials: { url: config.filename } });

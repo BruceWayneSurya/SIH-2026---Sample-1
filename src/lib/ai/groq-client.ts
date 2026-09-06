@@ -13,7 +13,7 @@ export class AiServiceError extends Error {
 export function getGroqConfig(env: { GROQ_API_KEY?: string; GROQ_MODEL?: string }): GroqConfig {
   const apiKey = env.GROQ_API_KEY?.trim();
   if (!apiKey || apiKey.includes("*") || apiKey === "your-groq-key-here") {
-    throw new AiServiceError("AI is not configured. Set GROQ_API_KEY in .env and restart the server.", 503);
+    throw new AiServiceError("AI is not configured. Set GROQ_API_KEY in .env locally or Vercel Environment Variables, then restart or redeploy.", 503);
   }
   return { apiKey, model: env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile" };
 }
@@ -48,6 +48,7 @@ export async function completeGroqChat(
   messages: ChatMessage[],
   config: GroqConfig,
   fetcher: typeof fetch = fetch,
+  options: { context?: string; maxTokens?: 2_048 | 4_096 } = {},
 ): Promise<string> {
   let response: Response;
   try {
@@ -57,11 +58,11 @@ export async function completeGroqChat(
       body: JSON.stringify({
         model: config.model,
         messages: [
-          { role: "system", content: "You are VidyaSetu's learning assistant for NCERT Classes 7 and 8. Explain concepts clearly, step by step, in age-appropriate language. Be honest when uncertain." },
+          { role: "system", content: `You are Pragyan, a learning assistant for NCERT Classes 7 and 8. Explain concepts clearly in age-appropriate language. Be honest when uncertain. Never claim generated practice is an official PYQ. ${options.context ? `Current chapter: ${options.context}.` : ""}` },
           ...messages,
         ],
         stream: false,
-        max_completion_tokens: 2_048,
+        max_completion_tokens: options.maxTokens ?? 2_048,
       }),
       cache: "no-store",
       signal: AbortSignal.timeout(30_000),

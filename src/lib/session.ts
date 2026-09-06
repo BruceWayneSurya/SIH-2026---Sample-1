@@ -1,12 +1,13 @@
-import { createHmac } from "node:crypto";
+import { assertDeploymentConfig } from "./deployment";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { db } from "../db";
 import { users } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
+import { GUEST_EMAILS } from "./guest-accounts";
 
 const SECRET = process.env.SESSION_SECRET ?? "vidyasetu-sih-demo-secret";
 const COOKIE = "vs_session";
-const OPEN_GUEST_EMAIL = "guest.student@vidyasetu.gov.in";
 
 export type SessionUser = {
   id: number;
@@ -138,9 +139,12 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     const token = store.get(COOKIE)?.value;
     if (!token) return null;
     const [body, sig] = token.split(".");
-    if (!body || !sig || sign(body) !== sig) return null;
+    if (!body || !sig) return null;
+    const expected = Buffer.from(sign(body));
+    const actual = Buffer.from(sig);
+    if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return null;
     const data = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
-    if (typeof data?.u !== "number" || data.e < Date.now()) return null;
+    if (!Number.isSafeInteger(data?.u) || data.u < 1 || !Number.isFinite(data.e) || data.e < Date.now()) return null;
     const rows = await db.select().from(users).where(eq(users.id, data.u)).limit(1);
     const u = rows[0];
     return u ? asSessionUser(u) : null;
@@ -154,6 +158,11 @@ export async function getSessionUser(): Promise<SessionUser | null> {
  * seeded guest student. Pages never bounce to a login screen.
  */
 export async function getActiveUser(): Promise<SessionUser | null> {
+  try {
+    assertDeploymentConfig();
+    const { ensureDemoDatabase } = await import("./ensure-db");
+    await ensureDemoDatabase();
+  } catch { return null; }
   const session = await getSessionUser();
   if (session) return session;
 
@@ -161,7 +170,7 @@ export async function getActiveUser(): Promise<SessionUser | null> {
     const rows = await db
       .select()
       .from(users)
-      .where(eq(users.email, OPEN_GUEST_EMAIL))
+      .where(and(inArray(users.email, GUEST_EMAILS.student), eq(users.isGuest, true)))
       .limit(1);
     return rows[0] ? asSessionUser(rows[0], true) : null;
   };
@@ -177,8 +186,8 @@ export async function getActiveUser(): Promise<SessionUser | null> {
     const { ensureDemoDatabase } = await import("./ensure-db");
     await ensureDemoDatabase();
     return await lookup();
-  } catch (err) {
-    console.error("[session] guest lookup failed", err);
+  } catch {
+    console.error("[session] The database is unavailable.");
     return null;
   }
 }

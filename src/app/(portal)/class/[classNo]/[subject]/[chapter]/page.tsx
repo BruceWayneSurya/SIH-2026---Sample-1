@@ -1,8 +1,10 @@
+import { DatabaseSetup } from "@/components/database-setup";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   BookOpen,
+  Bot,
   Clapperboard,
   FlaskConical,
   ListChecks,
@@ -26,6 +28,8 @@ import {
 import { EmptyState } from "@/components/ui";
 import { VideoPlayer } from "@/components/video-player";
 import { NotesSection } from "@/components/notes-section";
+import { AiTutor } from "@/components/ai-tutor";
+import { AiStudyTools } from "@/components/ai-study-tools";
 import { ObjectiveQuiz } from "@/components/objective-quiz";
 import { SubjectivePractice } from "@/components/subjective-practice";
 
@@ -35,6 +39,7 @@ const TABS = [
   { id: "learn", label: "1 · Learning Hub", icon: BookOpen },
   { id: "objective", label: "2 · Objective (20 MCQs)", icon: ListChecks },
   { id: "subjective", label: "3 · Subjective (2/3/5M)", icon: PenLine },
+  { id: "ai", label: "4 · AI Tutor", icon: Bot },
 ] as const;
 
 export default async function ChapterPage({
@@ -47,9 +52,9 @@ export default async function ChapterPage({
   const { classNo, subject, chapter } = await params;
   const { tab = "learn" } = await searchParams;
   if (!validClass(classNo) || !validSubject(subject)) notFound();
-  if (!["learn", "objective", "subjective"].includes(tab)) notFound();
+  if (!["learn", "objective", "subjective", "ai"].includes(tab)) notFound();
   const user = await getActiveUser();
-  if (!user) redirect("/home");
+  if (!user) return <DatabaseSetup />;
 
   const cn = Number(classNo);
   const ch = await getChapter(cn, subject, chapter);
@@ -118,7 +123,7 @@ export default async function ChapterPage({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-1 rounded-md bg-navy-50 p-1 sm:grid-cols-3" role="tablist" aria-label="Chapter sub-portals">
+        <div className="mt-4 grid grid-cols-1 gap-1 rounded-md bg-navy-50 p-1 sm:grid-cols-2 lg:grid-cols-4" role="tablist" aria-label="Chapter sub-portals">
           {TABS.map((t) => (
             <Link
               key={t.id}
@@ -138,7 +143,9 @@ export default async function ChapterPage({
       </header>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]">
-        <div>
+        <div className="min-w-0 space-y-5">
+          {tab === "ai" && <AiTutor key={`tutor-${ch.id}`} chapterId={ch.id} chapterTitle={`${subjectName(subject)} · ${ch.title}`} />}
+          {tab === "objective" && <AiStudyTools key={`quiz-${ch.id}`} chapterId={ch.id} quiz />}
           {tab === "learn" && (
             <div className="space-y-8">
               <section>
@@ -186,8 +193,10 @@ export default async function ChapterPage({
                   chapterId={ch.id}
                   initial={notesList}
                   isFaculty={user.role === "faculty"}
+                  allowLocalUploads={process.env.VERCEL !== "1"}
                 />
               </section>
+              <AiStudyTools key={`notes-${ch.id}`} chapterId={ch.id} />
             </div>
           )}
 

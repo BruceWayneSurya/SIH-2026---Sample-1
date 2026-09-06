@@ -1,23 +1,25 @@
-import { databasePath } from "../db";
+import { databaseConnection, databaseKind } from "../db";
+import { publicDatabaseError } from "../db/config";
 import { migrateDatabase } from "../db/migrate";
 import { seedDemoDatabase } from "../db/seed";
 
-const g = globalThis as typeof globalThis & {
-  __vsEnsureDb?: Promise<void>;
+const globals = globalThis as typeof globalThis & {
+  __pragyanEnsureDb?: { connection: typeof databaseConnection; promise: Promise<void> };
 };
 
-/** Create/migrate SQLite and seed a fresh database; never reset existing data. */
+/** Migrate/seed once per connection, preserving existing shared data. */
 export function ensureDemoDatabase(): Promise<void> {
-  if (!g.__vsEnsureDb) {
-    g.__vsEnsureDb = (async () => {
+  if (globals.__pragyanEnsureDb?.connection !== databaseConnection) {
+    const promise = (async () => {
       await migrateDatabase();
       const seeded = await seedDemoDatabase();
-      console.log(`[db] SQLite ready: ${databasePath}${seeded ? " (demo data added)" : " (existing data preserved)"}`);
+      console.info(`[db] ${databaseKind} SQLite ready (${seeded ? "demo data added" : "existing data preserved"})`);
     })().catch((error) => {
-      g.__vsEnsureDb = undefined;
-      console.error("[db] SQLite setup failed", error);
+      globals.__pragyanEnsureDb = undefined;
+      console.error("[db]", publicDatabaseError(error));
       throw error;
     });
+    globals.__pragyanEnsureDb = { connection: databaseConnection, promise };
   }
-  return g.__vsEnsureDb;
+  return globals.__pragyanEnsureDb.promise;
 }

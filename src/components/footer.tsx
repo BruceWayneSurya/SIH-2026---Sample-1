@@ -1,4 +1,4 @@
-import { Wordmark } from "./header";
+import { Wordmark } from "./ui";
 
 export function SiteFooter() {
   return (
@@ -32,12 +32,12 @@ export function SiteFooter() {
             assessments and a peer benchmarking engine.
           </p>
           <p className="mt-4 text-xs text-navy-300">
-            A hackathon demonstration portal — open access, no sign-in required.
+            Smart India Hackathon 2026 · Team PRAGYAN. Guest access or your own account.
           </p>
         </div>
       </div>
       <div className="border-t border-navy-800 py-3 text-center text-xs text-navy-300">
-        विद्या ही शक्ति है · Knowledge is Power — VidyaSetu © 2025
+        विद्या ही शक्ति है · Knowledge is Power — Pragyan © 2026
       </div>
     </footer>
   );
