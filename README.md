@@ -282,4 +282,13 @@ not against a production deployment. `TEST_BASE_URL` defaults to
 `http://127.0.0.1:3000`. Groq and hosted-driver unit tests mock transport: they do
 not need real keys, spend credits, or claim to validate a live cloud database.
 
+`tests/faculty-verification.integration.ts` walks the real HTTP flow: a personal
+mailbox is held at pending review and its challenge survives the resend cooldown,
+note moderation stays locked (403) until a verified reviewer approves the
+institution and then unlocks (200) on the same cookie, an institutional mailbox
+reaches verified immediately, students are never challenged, and forged or unknown
+challenge ids are refused. It needs the console mail provider (the default when
+`MAIL_PROVIDER` is unset) because the one-time code is read from the response;
+against a real SMTP or Resend configuration the code-dependent cases skip.
+
 Next.js 16 · React 19 · SQLite/libSQL · Drizzle ORM · Tailwind CSS 4 · Groq.
