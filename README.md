@@ -25,6 +25,19 @@ local server start and repeatable; existing records are not deleted/reset.
 
 ## Vercel deployment
 
+If you see “Vercel requires permanent hosted SQLite storage…” on the deployed
+site, follow the step-by-step fix in
+[`VERCEL_HOSTED_SQLITE.md`](./VERCEL_HOSTED_SQLITE.md) (create a free Turso
+database, validate it with `npm run db:check`, add the environment variables,
+redeploy). Short version:
+
+| Variable | Vercel value |
+| --- | --- |
+| `DATABASE_URL` | Your hosted `libsql://…turso.io` URL — **must not be blank or a file path** |
+| `DATABASE_AUTH_TOKEN` | The database access token; server-only |
+| `SESSION_SECRET` | Random, ≥ 32 characters; not the example/demo value |
+| `GROQ_API_KEY` | Optional, for AI features |
+
 ### Why the local version failed on Vercel
 
 The old connection tried to create `data/app.db` inside the deployed project.
