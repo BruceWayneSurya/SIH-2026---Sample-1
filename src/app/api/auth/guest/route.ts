@@ -58,6 +58,12 @@ async function handleGET(req: Request) {
           school: g.school,
           subjectSpecialization: g.subjectSpecialization,
           institutionId: g.institutionId,
+          // Demo guests sit on an institutional domain, so they count as verified.
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+          emailDomain: g.email.split("@")[1] ?? null,
+          verificationStatus: "verified",
+          verifiedBy: "Demo guest access",
           isGuest: true,
         })
         .onConflictDoNothing()

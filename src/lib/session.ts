@@ -5,8 +5,10 @@ import { db } from "../db";
 import { users } from "../db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 import { GUEST_EMAILS } from "./guest-accounts";
+import { portalSecret } from "./secret";
+import type { VerificationStatus } from "./faculty-email";
 
-const SECRET = process.env.SESSION_SECRET ?? "vidyasetu-sih-demo-secret";
+const SECRET = portalSecret();
 const COOKIE = "vs_session";
 
 export type SessionUser = {
@@ -20,6 +22,9 @@ export type SessionUser = {
   school: string | null;
   subjectSpecialization: string | null;
   institutionId: string | null;
+  /** Faculty email verification state; "verified" unlocks note moderation. */
+  verificationStatus: VerificationStatus;
+  emailVerified: boolean;
   isGuest: boolean;
 };
 
@@ -37,6 +42,8 @@ function asSessionUser(u: UserRow, forceGuest = false): SessionUser {
     school: u.school,
     subjectSpecialization: u.subjectSpecialization,
     institutionId: u.institutionId,
+    verificationStatus: u.verificationStatus,
+    emailVerified: u.emailVerified,
     isGuest: forceGuest || u.isGuest,
   };
 }

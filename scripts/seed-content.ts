@@ -292,3 +292,84 @@ export const notesByChapter: Record<string, NoteSeed[]> = {
 };
 
 export const DEMO_PASSWORD = "demo123";
+
+/* ------------------------------------------------------------------ */
+/*  CLASS 10 · SCIENCE · CH 1 — CHEMICAL REACTIONS AND EQUATIONS      */
+/* ------------------------------------------------------------------ */
+export const chemicalReactionsMcqs: MCQSeed[] = [
+  { q: "A reaction in which two or more substances combine to form a single product is called —", options: ["Combination reaction", "Decomposition reaction", "Displacement reaction", "Double displacement reaction"], correct: 0, why: "A single product from two or more reactants is the definition of a combination reaction, e.g. CaO + H₂O → Ca(OH)₂.", pyq: "CBSE 2023" },
+  { q: "Zinc + sulphuric acid → zinc sulphate + hydrogen is an example of a —", options: ["Combination reaction", "Decomposition reaction", "Displacement reaction", "Double displacement reaction"], correct: 2, why: "Zinc displaces hydrogen from the acid, so it is a displacement reaction.", pyq: "CBSE 2022" },
+  { q: "The brown fumes seen when lead nitrate is heated are of —", options: ["Nitrogen dioxide", "Oxygen", "Nitrous oxide", "Lead oxide"], correct: 0, why: "Heating lead nitrate gives PbO, oxygen and brown nitrogen dioxide gas (a decomposition reaction).", pyq: "NCERT Exemplar" },
+  { q: "A reaction that releases heat along with the products is called —", options: ["Endothermic", "Exothermic", "Photochemical", "Electrolytic"], correct: 1, why: "Exothermic reactions release energy as heat, e.g. burning of natural gas.", pyq: "CBSE 2023" },
+  { q: "Photosynthesis is an example of an — reaction.", options: ["Exothermic", "Endothermic", "Displacement", "Precipitation"], correct: 1, why: "Plants absorb energy (sunlight) to make glucose, so photosynthesis is endothermic.", pyq: "State Board 2022" },
+  { q: "Respiration is classified as an exothermic reaction because —", options: ["It absorbs heat", "Energy is released when glucose is oxidised", "It needs light", "It forms a precipitate"], correct: 1, why: "Glucose combines with oxygen and releases energy, which is why respiration is exothermic.", pyq: "NCERT Exemplar" },
+  { q: "The process in which a substance gains oxygen or loses hydrogen is called —", options: ["Reduction", "Oxidation", "Corrosion only", "Rancidity"], correct: 1, why: "Gain of oxygen (or loss of hydrogen) is oxidation; the reverse is reduction.", pyq: "CBSE 2021" },
+  { q: "On heating, green ferrous sulphate crystals turn —", options: ["White", "Blue", "Black", "Yellow"], correct: 0, why: "Ferrous sulphate loses water and decomposes, leaving white anhydrous solid that then forms brown ferric oxide.", pyq: "NCERT Exemplar" },
+  { q: "Silver chloride turns grey in sunlight because of —", options: ["Photolytic decomposition", "Combination", "Displacement", "Oxidation by air"], correct: 0, why: "Sunlight decomposes AgCl into silver and chlorine; silver gives the grey colour.", pyq: "CBSE 2022" },
+  { q: "In the reaction CuO + H₂ → Cu + H₂O, the substance reduced is —", options: ["CuO", "H₂", "Cu", "H₂O"], correct: 0, why: "CuO loses oxygen to become Cu, so CuO is reduced and H₂ is oxidised.", pyq: "CBSE 2020" },
+  { q: "A balanced chemical equation obeys the law of —", options: ["Conservation of mass", "Multiple proportions", "Constant proportions", "Definite proportions"], correct: 0, why: "Atoms are neither created nor destroyed, so mass stays the same on both sides.", pyq: "State Board 2023" },
+  { q: "Rancidity in oily food can be slowed by —", options: ["Flushing the packet with nitrogen", "Exposing it to air", "Keeping it in sunlight", "Heating it repeatedly"], correct: 0, why: "Nitrogen removes oxygen, so fats and oils cannot be oxidised.", pyq: "CBSE 2023" },
+];
+
+export const chemicalReactionsSubj: SubjSeed[] = [
+  { q: "Balance the chemical equation: Fe + H₂O → Fe₃O₄ + H₂.", marks: 3, rubric: [{ step: "Balancing iron atoms (3Fe)", marks: 1 }, { step: "Balancing oxygen atoms (4H₂O)", marks: 1 }, { step: "Balancing hydrogen atoms (4H₂) and final equation", marks: 1 }], answer: "3Fe + 4H₂O → Fe₃O₄ + 4H₂. Iron atoms 3 on both sides, oxygen 4, hydrogen 8." },
+  { q: "Why is respiration considered an exothermic reaction? Explain.", marks: 2, rubric: [{ step: "Glucose combines with oxygen (oxidation)", marks: 1 }, { step: "Energy is released, hence exothermic", marks: 1 }], answer: "During respiration glucose is oxidised by oxygen to carbon dioxide and water, and energy is released for body functions. Since energy is released, it is an exothermic reaction." },
+  { q: "Distinguish between displacement and double displacement reactions, giving one example of each.", marks: 3, rubric: [{ step: "Displacement: a more reactive element displaces another", marks: 1 }, { step: "Example (Fe + CuSO₄ → FeSO₄ + Cu)", marks: 1 }, { step: "Double displacement: exchange of ions + example (Na₂SO₄ + BaCl₂ → BaSO₄ + 2NaCl)", marks: 1 }], answer: "In a displacement reaction a more reactive element displaces a less reactive one (Fe + CuSO₄ → FeSO₄ + Cu). In a double displacement reaction the ions of two compounds exchange partners (Na₂SO₄ + BaCl₂ → BaSO₄↓ + 2NaCl)." },
+  { q: "Identify the substance oxidised and the substance reduced in MnO₂ + 4HCl → MnCl₂ + 2H₂O + Cl₂.", marks: 3, rubric: [{ step: "MnO₂ is reduced (loses oxygen)", marks: 1 }, { step: "HCl is oxidised (gains oxygen / forms Cl₂)", marks: 1 }, { step: "Correct identification of the redox pair", marks: 1 }], answer: "MnO₂ loses oxygen to form MnCl₂, so it is reduced. HCl gains oxygen (and is converted into Cl₂), so it is oxidised. The reaction is therefore a redox reaction." },
+];
+
+/* ------------------------------------------------------------------ */
+/*  CLASS 10 · MATHEMATICS · CH 1 — REAL NUMBERS                      */
+/* ------------------------------------------------------------------ */
+export const realNumbersMcqs: MCQSeed[] = [
+  { q: "The HCF of 8 and 12 is —", options: ["2", "4", "6", "8"], correct: 1, why: "8 = 2³ and 12 = 2² × 3, so the HCF is 2² = 4.", pyq: "CBSE 2023" },
+  { q: "The LCM of 6 and 20 is —", options: ["30", "60", "120", "180"], correct: 1, why: "6 = 2 × 3 and 20 = 2² × 5, so LCM = 2² × 3 × 5 = 60.", pyq: "CBSE 2022" },
+  { q: "For any two positive integers a and b, HCF(a, b) × LCM(a, b) equals —", options: ["a + b", "a × b", "a − b", "a ÷ b"], correct: 1, why: "The product of the HCF and LCM of two numbers always equals the product of the numbers.", pyq: "NCERT Exemplar" },
+  { q: "The HCF of 96 and 404 is —", options: ["2", "4", "6", "8"], correct: 1, why: "404 = 96 × 4 + 20, 96 = 20 × 4 + 16, 20 = 16 × 1 + 4, 16 = 4 × 4 + 0, so HCF = 4.", pyq: "CBSE 2021" },
+  { q: "√2 is a — number.", options: ["Rational", "Irrational", "Integer", "Whole"], correct: 1, why: "√2 cannot be written as p/q with q ≠ 0, so it is irrational.", pyq: "State Board 2022" },
+  { q: "The decimal expansion of 13/3125 terminates after — decimal places.", options: ["2", "3", "4", "5"], correct: 3, why: "3125 = 5⁵, so the expansion terminates after 5 decimal places.", pyq: "NCERT Exemplar" },
+  { q: "The number whose prime factorisation is 2³ × 3² × 5 is —", options: ["360", "180", "720", "120"], correct: 0, why: "2³ × 3² × 5 = 8 × 9 × 5 = 360.", pyq: "CBSE 2023" },
+  { q: "The LCM of the coprime numbers 7 and 11 is —", options: ["77", "18", "1", "7"], correct: 0, why: "For coprime numbers the LCM is their product: 7 × 11 = 77.", pyq: "CBSE 2020" },
+  { q: "Which of the following is irrational?", options: ["√4", "√9", "√5", "√16"], correct: 2, why: "√4 = 2, √9 = 3, √16 = 4 are rational; 5 is not a perfect square, so √5 is irrational.", pyq: "State Board 2023" },
+  { q: "The HCF of two numbers is 9 and their LCM is 90. If one number is 18, the other is —", options: ["45", "36", "54", "27"], correct: 0, why: "Other number = (HCF × LCM) ÷ 18 = 810 ÷ 18 = 45.", pyq: "CBSE 2022" },
+  { q: "A rational number p/q has a terminating decimal expansion when the prime factors of q are —", options: ["Only 2s and 5s", "Only 3s and 5s", "Only 2s and 3s", "Only 7s and 11s"], correct: 0, why: "q must be of the form 2ⁿ × 5ᵐ for the decimal expansion to terminate.", pyq: "NCERT Exemplar" },
+  { q: "Euclid's division lemma says that for positive integers a and b there exist unique integers q and r satisfying a = bq + r, where —", options: ["0 ≤ r < b", "r > b", "0 < r < b", "r is always 0"], correct: 0, why: "The remainder r is always non-negative and smaller than the divisor b.", pyq: "CBSE 2023" },
+];
+
+export const realNumbersSubj: SubjSeed[] = [
+  { q: "Prove that √3 is an irrational number.", marks: 3, rubric: [{ step: "Assume √3 = a/b with a, b coprime", marks: 1 }, { step: "Show 3 divides a and then b", marks: 1 }, { step: "Contradiction with coprimality, hence irrational", marks: 1 }], answer: "Assume √3 = a/b with a, b coprime. Then 3b² = a², so 3 divides a² and hence a. Write a = 3c, then 3b² = 9c² gives b² = 3c², so 3 divides b too. Both a and b being divisible by 3 contradicts coprimality, so √3 is irrational." },
+  { q: "Find the HCF of 96 and 404 using Euclid's division algorithm.", marks: 3, rubric: [{ step: "404 = 96 × 4 + 20", marks: 1 }, { step: "96 = 20 × 4 + 16 and 20 = 16 × 1 + 4", marks: 1 }, { step: "16 = 4 × 4 + 0, so HCF = 4", marks: 1 }], answer: "404 = 96 × 4 + 20; 96 = 20 × 4 + 16; 20 = 16 × 1 + 4; 16 = 4 × 4 + 0. The divisor at the step with zero remainder is 4, so HCF(96, 404) = 4." },
+  { q: "Without dividing, decide whether 13/3125 has a terminating decimal expansion. Justify.", marks: 2, rubric: [{ step: "Factorise the denominator (3125 = 5⁵)", marks: 1 }, { step: "Correct conclusion with the 2ⁿ5ᵐ rule", marks: 1 }], answer: "3125 = 5⁵, which is of the form 2ⁿ × 5ᵐ with n = 0 and m = 5. Hence 13/3125 has a terminating decimal expansion (0.00416)." },
+];
+
+/* ------------------------------------------------------------------ */
+/*  CLASS 9 · MATHEMATICS · CH 1 — USE OF COORDINATES                 */
+/* ------------------------------------------------------------------ */
+export const coordinatesMcqs: MCQSeed[] = [
+  { q: "The point (3, −4) lies in the — quadrant.", options: ["First", "Second", "Third", "Fourth"], correct: 3, why: "Positive x and negative y place the point in the fourth quadrant.", pyq: "CBSE 2023" },
+  { q: "The coordinates of the origin are —", options: ["(0, 0)", "(1, 1)", "(0, 1)", "(1, 0)"], correct: 0, why: "The origin is where the axes meet, so both coordinates are zero.", pyq: "NCERT Exemplar" },
+  { q: "The point (−2, 5) lies in the — quadrant.", options: ["First", "Second", "Third", "Fourth"], correct: 1, why: "Negative x and positive y place the point in the second quadrant.", pyq: "CBSE 2022" },
+  { q: "The perpendicular distance of the point (4, 7) from the x-axis is —", options: ["4 units", "7 units", "11 units", "0 units"], correct: 1, why: "Distance from the x-axis equals the magnitude of the y-coordinate, so 7 units.", pyq: "State Board 2022" },
+  { q: "The perpendicular distance of the point (−3, −6) from the y-axis is —", options: ["3 units", "6 units", "−3 units", "−6 units"], correct: 0, why: "Distance is always positive and equals the magnitude of the x-coordinate: 3 units.", pyq: "NCERT Exemplar" },
+  { q: "Every point on the x-axis has —", options: ["Ordinate zero", "Abscissa zero", "Both coordinates zero", "Equal coordinates"], correct: 0, why: "On the x-axis the y-coordinate (ordinate) is always 0, e.g. (5, 0).", pyq: "CBSE 2021" },
+  { q: "The abscissa of the point (0, −5) is —", options: ["0", "−5", "5", "undefined"], correct: 0, why: "The abscissa is the x-coordinate, which is 0 for a point on the y-axis.", pyq: "CBSE 2023" },
+  { q: "Which of these points lies in the third quadrant?", options: ["(2, 3)", "(−2, 3)", "(−2, −3)", "(2, −3)"], correct: 2, why: "Both coordinates negative means the third quadrant.", pyq: "State Board 2023" },
+  { q: "The horizontal number line of the Cartesian system is called the —", options: ["x-axis", "y-axis", "Origin", "Quadrant line"], correct: 0, why: "The horizontal axis is the x-axis; the vertical one is the y-axis.", pyq: "CBSE 2020" },
+  { q: "The distance of the point (0, 9) from the origin is —", options: ["9 units", "0 units", "3 units", "81 units"], correct: 0, why: "It lies 9 units above the origin on the y-axis.", pyq: "NCERT Exemplar" },
+];
+
+/* ------------------------------------------------------------------ */
+/*  CLASS 6 · SCIENCE · CH 4 — EXPLORING MAGNETS                      */
+/* ------------------------------------------------------------------ */
+export const magnetsMcqs: MCQSeed[] = [
+  { q: "A bar magnet always has — poles.", options: ["One", "Two", "Three", "Four"], correct: 1, why: "Every magnet has a north pole and a south pole; a single isolated pole cannot exist.", pyq: "CBSE 2023" },
+  { q: "The two poles of a magnet are named —", options: ["East and west", "North and south", "Positive and negative", "Upper and lower"], correct: 1, why: "Magnets are named after the directions a freely suspended magnet points to: north and south.", pyq: "NCERT Exemplar" },
+  { q: "Like poles of two magnets — each other.", options: ["Attract", "Repel", "Neither attract nor repel", "First attract then repel"], correct: 1, why: "Like poles repel and unlike poles attract.", pyq: "CBSE 2022" },
+  { q: "The naturally occurring magnet is called —", options: ["Lodestone", "Limestone", "Bauxite", "Quartz"], correct: 0, why: "Lodestone (magnetite) is a natural magnetic ore of iron.", pyq: "State Board 2022" },
+  { q: "Which of these is attracted by a magnet?", options: ["Iron nail", "Plastic scale", "Wooden stick", "Glass rod"], correct: 0, why: "Iron is a magnetic substance; plastic, wood and glass are not.", pyq: "CBSE 2023" },
+  { q: "Substances that are attracted towards a magnet are called —", options: ["Magnetic substances", "Non-magnetic substances", "Insulators", "Conductors"], correct: 0, why: "Iron, cobalt, nickel and their alloys are magnetic substances.", pyq: "NCERT Exemplar" },
+  { q: "The magnetic attraction of a bar magnet is strongest at its —", options: ["Middle", "Poles", "Every part equally", "Sides only"], correct: 1, why: "Most iron filings stick near the two poles, so attraction is greatest there.", pyq: "CBSE 2021" },
+  { q: "A freely suspended bar magnet always comes to rest in the — direction.", options: ["East–west", "North–south", "Up–down", "Any direction"], correct: 1, why: "Earth itself behaves like a magnet, so a free magnet aligns north–south.", pyq: "State Board 2023" },
+  { q: "Which of these does NOT destroy the magnetism of a magnet?", options: ["Heating it strongly", "Hammering it repeatedly", "Storing it with an iron keeper", "Dropping it from a height"], correct: 2, why: "An iron keeper preserves magnetism; heat, hammering and rough handling destroy it.", pyq: "NCERT Exemplar" },
+  { q: "A compass shows directions because of the property of —", options: ["Magnetism", "Electricity", "Gravity", "Friction"], correct: 0, why: "The magnetic needle of a compass aligns itself with the Earth's magnetic field.", pyq: "CBSE 2023" },
+];

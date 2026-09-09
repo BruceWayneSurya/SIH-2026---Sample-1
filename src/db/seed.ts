@@ -2,9 +2,10 @@ import { and, count, eq, inArray } from "drizzle-orm";
 import { GUEST_EMAILS } from "../lib/guest-accounts";
 import { hashPassword } from "../lib/password";
 import {
+  CLASSES,
+  chapterSlug,
   getChapters,
   SUBJECTS,
-  slugify,
 } from "../lib/curriculum";
 import {
   combustionMcqs,
@@ -12,6 +13,12 @@ import {
   rationalMcqs,
   rationalSubj,
   heatMcqs,
+  chemicalReactionsMcqs,
+  chemicalReactionsSubj,
+  realNumbersMcqs,
+  realNumbersSubj,
+  coordinatesMcqs,
+  magnetsMcqs,
   videosByChapter,
   notesByChapter,
   DEMO_PASSWORD,
@@ -77,6 +84,12 @@ const DEMO_USERS: DemoUser[] = [
   { handle: "meera_n", name: "Meera Nair", email: "meera@student.in", role: "student", className: 7, state: "Kerala", school: "Govt. School, Thiruvananthapuram" },
   { handle: "vihaan_g", name: "Vihaan Gupta", email: "vihaan@student.in", role: "student", className: 7, state: "Rajasthan", school: "Govt. Sr. Sec. School, Jaipur" },
   { handle: "ananya_b", name: "Ananya Banerjee", email: "ananya@student.in", role: "student", className: 7, state: "Odisha", school: "GVHS, Bhubaneswar" },
+  { handle: "kavya_r", name: "Kavya Reddy", email: "kavya@student.in", role: "student", className: 9, state: "Telangana", school: "Zilla Parishad High School, Warangal" },
+  { handle: "aditya_j", name: "Aditya Joshi", email: "aditya@student.in", role: "student", className: 9, state: "Maharashtra", school: "Govt. Secondary School, Nagpur" },
+  { handle: "fatima_k", name: "Fatima Khan", email: "fatima@student.in", role: "student", className: 10, state: "Uttar Pradesh", school: "Govt. Girls Inter College, Lucknow" },
+  { handle: "naveen_s", name: "Naveen Sahu", email: "naveen@student.in", role: "student", className: 10, state: "Chhattisgarh", school: "Govt. Higher Secondary School, Raipur" },
+  { handle: "tanvi_d", name: "Tanvi Deshmukh", email: "tanvi@student.in", role: "student", className: 6, state: "Maharashtra", school: "Zilla Parishad School, Nashik" },
+  { handle: "imran_a", name: "Imran Ali", email: "imran@student.in", role: "student", className: 6, state: "Assam", school: "Govt. Middle School, Guwahati" },
   { handle: "guest_student", name: "Guest Student", email: "guest.student@vidyasetu.gov.in", role: "student", className: 8, state: "All India", school: "Pragyan Guest", guest: true },
   { handle: "guest_faculty", name: "Guest Faculty", email: "guest.faculty@vidyasetu.gov.in", role: "faculty", spec: "Science", inst: "SCH-DEMO", state: "All India", guest: true },
 ];
@@ -88,12 +101,20 @@ const CHAPTER_CONTENT: Record<
   "8-science-6": { mcqs: combustionMcqs, subj: combustionSubj },
   "8-mathematics-1": { mcqs: rationalMcqs, subj: rationalSubj },
   "7-science-9": { mcqs: heatMcqs, subj: [] },
+  "10-science-1": { mcqs: chemicalReactionsMcqs, subj: chemicalReactionsSubj },
+  "10-mathematics-1": { mcqs: realNumbersMcqs, subj: realNumbersSubj },
+  "9-mathematics-1": { mcqs: coordinatesMcqs, subj: [] },
+  "6-science-4": { mcqs: magnetsMcqs, subj: [] },
 };
 
 const ATTEMPTS: Record<string, Record<string, number>> = {
   "8-science-6": { diya_m: 19, sneha_s: 18, rohan_k: 17, aarav_p: 15, kabir_s: 12 },
   "8-mathematics-1": { sneha_s: 19, diya_m: 16, rohan_k: 15, ishita_r: 14 },
   "7-science-9": { meera_n: 18, arjun_t: 16, vihaan_g: 14, ananya_b: 13 },
+  "10-science-1": { fatima_k: 11, naveen_s: 9 },
+  "10-mathematics-1": { naveen_s: 11, fatima_k: 10 },
+  "9-mathematics-1": { kavya_r: 9, aditya_j: 8 },
+  "6-science-4": { tanvi_d: 9, imran_a: 8 },
 };
 
 const SUBJECTIVE_DONE: { handle: string; chapter: string }[] = [
@@ -121,6 +142,9 @@ export async function seedDemoDatabase(): Promise<boolean> {
       handle: u.handle, name: u.name, email: u.email, passwordHash: pw, role: u.role,
       className: u.className ?? null, state: u.state ?? null, school: u.school ?? null,
       subjectSpecialization: u.spec ?? null, institutionId: u.inst ?? null, isGuest: !!u.guest,
+      emailVerified: true, emailVerifiedAt: new Date(), emailDomain: u.email.split("@")[1] ?? null,
+      verificationStatus: "verified" as const,
+      verifiedBy: u.role === "faculty" ? "Seeded institutional address" : "Student self-registration",
     }))).onConflictDoNothing().returning({ id: users.id, handle: users.handle });
     if (existing) return false;
     s = 42;
@@ -128,14 +152,14 @@ export async function seedDemoDatabase(): Promise<boolean> {
     const chapterIds: Record<string, number> = {};
     const chapterTitles: Record<string, string> = {};
     const chapterRows: (typeof chapters.$inferInsert)[] = [];
-    for (const classNo of [7, 8]) {
+    for (const classNo of CLASSES) {
       for (const sub of SUBJECTS) {
         for (const [i, row] of getChapters(classNo, sub.slug).entries()) {
           const nn = String(i + 1).padStart(2, "0");
           const prefix = PREFIX[sub.slug];
           chapterRows.push({
             classNo, subjectSlug: sub.slug, subjectName: sub.name, num: i + 1,
-            title: row.title, slug: slugify(row.title) || `chapter-${i + 1}`,
+            title: row.title, slug: chapterSlug(row, i),
             outcomeIds: [1, 2, 3].map((n) => `LO-${classNo}-${prefix}-${nn}-0${n}`),
             dikshaCode: `D-${classNo}-${prefix}-${nn}`,
           });

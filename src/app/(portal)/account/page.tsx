@@ -11,6 +11,7 @@ import {
   Mail,
   MapPin,
   Medal,
+  ShieldCheck,
   Target,
   UserRound,
   Zap,
@@ -18,6 +19,7 @@ import {
 import { getActiveUser } from "@/lib/session";
 import { getUserStats } from "@/lib/queries";
 import { allBadges } from "@/lib/badges";
+import { verificationLabel } from "@/lib/faculty-email";
 import { StatCard } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -135,6 +137,39 @@ export default async function Account() {
               </div>
             ))}
           </dl>
+        </section>
+
+        <section className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 text-lg font-extrabold text-navy-900">
+            <ShieldCheck className="h-5 w-5 text-saffron-600" aria-hidden="true" />
+            <T>Email verification</T>
+          </h2>
+          <p className="mt-3 flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[13px] font-extrabold ${
+                user.verificationStatus === "verified"
+                  ? "border-leaf-500/50 bg-leaf-50 text-leaf-700"
+                  : user.verificationStatus === "pending_review"
+                    ? "border-saffron-300 bg-saffron-50 text-saffron-700"
+                    : "border-rose-200 bg-rose-50 text-rose-700"
+              }`}
+            >
+              <BadgeCheck className="h-4 w-4" aria-hidden="true" />
+              <T>{verificationLabel(user.verificationStatus)}</T>
+            </span>
+            <span className="break-all text-[14px] font-semibold text-slate-600">
+              {user.email}
+            </span>
+          </p>
+          <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
+            {user.role === "faculty"
+              ? user.verificationStatus === "verified"
+                ? "Your institutional mailbox is confirmed. You can verify community notes and confirm pending teachers."
+                : user.verificationStatus === "pending_review"
+                  ? "Your mailbox is confirmed. A verified reviewer must confirm your institution before note verification is unlocked."
+                  : "Sign in again to receive a one-time code at this address and complete verification."
+              : "Student accounts are activated at registration; faculty accounts need this check before they can moderate content."}
+          </p>
         </section>
 
         <section

@@ -3,6 +3,9 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { handleFromName, hashPassword, startSession } from "@/lib/session";
+import { CLASSES, classNumber } from "@/lib/curriculum";
+import { assessFacultyEmail, emailDomain } from "@/lib/faculty-email";
+import { startVerification } from "@/lib/faculty-verification";
 
 const SUBJECTS = [
   "Mathematics",
@@ -34,6 +37,9 @@ async function handlePOST(req: Request) {
   const subjectSpecialization = str(body.subjectSpecialization);
   const institutionId = str(body.institutionId);
 
+  /** What this email implies for a faculty account (trust tier + policy). */
+  const facultyEmail = assessFacultyEmail(email);
+
   if (name.length < 3)
     return Response.json({ error: "Please enter your full name." }, { status: 400 });
   if (name.length > 80)
@@ -50,8 +56,11 @@ async function handlePOST(req: Request) {
       return Response.json({ error: "State / UT is required." }, { status: 400 });
     if (!school)
       return Response.json({ error: "School name is required." }, { status: 400 });
-    if (!["7", "8"].includes(className))
-      return Response.json({ error: "Select your target class (7 or 8)." }, { status: 400 });
+    if (classNumber(className) === null)
+      return Response.json(
+        { error: `Select your class (${CLASSES[0]} to ${CLASSES[CLASSES.length - 1]}).` },
+        { status: 400 },
+      );
   } else {
     if (!SUBJECTS.includes(subjectSpecialization))
       return Response.json(
@@ -60,6 +69,8 @@ async function handlePOST(req: Request) {
       );
     if (!institutionId)
       return Response.json({ error: "School / Institution ID is required." }, { status: 400 });
+    if (!facultyEmail.allowed)
+      return Response.json({ error: facultyEmail.message }, { status: 400 });
   }
 
   try {
@@ -90,6 +101,13 @@ async function handlePOST(req: Request) {
           school: role === "student" ? school : null,
           subjectSpecialization: role === "faculty" ? subjectSpecialization : null,
           institutionId: role === "faculty" ? institutionId : null,
+          emailDomain: emailDomain(email) || null,
+          // Students get in straight away; faculty must first prove the mailbox.
+          emailVerified: role === "student",
+          verificationStatus:
+            role === "student" ? "verified" : "unverified",
+          emailVerifiedAt: role === "student" ? new Date() : null,
+          verifiedBy: role === "student" ? "Student self-registration" : null,
         })
         .onConflictDoNothing({ target: users.handle })
         .returning({ id: users.id, role: users.role });
@@ -101,6 +119,27 @@ async function handlePOST(req: Request) {
         { error: "Could not create your account just now. Please try again." },
         { status: 500 },
       );
+
+    if (created.role === "faculty") {
+      const challenge = await startVerification(
+        { id: created.id, email, name },
+        "register",
+      );
+      if (!challenge.ok)
+        return Response.json({ error: challenge.error }, { status: challenge.status });
+      return Response.json({
+        ok: false,
+        requiresVerification: true,
+        role: created.role,
+        name,
+        challengeId: challenge.challengeId,
+        maskedEmail: challenge.maskedEmail,
+        resendAfter: challenge.resendAfter,
+        delivered: challenge.delivered,
+        devCode: challenge.devCode,
+        policy: facultyEmail.message,
+      });
+    }
 
     await startSession(req, created);
     return Response.json({ ok: true, redirect: "/home", user: { name, role } });

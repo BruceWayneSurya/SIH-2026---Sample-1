@@ -108,6 +108,11 @@ CREATE TABLE IF NOT EXISTS `users` (
 	`school` text,
 	`subject_specialization` text,
 	`institution_id` text,
+	`email_verified` integer DEFAULT false NOT NULL,
+	`email_verified_at` integer,
+	`email_domain` text,
+	`verification_status` text DEFAULT 'unverified' NOT NULL,
+	`verified_by` text,
 	`is_guest` integer DEFAULT false NOT NULL,
 	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL
 );

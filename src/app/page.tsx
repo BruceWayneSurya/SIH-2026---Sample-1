@@ -23,7 +23,7 @@ const features = [
   {
     icon: BookOpenCheck,
     title: "NCERT-aligned curriculum",
-    text: "Class 7 & 8 mapped to NCERT Learning Outcomes and DIKSHA QR codes.",
+    text: "Class 6 to 10 mapped to NCERT Learning Outcomes and DIKSHA QR codes.",
   },
   {
     icon: PlayCircle,
@@ -109,8 +109,8 @@ export default function WelcomePage() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[1.15fr_1fr] lg:gap-14 lg:py-20">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-saffron-400/30 bg-saffron-500/10 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-saffron-300">
-              <Sparkles className="h-3.5 w-3.5" /> Smart India Hackathon 2026 ·
-              Team PRAGYAN
+              <Sparkles className="h-3.5 w-3.5" /> Ministry of Education ·
+              Government of India
             </p>
             <h1 className="mt-6 text-4xl font-extrabold leading-[1.15] tracking-tight sm:text-5xl lg:text-[54px]">
               <T>Open digital learning for</T>{" "}
@@ -122,7 +122,7 @@ export default function WelcomePage() {
               <T>
                 Pragyan (प्रज्ञान) brings NCERT-aligned video lectures,
                 peer-reviewed community notes, PYQ assessments, gamified
-                leaderboards, and a built-in AI tutor to Class 7 &amp; 8
+                leaderboards, and a built-in AI tutor to Class 6 to 10
                 students in rural and government schools — with a mode designed
                 for low-bandwidth connections.
               </T>
@@ -249,7 +249,7 @@ export default function WelcomePage() {
           <T>What’s inside</T>
         </p>
         <h2 className="mt-2 text-2xl font-extrabold text-navy-900 sm:text-3xl">
-          <T>Everything a Class 7–8 student actually needs</T>
+          <T>Everything a Class 6–10 student actually needs</T>
         </h2>
         <p className="mt-3 text-slate-600">
           <T>
@@ -374,10 +374,11 @@ export default function WelcomePage() {
       </section>
       <footer className="border-t border-line bg-navy-900 px-4 py-8 pb-24 text-center text-navy-200">
         <p className="text-sm font-bold text-white">
-          Built for Smart India Hackathon 2026 — Team PRAGYAN
+          Pragyan — National Digital Learning Portal
         </p>
         <p className="mt-2 text-xs">
-          NCERT · DIKSHA · NDEAR · Accessible learning · NIC-inspired design
+          Department of School Education &amp; Literacy, Ministry of Education ·
+          NCERT · DIKSHA · NDEAR · Accessible learning
         </p>
       </footer>
     </main>

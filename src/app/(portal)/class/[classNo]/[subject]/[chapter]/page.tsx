@@ -34,6 +34,7 @@ import {
 import { EmptyState } from "@/components/ui";
 import { VideoPlayer } from "@/components/video-player";
 import { NotesSection } from "@/components/notes-section";
+import { canModerateNotes } from "@/lib/faculty-email";
 import { AiTutor } from "@/components/ai-tutor";
 import { AiStudyTools } from "@/components/ai-study-tools";
 import { ObjectiveQuiz } from "@/components/objective-quiz";
@@ -243,7 +244,10 @@ export default async function ChapterPage({
                   key={`${ch.id}:${user.id}`}
                   chapterId={ch.id}
                   initial={notesList}
-                  isFaculty={user.role === "faculty"}
+                  canModerate={canModerateNotes(user)}
+                  moderationBlocked={
+                    user.role === "faculty" && !canModerateNotes(user)
+                  }
                   allowLocalUploads={process.env.VERCEL !== "1"}
                 />
               </section>

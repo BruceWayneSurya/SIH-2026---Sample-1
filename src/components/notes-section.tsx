@@ -31,14 +31,18 @@ import { GoogleDrivePreview } from "./google-drive-preview";
 type Props = {
   chapterId: number;
   initial: RankedNote[];
-  isFaculty: boolean;
+  /** Verified faculty only — pending accounts cannot sign off on notes. */
+  canModerate: boolean;
+  /** Set when a faculty member is signed in but still awaiting review. */
+  moderationBlocked?: boolean;
   allowLocalUploads?: boolean;
 };
 
 export function NotesSection({
   chapterId,
   initial,
-  isFaculty,
+  canModerate,
+  moderationBlocked = false,
   allowLocalUploads = true,
 }: Props) {
   const router = useRouter();
@@ -446,6 +450,15 @@ export function NotesSection({
         </form>
       )}
 
+      {moderationBlocked && (
+        <p className="mt-3 rounded-md border border-saffron-200 bg-saffron-50 px-3 py-2 text-[13px] font-semibold text-saffron-700">
+          <T>
+            Your email is verified; note verification unlocks after a verified
+            reviewer confirms your institution.
+          </T>
+        </p>
+      )}
+
       {sorted.length === 0 ? (
         <p className="rounded-lg border border-dashed border-navy-200 bg-navy-50/50 p-6 text-center text-sm text-slate-600">
           <T>No notes yet for this chapter. Be the first contributor!</T>
@@ -558,7 +571,7 @@ export function NotesSection({
                     )}
                   </div>
 
-                  {isFaculty && (
+                  {canModerate && (
                     <button
                       type="button"
                       onClick={() => verify(n.id, !n.facultyVerified)}

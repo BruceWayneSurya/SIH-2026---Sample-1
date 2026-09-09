@@ -8,9 +8,10 @@ import { FloatingAiTutor } from "@/components/ai-tutor";
 // Fonts are self-hosted via @fontsource CSS with correct Unicode ranges.
 // This keeps Devanagari visible without any build-time Google Fonts request.
 export const metadata: Metadata = {
-  title: "Pragyan (प्रज्ञान) — Open Digital Learning & Assessment Portal",
+  title:
+    "Pragyan (प्रज्ञान) — National Digital Learning Portal | Ministry of Education",
   description:
-    "NCERT-aligned learning portal for Class 7 & 8: verified lectures, peer-reviewed notes, PYQ assessments gamified leaderboards and an AI tutor. Smart India Hackathon 2026 · Team PRAGYAN.",
+    "NCERT-aligned learning and assessment portal for Class 6 to 10: verified faculty lectures, moderated community notes, PYQ assessments, leaderboards and an AI tutor. Department of School Education & Literacy, Government of India.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

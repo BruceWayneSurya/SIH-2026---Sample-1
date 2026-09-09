@@ -9,6 +9,7 @@ import { xpEvents } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 
 import { Wordmark } from "./ui";
+import { GovBanner } from "./gov-banner";
 export { Wordmark } from "./ui";
 
 export async function SiteHeader() {
@@ -27,6 +28,8 @@ export async function SiteHeader() {
   }
 
   return (
+    <>
+    <GovBanner />
     <header className="sticky top-0 z-40 border-b-2 border-saffron-500/70 bg-white/95 backdrop-blur">
       <div className="tricolor-strip h-1.5 w-full" aria-hidden="true" />
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5">
@@ -81,5 +84,6 @@ export async function SiteHeader() {
         </div>
       </div>
     </header>
+    </>
   );
 }

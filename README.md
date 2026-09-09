@@ -1,12 +1,61 @@
-# Pragyan (प्रज्ञान) — Learning & Assessment Portal
+# Pragyan (प्रज्ञान) — National Digital Learning Portal
 
-Smart India Hackathon 2026 · Team PRAGYAN. NCERT-aligned Class 7/8 learning,
-faculty videos, community notes, assessments, leaderboards and AI study tools.
+An NCERT-aligned learning and assessment portal for **Class 6 to 10**: faculty
+videos, moderated community notes, objective and subjective assessments,
+leaderboards and AI study tools — presented as a Government of India service of
+the Department of School Education & Literacy, Ministry of Education.
 
 The welcome page, sign-in/register screens, demo personas, theme toggle,
 floating AI assistant and chapter tools follow the supplied
 [Pragyan reference](https://pragyan-sih-2026.vercel.app/). The existing text/Drive
 PDF upload, embedded preview and concurrent voting fixes are retained.
+
+## Portal shell, faculty verification and class coverage
+
+**Government-portal dashboard.** The portal chrome carries the official
+identification strip (Government of India · Ministry of Education · Department
+of School Education & Literacy), a toll-free helpline, a "Skip to main content"
+link and a footer with content ownership, helpdesk details, policy links and a
+review date. The dashboard itself shows the learner's or teacher's standing, a
+circulars and announcements board, a Class 6–10 browser, the NCERT subject grid
+with progress, available assessments and recent XP activity. Hackathon
+branding ("SIH Edition", evaluator quick-access wording, team credits) is gone
+from the portal, the login screen, the landing page and the page metadata;
+`/about` publishes the policies, accessibility statement and the faculty
+verification policy.
+
+**Faculty email verification.** A teacher signs in or registers with their
+email ID and proves the mailbox with a six-digit one-time code
+(`src/lib/otp.ts`, `src/lib/faculty-verification.ts`):
+
+| Step | Behaviour |
+| --- | --- |
+| Sign in / register | Password checked first; no session is issued until the mailbox is proven |
+| Code | CSPRNG six digits, stored only as an HMAC digest, valid 10 minutes, 5 attempts |
+| Resend | Throttled to one per 60 s and five per rolling hour |
+| Challenge token | Signed and bound to the address, so a code cannot be replayed on another challenge |
+| Institutional address (…gov.in / …nic.in / …edu.in / …ac.in / listed bodies) | Verified on confirmation — may verify community notes and confirm pending teachers |
+| Personal address (Gmail and similar) | Mailbox confirmed, account stays `pending_review` until a verified reviewer confirms the institution |
+
+Mail is sent through `MAIL_PROVIDER=smtp` (raw client, STARTTLS aware — works
+with a Gmail app password on 465/587), `MAIL_PROVIDER=resend` (single HTTPS
+call), or the default console provider, which logs the message and returns the
+code to the browser as `devCode` outside production so a local demo needs no
+credentials. `FACULTY_PERSONAL_EMAIL_POLICY=review|block|allow` controls how
+personal mailboxes are treated. Unverified or pending faculty cannot verify
+notes (`/api/notes/[id]/verify` returns 403 with an explanatory message), and a
+verified reviewer works through the pending list on the dashboard
+(`/api/faculty/review`).
+
+**Class 6 to 10.** `CLASSES` in `src/lib/curriculum.ts` drives registration,
+routing, the leaderboard tabs, the dashboard class browser and the demo seed.
+Chapter titles follow the NCERT textbooks in circulation for the current
+session (Class 6 *Curiosity* and *Ganita Prakash*, Class 9 *Exploration*,
+*Ganit* and *Kaveri*, Class 10 *Science*, *Mathematics*, *First Flight* and
+क्षितिज भाग 2); re-sync that file when NCERT publishes a revision. Question
+banks exist for Class 6 Science ch. 4, Class 9 Mathematics ch. 1 and Class 10
+Science/Mathematics ch. 1, and demo learners exist in every class so the
+leaderboard is populated.
 
 ## Local development — keep your existing .env
 
@@ -204,10 +253,12 @@ limit shared across AI endpoints. For a public deployment, also configure
 provider spending limits and distributed/gateway rate limiting; an in-process
 map does not enforce a global limit across Vercel instances.
 
-This is a hackathon demo with public guest/faculty personas, not a verified
-school identity service. Harden account provisioning and moderation before use
-with real student records. AI can make mistakes; confirm important answers
-against NCERT or a teacher, and do not enter private personal information.
+Faculty email verification proves mailbox ownership and institutional domain,
+but it is not a school identity service: there is no UID/Aadhaar or state
+roster check behind it, and the demo build ships public guest and faculty
+personas. Harden account provisioning and moderation before use with real
+student records. AI can make mistakes; confirm important answers against NCERT
+or a teacher, and do not enter private personal information.
 
 ## Checks and database commands
 

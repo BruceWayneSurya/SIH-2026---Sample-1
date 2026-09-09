@@ -1,5 +1,6 @@
 import { TranslatedText as T } from "@/components/language-provider";
 import { DatabaseSetup } from "@/components/database-setup";
+import { FacultyReviewQueue } from "@/components/faculty-review-queue";
 import Link from "next/link";
 import {
   Trophy,
@@ -12,20 +13,46 @@ import {
   Sparkles,
   History,
   ClipboardCheck,
+  Megaphone,
+  BadgeCheck,
+  Clock3,
 } from "lucide-react";
 import { getActiveUser } from "@/lib/session";
 import { db } from "@/db";
 import { chapters, notes } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
-import { SUBJECTS, getChapters } from "@/lib/curriculum";
+import { count, desc, eq } from "drizzle-orm";
+import { CLASSES, SUBJECTS, classLabel } from "@/lib/curriculum";
 import {
-  getClassLeaderboard,
-  getChapterList,
-  getUserStats,
-} from "@/lib/queries";
+  canModerateNotes,
+  verificationLabel,
+} from "@/lib/faculty-email";
+import { getPendingFaculty } from "@/lib/faculty-verification";
+import { getChapterList, getUserStats } from "@/lib/queries";
 import { IconBox, ProgressBar, StatCard, SUBJECT_ICONS } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
+
+/** Portal circulars. Dates are real release notes for the published build. */
+const CIRCULARS = [
+  {
+    date: "2026-09-05",
+    tag: "Curriculum",
+    title: "Class 6 to 10 chapter index published",
+    body: "NCERT chapter mapping with learning-outcome IDs is now live for every class served by the portal.",
+  },
+  {
+    date: "2026-09-02",
+    tag: "Faculty",
+    title: "Email verification is mandatory for faculty accounts",
+    body: "Teachers must confirm their institutional email ID before they can verify community notes.",
+  },
+  {
+    date: "2026-08-28",
+    tag: "Assessment",
+    title: "Question banks added for Class 9 and Class 10",
+    body: "Objective and subjective banks are being uploaded chapter by chapter by verified faculty.",
+  },
+];
 
 export default async function Home() {
   const user = await getActiveUser();
@@ -33,6 +60,8 @@ export default async function Home() {
 
   const classNo = user.className ?? 8;
   const stats = await getUserStats(user.id, classNo);
+  const isFaculty = user.role === "faculty";
+  const canModerate = canModerateNotes(user);
 
   const subjectData = [];
   const testableChapters = [];
@@ -56,22 +85,25 @@ export default async function Home() {
     }
   }
 
+  const [chapterTotal] = await db
+    .select({ n: count() })
+    .from(chapters)
+    .where(eq(chapters.classNo, classNo));
+
   let facultyQueue: {
     id: number;
     title: string;
     chapter: string;
     author: string;
   }[] = [];
-  if (user.role === "faculty") {
+  if (isFaculty) {
     const pending = await db
       .select({
         id: notes.id,
         title: notes.title,
         authorName: notes.authorName,
         chapterTitle: chapters.title,
-        subjectName: chapters.subjectName,
         classNo: chapters.classNo,
-        chapterNum: chapters.num,
       })
       .from(notes)
       .innerJoin(chapters, eq(notes.chapterId, chapters.id))
@@ -82,9 +114,18 @@ export default async function Home() {
       id: p.id,
       title: p.title,
       author: p.authorName,
-      chapter: `Class ${p.classNo} · ${p.chapterTitle}`,
+      chapter: `${classLabel(p.classNo)} · ${p.chapterTitle}`,
     }));
   }
+
+  const pendingFaculty = canModerate ? await getPendingFaculty(5) : [];
+
+  const verificationTone =
+    user.verificationStatus === "verified"
+      ? "border-leaf-500/50 bg-leaf-50 text-leaf-700"
+      : user.verificationStatus === "pending_review"
+        ? "border-saffron-300 bg-saffron-50 text-saffron-700"
+        : "border-rose-200 bg-rose-50 text-rose-700";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -92,7 +133,7 @@ export default async function Home() {
         <div>
           <p className="text-sm font-bold uppercase tracking-wider text-saffron-600">
             <T values={{ classNo }}>
-              {user.role === "faculty"
+              {isFaculty
                 ? "Faculty Console"
                 : "Class {classNo} · Student Dashboard"}
             </T>
@@ -100,21 +141,24 @@ export default async function Home() {
           <h1 className="mt-1 text-3xl font-extrabold text-navy-900">
             <T
               values={{
-                name:
-                  user.role === "faculty" ? user.name : user.name.split(" ")[0],
+                name: isFaculty ? user.name : user.name.split(" ")[0],
               }}
             >
-              {user.role === "faculty" ? "Welcome, {name}" : "Namaste, {name}!"}
+              {isFaculty ? "Welcome, {name}" : "Namaste, {name}!"}
             </T>
           </h1>
           <p className="mt-1 text-[15px] text-slate-600">
             {user.school ?? user.subjectSpecialization}
             {user.state ? ` · ${user.state}` : ""}
             {user.isGuest && (
-              <span className="ml-2 rounded-sm bg-saffron-100 px-1.5 py-0.5 text-[12px] font-bold text-saffron-700">
-                <T>Guest session</T>
+              <span className="ml-2 rounded-sm bg-navy-100 px-1.5 py-0.5 text-[12px] font-bold text-navy-700">
+                <T>Guest access</T>
               </span>
             )}
+          </p>
+          <p className="mt-0.5 text-[13px] text-slate-500">
+            Department of School Education &amp; Literacy · National Digital
+            Learning Portal
           </p>
         </div>
         <Link
@@ -126,6 +170,31 @@ export default async function Home() {
         </Link>
       </div>
 
+      {isFaculty && (
+        <section
+          className={`vsv-enter mt-5 flex flex-wrap items-center gap-3 rounded-lg border px-4 py-3 ${verificationTone}`}
+        >
+          {user.verificationStatus === "verified" ? (
+            <BadgeCheck className="h-5 w-5 shrink-0" aria-hidden="true" />
+          ) : (
+            <Clock3 className="h-5 w-5 shrink-0" aria-hidden="true" />
+          )}
+          <div className="min-w-0">
+            <p className="text-[15px] font-extrabold">
+              <T>{verificationLabel(user.verificationStatus)}</T>
+              <span className="ml-2 font-semibold opacity-80">{user.email}</span>
+            </p>
+            <p className="text-[13px] font-semibold opacity-90">
+              {user.verificationStatus === "verified"
+                ? "Your institutional mailbox is confirmed — you can verify community notes and review pending teachers."
+                : user.verificationStatus === "pending_review"
+                  ? "Your mailbox is confirmed. A verified reviewer will confirm your institution before note verification is unlocked."
+                  : "Verify your email ID to continue using the faculty console."}
+            </p>
+          </div>
+        </section>
+      )}
+
       <div
         className="vsv-enter mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4"
         style={{ animationDelay: "60ms" }}
@@ -136,9 +205,7 @@ export default async function Home() {
           value={stats.xp}
           tone="saffron"
           sub={
-            user.role === "faculty"
-              ? "Content contribution"
-              : "Earn it in every test"
+            isFaculty ? "Content contribution" : "Earn it in every test"
           }
         />
         <StatCard
@@ -161,7 +228,7 @@ export default async function Home() {
         />
       </div>
 
-      {user.role === "faculty" && (
+      {isFaculty && (
         <section
           className="vsv-enter mt-6 rounded-lg border border-saffron-200 bg-white p-5 shadow-sm"
           style={{ animationDelay: "100ms" }}
@@ -202,8 +269,92 @@ export default async function Home() {
             </b>{" "}
             toggle — verified notes jump to the top with a green tick.
           </p>
+
+          {canModerate && (
+            <div className="mt-5 border-t border-line pt-4">
+              <h3 className="flex items-center gap-2 text-[15px] font-bold text-navy-900">
+                <BadgeCheck className="h-4 w-4 text-saffron-600" />
+                Teachers awaiting institutional confirmation
+                <span className="rounded-full bg-navy-50 px-2 py-0.5 text-[12px] font-bold text-navy-600">
+                  {pendingFaculty.length}
+                </span>
+              </h3>
+              <FacultyReviewQueue initial={pendingFaculty} />
+            </div>
+          )}
         </section>
       )}
+
+      <div className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+        <section className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+            <Megaphone className="h-5 w-5 text-saffron-600" />{" "}
+            <T>Circulars &amp; Announcements</T>
+          </h2>
+          <ul className="mt-3 divide-y divide-line">
+            {CIRCULARS.map((c) => (
+              <li key={c.title} className="py-2.5">
+                <p className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-slate-500">
+                  <span className="rounded-sm bg-navy-50 px-1.5 py-0.5 text-navy-600">
+                    {c.tag}
+                  </span>
+                  {new Date(c.date).toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </p>
+                <p className="mt-0.5 text-[15px] font-bold text-navy-900">
+                  {c.title}
+                </p>
+                <p className="text-[13px] text-slate-600">{c.body}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[12px] text-slate-500">
+            Circulars are issued by the portal administrator and apply to all
+            classes.
+          </p>
+        </section>
+
+        <section
+          className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm"
+          style={{ animationDelay: "60ms" }}
+        >
+          <h2 className="text-lg font-bold text-navy-900">
+            <T values={{ from: CLASSES[0], to: CLASSES[CLASSES.length - 1] }}>
+              {"Browse classes {from} to {to}"}
+            </T>
+          </h2>
+          <p className="mt-1 text-[13px] text-slate-600">
+            {chapterTotal?.n ?? 0} chapters indexed for your class.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {CLASSES.map((c) => (
+              <Link
+                key={c}
+                href={`/class/${c}/science`}
+                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-[14px] font-bold transition ${
+                  c === classNo
+                    ? "border-navy-700 bg-navy-800 text-white"
+                    : "border-line bg-paper text-navy-700 hover:border-navy-400 hover:bg-white"
+                }`}
+              >
+                <T values={{ classNo: c }}>{"Class {classNo}"}</T>
+                {c === classNo && (
+                  <span className="rounded-sm bg-white/20 px-1 text-[11px] uppercase">
+                    yours
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+          <p className="mt-3 text-[13px] text-slate-600">
+            Switching a class opens its subject list; your own class stays the
+            default for progress, XP and the leaderboard.
+          </p>
+        </section>
+      </div>
 
       <section className="vsv-enter mt-8" style={{ animationDelay: "140ms" }}>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -211,8 +362,13 @@ export default async function Home() {
             <T values={{ classNo }}>{"Class {classNo} · NCERT Subjects"}</T>
           </h2>
           <span className="text-[13px] font-semibold text-slate-500">
-            <T values={{ count: subjectData.reduce((a, s) => a + s.total, 0) }}>
-              {"{count} chapters across 6 subjects"}
+            <T
+              values={{
+                count: subjectData.reduce((a, s) => a + s.total, 0),
+                subjects: SUBJECTS.length,
+              }}
+            >
+              {"{count} chapters across {subjects} subjects"}
             </T>
           </span>
         </div>
@@ -337,7 +493,9 @@ export default async function Home() {
       </div>
 
       <p className="mt-6 text-center text-[13px] text-slate-500">
-        {`Chapter metadata is mapped to NCERT learning-outcome IDs (LO-…) and DIKSHA codes — see any chapter page for the full mapping.`}
+        Every chapter carries NCERT learning-outcome IDs (LO-…) and a DIKSHA
+        course code — see any chapter page for the full mapping. Questions
+        needing help: 1800-11-8004.
       </p>
     </div>
   );

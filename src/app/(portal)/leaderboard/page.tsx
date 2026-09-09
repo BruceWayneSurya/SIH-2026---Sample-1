@@ -9,6 +9,7 @@ import { chapters, mcqAttempts } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { getClassLeaderboard, getChapterLeaderboard } from "@/lib/queries";
 import { BADGES } from "@/lib/badges";
+import { CLASSES, classNumber } from "@/lib/curriculum";
 
 export const dynamic = "force-dynamic";
 
@@ -27,10 +28,7 @@ export default async function Leaderboard({
   if (!user) return <DatabaseSetup />;
   const { class: classParam, chapter: chapterParam } = await searchParams;
 
-  const classNo =
-    classParam === "7" || classParam === "8"
-      ? Number(classParam)
-      : (user.className ?? 8);
+  const classNo = classNumber(classParam) ?? classNumber(user.className ?? 8) ?? 8;
 
   const board = await getClassLeaderboard(classNo);
 
@@ -92,7 +90,7 @@ export default async function Leaderboard({
             role="tablist"
             aria-label="Class scope"
           >
-            {[7, 8].map((c) => (
+            {[...CLASSES].map((c) => (
               <Link
                 key={c}
                 href={`/leaderboard?class=${c}${chapterId ? `&chapter=${chapterId}` : ""}`}
