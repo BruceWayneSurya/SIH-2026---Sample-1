@@ -1,9 +1,29 @@
 @import "tailwindcss";
+@import "@fontsource/mukta/400.css";
+@import "@fontsource/mukta/500.css";
+@import "@fontsource/mukta/600.css";
+@import "@fontsource/mukta/700.css";
+@import "@fontsource/mukta/800.css";
+@import "@fontsource/noto-serif-devanagari/500.css";
+@import "@fontsource/noto-serif-devanagari/600.css";
+@import "@fontsource/noto-serif-devanagari/700.css";
+
+
+@import "@fontsource/noto-sans-telugu/400.css";
+@import "@fontsource/noto-sans-telugu/700.css";
+@import "@fontsource/noto-sans-tamil/400.css";
+@import "@fontsource/noto-sans-tamil/700.css";
+@import "@fontsource/noto-sans-kannada/400.css";
+@import "@fontsource/noto-sans-kannada/700.css";
+@import "@fontsource/noto-sans-malayalam/400.css";
+@import "@fontsource/noto-sans-malayalam/700.css";
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
 @theme {
-  --font-sans: var(--font-mukta), "Mukta", "Segoe UI", "Noto Sans", sans-serif;
+  --font-mukta: "Mukta";
+  --font-deva: "Noto Serif Devanagari";
+  --font-sans: var(--font-mukta), "Mukta", "Noto Sans Telugu", "Noto Sans Tamil", "Noto Sans Kannada", "Noto Sans Malayalam", "Segoe UI", sans-serif;
   --font-display: var(--font-deva), "Noto Serif Devanagari", "Mukta", serif;
 
   --color-navy-50: #eef4f9;
@@ -238,3 +258,15 @@ html.dark .note-scroll::-webkit-scrollbar-thumb,
 [data-theme="dark"] .note-scroll::-webkit-scrollbar-thumb {
   background: #334155;
 }
+
+/* Keep orange action text readable in both themes. */
+[data-theme="dark"] .bg-saffron-500.text-navy-950 {
+  color: #081f33;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .vsv-enter, .vs-pulse { animation: none; }
+}
+
+/* Indic compound words must wrap inside narrow cards/buttons on mobile. */
+html:not([lang="en"]) body { overflow-wrap: anywhere; }

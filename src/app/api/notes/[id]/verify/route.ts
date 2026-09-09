@@ -1,9 +1,10 @@
-import { db } from "@/server/db";
-import { notes } from "@/server/db/schema";
+import { withDatabase } from "@/lib/database-route";
+import { db } from "@/db";
+import { notes } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getActiveUser } from "@/server/auth/session";
+import { getActiveUser } from "@/lib/session";
 
-export async function POST(
+async function handlePOST(
   req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
@@ -34,3 +35,8 @@ export async function POST(
     return Response.json({ error: "Note not found." }, { status: 404 });
   return Response.json({ ok: true, facultyVerified: verified });
 }
+
+export const POST = withDatabase(handlePOST);
+
+export const runtime = "nodejs";
+export const maxDuration = 60;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useDataSaver, useHydrated } from "@/lib/ui-preferences";
 import { Download, MonitorPlay, Pause, Play, WifiOff } from "lucide-react";
 
 type Marker = { t: number; label: string };
@@ -24,25 +25,14 @@ const fmt = (s: number) => {
 };
 
 export function VideoPlayer({ video }: { video: Video }) {
-  const [saver, setSaver] = useState(false);
-  const [armed, setArmed] = useState(false); // video element mounted
+  const saver = useDataSaver();
+  const hydrated = useHydrated();
+  const [playback, setPlayback] = useState({ saver, manual: false });
+  if (playback.saver !== saver) setPlayback({ saver, manual: false });
+  const armed = hydrated && (!saver || playback.manual);
   const [playing, setPlaying] = useState(false);
   const [active, setActive] = useState(-1);
   const ref = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const read = () => document.documentElement.dataset.saver === "1";
-    const apply = () => setSaver(read());
-    apply();
-    window.addEventListener("vs-saver", apply);
-    return () => window.removeEventListener("vs-saver", apply);
-  }, []);
-
-  // auto-arm unless data saver is on
-  useEffect(() => {
-    if (!saver) setArmed(true);
-    else setArmed(false);
-  }, [saver]);
 
   const onTime = () => {
     const v = ref.current;
@@ -93,7 +83,7 @@ export function VideoPlayer({ video }: { video: Video }) {
       ) : (
         <button
           type="button"
-          onClick={() => setArmed(true)}
+          onClick={() => setPlayback({ saver, manual: true })}
           className="group flex aspect-video w-full flex-col items-center justify-center gap-3 bg-navy-900 text-white"
         >
           <span className="rounded-full bg-saffron-500 p-4 text-navy-950 transition group-hover:scale-105">

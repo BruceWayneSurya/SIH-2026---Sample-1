@@ -1,7 +1,8 @@
-import { db } from "@/server/db";
-import { users } from "@/server/db/schema";
+import { withDatabase } from "@/lib/database-route";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { handleFromName, hashPassword, startSession } from "@/server/auth/session";
+import { handleFromName, hashPassword, startSession } from "@/lib/session";
 
 const SUBJECTS = [
   "Mathematics",
@@ -14,10 +15,11 @@ const SUBJECTS = [
 
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   let body: Record<string, unknown>;
   try {
     body = await req.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Invalid body");
   } catch {
     return Response.json({ error: "Invalid request body." }, { status: 400 });
   }
@@ -109,3 +111,8 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export const POST = withDatabase(handlePOST);
+
+export const runtime = "nodejs";
+export const maxDuration = 60;

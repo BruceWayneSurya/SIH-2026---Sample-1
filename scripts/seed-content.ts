@@ -147,161 +147,6 @@ export const heatMcqs: MCQSeed[] = [
   { q: "95°F expressed in Celsius is —", options: ["35°C", "30°C", "40°C", "25°C"], correct: 0, why: "C = (5/9)(F − 32) = (5/9)(95 − 32) = (5/9)×63 = 35°C.", pyq: "Practice" },
 ];
 
-export const heatSubj: SubjSeed[] = [
-  {
-    q: "Define temperature and state its SI unit.",
-    marks: 2,
-    rubric: [
-      { step: "Correct definition (measure of hotness/coldness of a body)", marks: 1 },
-      { step: "Correct SI unit: Kelvin (K)", marks: 1 },
-    ],
-    answer: "Temperature is a reliable measure of the degree of hotness or coldness of an object. The SI unit of temperature is Kelvin (K), although degree Celsius (°C) and Fahrenheit (°F) are commonly used in daily practice.",
-  },
-  {
-    q: "Why is a kink / constriction provided in a clinical thermometer?",
-    marks: 2,
-    rubric: [
-      { step: "Prevents mercury from falling back automatically", marks: 1 },
-      { step: "Allows reading temperature after taking out of patient's mouth", marks: 1 },
-    ],
-    answer: "A kink near the bulb of a clinical thermometer prevents the mercury column from falling down on its own when removed from the patient's mouth, allowing an accurate temperature reading.",
-  },
-  {
-    q: "Differentiate between conductors and insulators of heat with one example each.",
-    marks: 2,
-    rubric: [
-      { step: "Definition + example of conductor (allows heat to pass, e.g. copper)", marks: 1 },
-      { step: "Definition + example of insulator (does not allow heat easily, e.g. wood)", marks: 1 },
-    ],
-    answer: "Conductors allow heat to pass through them easily (e.g., copper, iron, aluminium). Insulators (poor conductors) do not allow heat to pass through easily (e.g., wood, plastic, air, water).",
-  },
-  {
-    q: "Why do we wear dark-coloured clothes in winter and light-coloured clothes in summer?",
-    marks: 2,
-    rubric: [
-      { step: "Dark colours absorb more heat radiant energy in winter", marks: 1 },
-      { step: "Light colours reflect most heat radiant energy in summer", marks: 1 },
-    ],
-    answer: "Dark-coloured clothes absorb more radiant heat from the Sun, keeping us warm in winter. Light-coloured clothes reflect most of the heat that falls on them, keeping us cool in summer.",
-  },
-  {
-    q: "Convert 35°C into the Fahrenheit scale using the standard conversion formula.",
-    marks: 2,
-    rubric: [
-      { step: "Correct formula: F = (9/5)C + 32", marks: 1 },
-      { step: "Correct calculation: (9/5)*35 + 32 = 63 + 32 = 95°F", marks: 1 },
-    ],
-    answer: "Using the conversion formula F = (9/5) × C + 32: F = (9/5) × 35 + 32 = 63 + 32 = 95°F.",
-  },
-  {
-    q: "Explain the three modes of heat transfer with brief descriptions.",
-    marks: 3,
-    rubric: [
-      { step: "Conduction in solids (particle to particle without bulk movement)", marks: 1 },
-      { step: "Convection in fluids (actual movement of warmer/cooler particles)", marks: 1 },
-      { step: "Radiation via electromagnetic waves (no medium required)", marks: 1 },
-    ],
-    answer: "(1) Conduction: Heat transfer from the hotter end to the colder end in solids without bodily movement of particles. (2) Convection: Heat transfer in liquids and gases through actual bodily movement of heated molecules. (3) Radiation: Heat transfer through electromagnetic waves requiring no material medium.",
-  },
-  {
-    q: "What is sea breeze? Explain how and when it occurs.",
-    marks: 3,
-    rubric: [
-      { step: "Occurs during the day in coastal areas", marks: 1 },
-      { step: "Land heats faster than water; warm air above land rises", marks: 1 },
-      { step: "Cooler air from sea blows towards land to replace it", marks: 1 },
-    ],
-    answer: "During the daytime in coastal regions, land heats up faster than sea water. The warm air over the land rises, creating a low pressure area. The cooler air from the sea rushes in towards the land to take its place. This breeze blowing from the sea to the land is called a sea breeze.",
-  },
-  {
-    q: "State three differences between a clinical thermometer and a laboratory thermometer.",
-    marks: 3,
-    rubric: [
-      { step: "Range difference: 35°C-42°C vs -10°C-110°C", marks: 1 },
-      { step: "Kink presence: Present in clinical, absent in laboratory", marks: 1 },
-      { step: "Usage: Read after removal vs read while immersed in substance", marks: 1 },
-    ],
-    answer: "(1) Range: Clinical covers 35°C to 42°C; laboratory thermometer covers -10°C to 110°C. (2) Kink: Clinical has a kink near the bulb; laboratory has no kink. (3) Reading: Clinical can be read after taking it out; laboratory must be read while in contact with the liquid.",
-  },
-  {
-    q: "Explain why wearing two thin sweaters keeps us warmer than wearing one thick sweater.",
-    marks: 3,
-    rubric: [
-      { step: "Air gets trapped between the two layers of clothing", marks: 1 },
-      { step: "Air is a poor conductor of heat (good insulator)", marks: 1 },
-      { step: "Trapped air prevents heat loss from the body to cold surroundings", marks: 1 },
-    ],
-    answer: "When wearing two thin sweaters, a layer of air gets trapped between them. Since air is a very poor conductor of heat (an insulator), this trapped air layer prevents body heat from escaping into the cold environment, keeping us warmer than a single thick sweater.",
-  },
-  {
-    q: "Why is water not suitable as a thermometric liquid in place of mercury?",
-    marks: 3,
-    rubric: [
-      { step: "Water wets the glass and sticks to capillary tube", marks: 1 },
-      { step: "Water is transparent and hard to read", marks: 1 },
-      { step: "Narrow liquid range (freezes at 0°C, boils at 100°C) with non-uniform expansion", marks: 1 },
-    ],
-    answer: "Water is not suitable because: (1) It wets glass and adheres to capillary walls, making readings inaccurate. (2) It is transparent and difficult to observe clearly. (3) It has anomalous expansion between 0°C and 4°C, whereas mercury expands uniformly.",
-  },
-  {
-    q: "Describe an experiment with a diagrammatic explanation to demonstrate heat transfer by conduction through a metal rod.",
-    marks: 5,
-    rubric: [
-      { step: "Setup: Metal rod clamped horizontally on a stand", marks: 1 },
-      { step: "Wax pins attached at equal intervals along the rod", marks: 1 },
-      { step: "Heating: Free end heated with a spirit lamp/candle", marks: 1 },
-      { step: "Observation: Pins fall sequentially starting from nearest the flame", marks: 1 },
-      { step: "Conclusion: Heat travels along the solid rod from hotter to colder end", marks: 1 },
-    ],
-    answer: "Take a metal strip or rod and fix it horizontally on an iron stand. Fix small iron pins along the rod at equal distances using melted wax. Heat the free end of the rod using a burner. As the rod gets heated, the pin nearest to the flame falls first, followed by the subsequent pins in order. This proves that heat conducts progressively through the solid from the hotter end to the colder end.",
-  },
-  {
-    q: "Explain land breeze and sea breeze in detail. Describe the role of convection currents in their formation.",
-    marks: 5,
-    rubric: [
-      { step: "Unequal specific heat of land and water stated", marks: 1 },
-      { step: "Daytime mechanism: Land warms faster -> air rises -> Sea Breeze forms", marks: 1.5 },
-      { step: "Nighttime mechanism: Land cools faster -> sea air rises -> Land Breeze forms", marks: 1.5 },
-      { step: "Convection current cycle explained clearly", marks: 1 },
-    ],
-    answer: "Land heats up and cools down much faster than sea water. (1) Sea Breeze (Day): The sun warms the land faster than the sea. Warm air over land rises, and cool air from the sea flows towards land to take its place. (2) Land Breeze (Night): At night, the land cools down faster than the sea water. The air above the warm sea rises, and cooler air from the land flows towards the sea. Both phenomena are classic examples of large-scale convection currents in nature.",
-  },
-  {
-    q: "How does a thermos flask (vacuum flask) prevent loss or gain of heat? Explain how it minimizes conduction, convection, and radiation.",
-    marks: 5,
-    rubric: [
-      { step: "Double-walled glass vessel with vacuum between walls", marks: 1 },
-      { step: "Vacuum eliminates heat transfer by conduction", marks: 1 },
-      { step: "Vacuum eliminates heat transfer by convection", marks: 1 },
-      { step: "Silvered walls reflect heat rays, reducing radiation loss/gain", marks: 1 },
-      { step: "Cork/plastic stopper and insulated base minimize conduction at opening", marks: 1 },
-    ],
-    answer: "A thermos flask has a double-walled glass container with a vacuum between the walls. (1) The vacuum contains no particles, completely stopping heat transfer by conduction and convection. (2) Both glass surfaces facing each other are silvered like mirrors; this reflects radiant heat back, minimizing heat transfer by radiation. (3) The insulating plastic/cork stopper and rubber support at the base prevent conduction of heat through the top and bottom.",
-  },
-  {
-    q: "Explain why cooking utensils are made of metals but their handles are made of wood or bakelite. What would happen if the handles were also metal?",
-    marks: 5,
-    rubric: [
-      { step: "Utensil body is metal: high thermal conductivity for fast and even cooking", marks: 2 },
-      { step: "Handles are wood/bakelite: low thermal conductivity (insulator) for safe handling", marks: 1.5 },
-      { step: "If handles were metal: heat would conduct to handles causing severe burns", marks: 1.5 },
-    ],
-    answer: "Cooking utensils must conduct heat quickly and evenly from the flame to the food inside, so their bodies are made of metals like aluminium, copper, or stainless steel (good conductors). In contrast, handles must remain cool so we can safely hold and lift the vessel without getting burned, so they are made of poor conductors (insulators) like wood or thermosetting plastic (bakelite). If handles were made of metal, heat would rapidly conduct along them, burning the cook's hands.",
-  },
-  {
-    q: "Describe an experiment to show that black/dark surfaces absorb more heat radiation than shiny/white surfaces.",
-    marks: 5,
-    rubric: [
-      { step: "Setup: Two identical tin cans, one painted black and one painted white", marks: 1 },
-      { step: "Equal volumes of water poured into both cans at same initial temperature", marks: 1 },
-      { step: "Exposure: Both placed under direct sunlight for an hour with thermometers inserted", marks: 1 },
-      { step: "Observation: Water in black can records significantly higher temperature", marks: 1 },
-      { step: "Conclusion: Dark surfaces absorb radiant heat much more effectively than light surfaces", marks: 1 },
-    ],
-    answer: "Take two identical tin cans. Paint the outer surface of one can black and the other white. Pour equal quantities of water (say 100 mL) at room temperature into each can. Place a laboratory thermometer in each can and place both cans in direct sunlight for about 60 minutes. On checking the thermometers, the water in the black can is found to be noticeably hotter than that in the white can. This proves that black/dark surfaces absorb more radiant heat than white/shiny surfaces.",
-  },
-];
-
 /* ------------------------------------------------------------------ */
 /*  VIDEOS                                                            */
 /* ------------------------------------------------------------------ */
@@ -309,7 +154,7 @@ export const videosByChapter: Record<string, VideoSeed[]> = {
   "8-science-6": [
     {
       title: "Combustion: Definition, Conditions & Types",
-      url: "/videos/combustion-definition.mp4",
+      url: `${V}/BigBuckBunny.mp4`,
       duration: 603,
       sizeMb: 96.4,
       markers: [
@@ -325,7 +170,7 @@ export const videosByChapter: Record<string, VideoSeed[]> = {
     },
     {
       title: "Flame Zones: The Copper Wire Loop Experiment",
-      url: "/videos/flame-zones-experiment.mp4",
+      url: `${V}/ElephantsDream.mp4`,
       duration: 653,
       sizeMb: 169.8,
       markers: [
@@ -343,7 +188,7 @@ export const videosByChapter: Record<string, VideoSeed[]> = {
   "8-mathematics-1": [
     {
       title: "Rational Numbers: Number Line & Standard Form",
-      url: "/videos/rational-numbers.mp4",
+      url: `${V}/Sintel.mp4`,
       duration: 888,
       sizeMb: 129.8,
       markers: [
@@ -372,8 +217,6 @@ export const videosByChapter: Record<string, VideoSeed[]> = {
         { t: 470, label: "Good and bad conductors" },
         { t: 600, label: "Quick recap" },
       ],
-      slides: "/slides/heat-transfer.md",
-      slidesTitle: "Slides — Heat & Temperature",
     },
   ],
 };

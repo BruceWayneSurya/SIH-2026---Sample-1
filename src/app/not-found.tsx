@@ -10,7 +10,7 @@ export default function NotFound() {
       <p className="font-display text-3xl font-bold text-navy-900">पन्ना नहीं मिला</p>
       <h1 className="mt-2 text-2xl font-extrabold text-navy-900">Page not found</h1>
       <p className="mt-2 max-w-md text-[15px] text-slate-600">
-        This chapter or page does not exist in the Pragyan (प्रज्ञान) curriculum. Head back to your
+        This chapter or page does not exist in the VidyaSetu curriculum. Head back to your
         dashboard to keep learning.
       </p>
       <Link

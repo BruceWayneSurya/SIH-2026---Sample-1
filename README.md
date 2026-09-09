@@ -1,222 +1,234 @@
-# Pragyan (प्रज्ञान) — Open Digital Learning & Assessment Portal
+# Pragyan (प्रज्ञान) — Learning & Assessment Portal
 
-> **Smart India Hackathon (SIH 2026)**  
-> **Team Name:** PRAGYAN  
-> **Project Title:** Pragyan — Open Digital Learning & Assessment Portal (SIH Edition)
+Smart India Hackathon 2026 · Team PRAGYAN. NCERT-aligned Class 7/8 learning,
+faculty videos, community notes, assessments, leaderboards and AI study tools.
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.2-black?style=flat&logo=next.js)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19.2-blue?style=flat&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.1-38bdf8?style=flat&logo=tailwindcss)](https://tailwindcss.com/)
-[![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.45-green?style=flat&logo=drizzle)](https://orm.drizzle.team/)
-[![SQLite WASM](https://img.shields.io/badge/Database-SQLite_(sql.js_WASM)-003b57?style=flat&logo=sqlite)](https://sql.js.org/)
-[![WCAG 2.1 AA](https://img.shields.io/badge/Accessibility-WCAG_2.1_AA-success?style=flat)](#)
+The welcome page, sign-in/register screens, demo personas, theme toggle,
+floating AI assistant and chapter tools follow the supplied
+[Pragyan reference](https://pragyan-sih-2026.vercel.app/). The existing text/Drive
+PDF upload, embedded preview and concurrent voting fixes are retained.
 
----
+## Local development — keep your existing .env
 
-## 📖 1. Overview & Vision
+Use **Node.js 22**. Keep your `.env`, or copy `.env.example` if you do not have one:
 
-**Pragyan** is a lightweight, accessible digital learning and assessment portal aligned with the official **NCERT curriculum** for **Class 7 and Class 8**. Designed specifically for the Indian public school ecosystem, it bridges the gap between students and educators through faculty-verified video lectures, peer-reviewed community notes, previous years' question (PYQ) assessments, and a real-time gamified peer-benchmarking engine.
-
-Built strictly according to the **National Portal of India Design Guidelines (NIC)**, Pragyan features a clean Indian Government aesthetic (Deep Blue `#133b5c`, Saffron `#d97706`/`#f59e0b`, High-Contrast Typography, and an Ashoka Chakra emblem).
-
----
-
-## 🌟 2. Key Features & SIH Innovations
-
-### 📶 Low-Bandwidth Adaptive Mode (Data Saver)
-- **Problem:** Students in rural and government schools frequently face unstable 2G/3G connectivity.
-- **Solution:** A one-click **Data Saver Toggle** in the header that suppresses heavy video auto-loading, reduces layout animations, and serves instant compressed/cached notes and text first.
-
-### 🏷️ DIKSHA & NCERT Learning Outcome Schema
-- Every chapter is directly mapped to standard national education metadata:
-  - **NCERT Learning Outcome IDs:** e.g., `LO-8-SCI-06-01`, `LO-8-SCI-06-02`
-  - **DIKSHA QR Codes:** e.g., `D-8-SCI-06`
-  - Fully compliant with Indian digital education standards (NDEAR).
-
-### 👥 Dual Sub-Portal Chapter Architecture
-Each NCERT chapter is partitioned into two distinct sub-portals:
-1. **Learning Sub-Portal**:
-   - **Faculty Video Lectures:** Embedded HTML5/YouTube video player with timestamped chapter markers and downloadable slide decks (`.md`/PDF).
-   - **Crowdsourced Notes & Upvoting:** Students and faculty upload notes in text/PDF/Image formats.
-   - **Dynamic Ranking Algorithm:** Notes are sorted real-time based on the formula:
-     $$\text{Ranking Score} = \text{Upvotes} \times 0.7 + (\text{Faculty Verified Badge} \times 30)$$
-   - **"Faculty Verified" Green Tick:** Teachers can verify community notes in 1 click, elevating trusted notes to prevent misinformation.
-   - **XP Milestone:** When a note hits $10+$ upvotes, the author automatically earns **+50 XP**.
-
-2. **Test Your Knowledge Sub-Portal**:
-   - **Objective Assessment (20 Timed MCQs):** Minimum $90\%$ of questions are mapped directly to verified previous years' questions (annotated with tags like `[CBSE 2023]`, `[NCERT Exemplar]`, `[State Board 2022]`). Features real-time countdown timer, question palette, instant scoring, and step-by-step solutions (**+10 XP per correct answer**).
-   - **Subjective Assessment (15 Question Pool):** Divided into 5 Short Answer ($2\text{M}$), 5 Medium Answer ($3\text{M}$), and 5 Long Answer ($5\text{M}$) questions.
-   - **Self-Paced "Model Answer Reveal":** Interactive step-by-step scoring scheme rubrics (Step 1 = 1M, Diagram = 1M) and downloadable official marking scheme text files (**+30 XP for completion**).
-
-### 🏆 Gamified Leaderboard & Peer Benchmarking
-- **Class-Wide Leaderboard:** Overall ranks across all active learners in Class 7 or Class 8.
-- **Chapter-Wise Master Leaderboard:** Specialized ranks based solely on test performance in a specific chapter (e.g., *Top Performers in Class 8 Science · Chapter 6*).
-- Displays rank medals, badges (*Science Scholar*, *Top Contributor*, *Math Wizard*), accuracy percentage, and total XP.
-
-### ⚡ 1-Click Zero-Friction Evaluator Access
-- Unified login (`/login`) and registration (`/register`) with **1-click evaluator demo buttons** (*"Try as Guest Student"* and *"Try as Guest Faculty"*), plus pre-seeded persona switchers to test both Student and Faculty perspectives instantly without manual signup.
-
----
-
-## 👥 3. Pre-Seeded Evaluator Accounts
-
-| Role | Name | Email | Password | Details |
-| :--- | :--- | :--- | :--- | :--- |
-| **Faculty** | Ms. Anita Sharma | `anita.sharma@Pragyan.gov.in` | `demo123` | Science Faculty · SCH-GJ-204 (Gujarat) |
-| **Faculty** | Ravi Verma | `ravi.verma@Pragyan.gov.in` | `demo123` | Mathematics Faculty · SCH-MH-112 (Maharashtra) |
-| **Student** | Diya Mehta | `diya@student.in` | `demo123` | Class 8 · KV Ahmedabad · **Rank #1** |
-| **Student** | Aarav Patel | `aarav@student.in` | `demo123` | Class 8 · Shiksha Kendra, Rajkot |
-| **Student** | Arjun Thakur | `arjun@student.in` | `demo123` | Class 7 · Shiksha Kendra, Patna |
-| **Guest Student** | Guest Student | *(1-Click Button)* | — | Open demo session (Class 8) |
-| **Guest Faculty** | Guest Faculty | *(1-Click Button)* | — | Open demo session (Faculty) |
-
----
-
-## 🛠️ 4. Tech Stack & Architecture
-
-| Layer | Technology | Key Advantage |
-| :--- | :--- | :--- |
-| **Frontend** | Next.js 16 (App Router), React 19, TypeScript | Server Components, fast static streaming, zero layout shift |
-| **Styling & UI** | Tailwind CSS 4, Lucide Icons | Accessible, high-contrast Government of India theme |
-| **Database** | SQLite via `sql.js` (WebAssembly) | **Zero-server setup**: runs in-process with persistent file `data/app.db`. No PostgreSQL/MySQL/Docker required |
-| **ORM** | Drizzle ORM & Drizzle Kit | Type-safe queries and automated migrations |
-| **Auth & Security**| Scrypt password hashing & HMAC-signed cookies | Session management with RBAC |
-
----
-
-## 🚀 5. How to Run Locally
-
-### Prerequisites
-- **Node.js** (v20+ or v22 LTS / v24 LTS recommended)
-- **npm** (included with Node.js)
-- **Git**
-
-### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/surya-prakash11/SIH-PRAGYAN-2026.git
-cd SIH-PRAGYAN-2026
-```
-
-### Step 2: Install Dependencies
-```bash
-npm install
-```
-
-### Step 3: Initialize and Seed the Database
-This creates the SQLite database tables and seeds demo students, faculty, NCERT curriculum, 20-MCQ PYQ pools, subjective rubrics, and leaderboards:
-```bash
+npm ci
 npm run db:setup
-```
-
-### Step 4: Start the Development Server
-```bash
 npm run dev
 ```
 
-### Step 5: Open in Your Browser
-Open your browser and visit:
-👉 **[http://localhost:3000](http://localhost:3000)**
+Open `http://localhost:3000`. A blank/unset `DATABASE_URL` still uses
+`./data/app.db`. Absolute paths, relative paths and `file://` URLs also work.
+No PostgreSQL server or separate backend is required. Setup is automatic on
+local server start and repeatable; existing records are not deleted/reset.
 
----
+## Vercel deployment
 
-## 📂 6. Project Structure
+If you see “Vercel requires permanent hosted SQLite storage…” on the deployed
+site, follow the step-by-step fix in
+[`VERCEL_HOSTED_SQLITE.md`](./VERCEL_HOSTED_SQLITE.md) (create a free Turso
+database, validate it with `npm run db:check`, add the environment variables,
+redeploy). Short version:
 
-The repo is organized into clean **frontend** and **backend** layers inside one Next.js deployment — push it to any web host and both sides ship together (no separate API server, no CORS setup).
+| Variable | Vercel value |
+| --- | --- |
+| `DATABASE_URL` | Your hosted `libsql://…turso.io` URL — **must not be blank or a file path** |
+| `DATABASE_AUTH_TOKEN` | The database access token; server-only |
+| `SESSION_SECRET` | Random, ≥ 32 characters; not the example/demo value |
+| `GROQ_API_KEY` | Optional, for AI features |
 
+### Why the local version failed on Vercel
+
+The old connection tried to create `data/app.db` inside the deployed project.
+Vercel Functions do not provide a shared, permanent writable filesystem.
+Copying a database to `/tmp` would only hide the error and would lose or split
+accounts, notes, votes and scores across instances.
+
+This version uses **permanent hosted SQLite/libSQL on Vercel**. There is no
+in-memory or temporary-file fallback. Public pages build/render without a DB
+connection; missing deployment settings produce a setup screen and a JSON 503
+from database APIs, rather than a crashing import or an endless refresh loop.
+
+### 1. Create a hosted database
+
+Create a **libSQL-compatible SQLite database in Turso**. Its URL should start
+with `libsql://` (an HTTPS libSQL endpoint is also supported). This adapter is
+for libSQL; do not select the newer `turso://` engine for this configuration.
+Obtain the URL and a database access token from the provider. Keep tokens private.
+
+### 2. Configure the Vercel project
+
+- Framework preset: **Next.js**.
+- Root directory: **the repository root**, not `frontend/`, `src/`, or `backend/`.
+- Node.js: **22.x**.
+- Install command: `npm ci`; build command: `npm run build`.
+- Leave the Next.js output-directory setting at its default.
+- Deploy the branch containing this fix: **`arena/01a07506-sih-2026-sample-1`**.
+  A push to this branch does **not** update a production deployment configured
+  to build `main`. Select this branch for the deployment, or merge the fix
+  through your normal review process before redeploying your production branch.
+
+Add the following under **Project Settings → Environment Variables** for the
+appropriate Production/Preview environment:
+
+| Variable | Vercel value |
+| --- | --- |
+| `DATABASE_URL` | Your `libsql://…turso.io` database URL; **must not be blank or a file path** |
+| `DATABASE_AUTH_TOKEN` | The database access token; server-only |
+| `SESSION_SECRET` | A randomly generated secret, at least 32 characters; not the example/demo value |
+| `GROQ_API_KEY` | Your Groq key, if you want AI features |
+| `GROQ_MODEL` | `openai/gpt-oss-120b`, or your supported Groq model |
+
+`TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are accepted aliases. Explicit
+nonblank `DATABASE_URL` / `DATABASE_AUTH_TOKEN` values take precedence.
+Use a separate database for preview/testing if you do not want those
+instances to modify production data.
+
+Generate a session secret locally, for example:
+
+```bash
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
 ```
-SIH-2026---Sample-1/
-├── src/
-│   ├── app/                                # Routes (Next.js App Router)
-│   │   ├── api/                            # 🖥️ BACKEND — REST API endpoints
-│   │   │   ├── auth/                       #    login · register · guest · logout
-│   │   │   ├── health/route.ts             #    service health check
-│   │   │   ├── notes/                      #    community notes · votes · faculty verify
-│   │   │   ├── objective/[chapterId]/      #    MCQ submission & scoring
-│   │   │   └── subjective/[chapterId]/     #    subjective submission & scoring
-│   │   ├── account/page.tsx                # 🎨 FRONTEND — profile & Evaluator Sandbox
-│   │   ├── class/[classNo]/[subject]/      # 🎨 FRONTEND — class / subject / chapter pages
-│   │   ├── home/page.tsx                   # 🎨 FRONTEND — student & faculty dashboard
-│   │   ├── leaderboard/page.tsx            # 🎨 FRONTEND — class-wide & chapter leaderboards
-│   │   ├── login/ · register/              # 🎨 FRONTEND — NIC-themed auth screens
-│   │   ├── globals.css                     # 🎨 FRONTEND — Tailwind CSS 4 theme & animations
-│   │   └── layout.tsx                      # 🎨 FRONTEND — root layout & portal header
-│   ├── components/                         # 🎨 FRONTEND — React UI components
-│   │   ├── data-saver-toggle.tsx           #    low-bandwidth mode controller
-│   │   ├── header.tsx · footer.tsx         #    national portal navigation
-│   │   ├── notes-section.tsx               #    upvoting & faculty verification UI
-│   │   ├── objective-quiz.tsx              #    timed 20-MCQ PYQ assessment engine
-│   │   ├── subjective-practice.tsx         #    15-question rubric reveal engine
-│   │   ├── video-player.tsx                #    lecture player with chapter markers
-│   │   └── ui.tsx                          #    reusable cards, wordmarks, progress bars
-│   ├── server/                             # 🖥️ BACKEND — server-only modules (never reach the browser)
-│   │   ├── auth/                           #    HMAC-signed cookie sessions · scrypt hashing
-│   │   │   ├── session.ts
-│   │   │   └── password.ts
-│   │   ├── data/
-│   │   │   └── queries.ts                  #    type-safe database read queries
-│   │   └── db/                             #    SQLite (sql.js WASM) client & persistence
-│   │       ├── index.ts                    #      single shared connection + auto-flush to disk
-│   │       ├── schema.ts                   #      Drizzle ORM relational schema
-│   │       └── ensure-db.ts                #      migrate + seed bootstrap on first boot
-│   ├── shared/                             # 🔁 SHARED — used by both frontend & backend
-│   │   ├── curriculum.ts                   #    NCERT Class 7 & 8 subject/chapter mappings
-│   │   └── badges.ts                       #    gamification badge definitions
-│   └── instrumentation.ts                  # 🖥️ BACKEND — DB bootstrap on server start
-├── scripts/                                # 🖥️ BACKEND — database CLI (npm run db:…)
-│   ├── migrate.ts                          #    Drizzle SQLite migration runner
-│   ├── seed.ts                             #    database seeding script
-│   └── seed-content.ts                     #    curated NCERT questions, MCQs, and rubrics
-├── drizzle/                                # 🖥️ BACKEND — SQL migration files & snapshots
-├── public/                                 # 🎨 FRONTEND — static assets (videos, slide decks)
-├── drizzle.config.json                     # 🖥️ BACKEND — Drizzle Kit config (points at src/server/db/schema.ts)
-├── next.config.ts · tsconfig.json · eslint.config.mjs · postcss.config.mjs
-└── package.json · README.md
+
+**Your local `.env` is intentionally not committed or uploaded to Vercel.**
+Setting a variable on your laptop does not configure a Vercel Function.
+Never use `NEXT_PUBLIC_` for database tokens, session secrets or Groq keys.
+
+### 3. Redeploy and check
+
+Redeploy after saving the environment variables. On the first database request,
+the app applies `drizzle/sqlite/` migrations and seeds an empty database safely.
+Batched inserts keep hosted initialization short; subsequent starts preserve
+data and only add missing guest accounts. Migrations are included in the
+function bundle. The hosted HTTP driver never loads native SQLite bindings,
+changes remote journal pragmas, or writes a local replica.
+
+For an operator-controlled initialization, run `npm run db:setup` with the
+**hosted** URL/token configured in your local server environment before deployment.
+For future schema changes, run migrations as one coordinated deployment step
+rather than making concurrent deployments migrate the same database.
+
+Check `https://YOUR-DEPLOYMENT/api/health`. A working hosted deployment returns:
+
+```json
+{"ok":true,"storage":"remote-sqlite","persistent":true}
 ```
 
-### Frontend ↔ Backend map
+Then test guest/sign-in access, publish a text + Drive PDF note, vote, and reload
+from another session. Shared state lives in the hosted database, not a Vercel
+instance. If health returns 503, read its sanitized configuration message and
+check the project environment scope, database URL/token and session secret.
 
-| Concern | Location |
-| :--- | :--- |
-| Pages & UI (frontend) | `src/app/**` page files + `src/components/**` |
-| HTTP endpoints (backend) | `src/app/api/**` — Next.js *requires* route handlers to live here |
-| Auth, database, queries (backend) | `src/server/**` |
-| Curriculum & badge constants (shared) | `src/shared/**` |
+### Existing data and backups
 
-> **Why one project?** Next.js serves the React frontend and the Node backend from the same build. Keeping the backend logic in `src/server/` gives a clean separation of concerns while the whole app still deploys as a single unit — `npm run build && npm run start` (or a one-click Vercel/Render import) puts it on the web with zero extra configuration.
+Connecting a new hosted database does not automatically upload `data/app.db`
+or merge an old PostgreSQL database. Back up existing data first and use your
+provider's supported SQLite import/export procedure if you want to move it.
+The initial migration can adopt a compatible existing SQLite schema without
+resetting records. Incompatible schemas need a separate migration.
 
----
+For self-hosting with local SQLite, use a persistent writable disk and SQLite's
+backup mechanism (or stop the app before copying the DB and WAL files).
 
-## 🌐 7. Deploying to the Web
+References: [Vercel local-storage limitation](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel),
+[Turso TypeScript/libSQL connection guide](https://docs.turso.tech/sdk/ts/quickstart#remote-libsql-database-@libsql/client).
 
-The app is a **single Next.js deployment** — no separate backend server to host.
+## Interface language
 
-1. **Push this repo to GitHub.**
-2. Pick a host:
-   - **Any Node host (Render, Railway, Fly.io, VPS…)** — recommended for full data persistence:
-     - Build command: `npm run build` · Start command: `npm run start`
-     - Set `SESSION_SECRET` to a long random value (required).
-     - `DATABASE_URL` is optional — defaults to `data/app.db`; mount a **persistent disk** at the project root so student data survives redeploys.
-   - **Vercel** — import the repo and deploy with zero config. Note: serverless file systems are ephemeral, so the demo SQLite file resets between cold starts (fine for showcasing; use a Node host with a disk or a hosted Postgres for durable data).
-3. **No manual DB setup needed** — on first boot the server automatically runs migrations and seeds the demo database (students, faculty, chapters, MCQ banks, notes, leaderboards).
+Use the language dropdown beside the light/dark-mode switch. **English is the
+default**, with **Telugu (తెలుగు), Hindi (हिन्दी), Tamil (தமிழ்), Kannada (ಕನ್ನಡ),
+and Malayalam (മലയാളം)** available. The same controls appear on the welcome,
+portal, and sign-in/register pages.
 
----
+The browser remembers the choice in `pragyan_language`, including after reloads
+and navigation, and synchronizes it across tabs. If browser storage is blocked,
+it still works for the current tab. Switching updates navigation, key page copy,
+form labels, and study controls without reloading or clearing drafts/answers.
+English is the fallback for untranslated text. Script fonts are self-hosted;
+interface translations do not require a Groq key or an external translation
+widget.
 
-## 📜 8. Available Scripts
+New AI chat, notes, and practice-quiz requests include the selected language.
+The server validates it against the six-language allowlist. Existing user notes,
+PDFs/videos, textbook material, and the stored assessment questions remain in
+their original language; their contents and saved answers are never rewritten.
+Translation dictionaries are in `src/lib/i18n/messages.ts`.
 
+## Notes and embedded Drive previews
 
-| Command | Description |
-| :--- | :--- |
-| `npm run dev` | Starts the local development server at `http://localhost:3000` |
-| `npm run build` | Builds the production bundle |
-| `npm run start` | Starts the production server |
-| `npm run typecheck` | Runs TypeScript static type checking (`tsc --noEmit`) |
-| `npm run db:setup` | Runs migrations and seeds demo data |
-| `npm run db:migrate` | Applies pending SQL migrations from `drizzle/` |
-| `npm run db:seed` | Reseeds demo users, assessments, and leaderboard data |
+Open a chapter → **Community Notes & Handouts → Contribute notes**:
 
----
+1. Add a title and text, a Google Drive PDF link, or both.
+2. For a PDF, set Drive sharing to **Anyone with the link → Viewer**.
+3. Paste the file link in **PDF document · Google Drive**.
+4. Select **Preview PDF before publishing**, then publish.
 
-## 🇮🇳 9. Team PRAGYAN (SIH 2026)
-Developed for the **Smart India Hackathon 2026** to empower government and rural school students across India with accessible, high-quality NCERT foundational education.
+Saved PDFs render **inside the website** with show/hide controls and an external
+Drive fallback. File `/view`, `/open?id=…` and `/uc?id=…` URLs are normalized to
+`/preview`; access resource keys are preserved. Only validated HTTPS Drive file
+URLs are embedded. The app stores the link, not a copy of the document.
 
+Google controls file existence, permissions and embedding. A private, deleted
+or organization-restricted file can show an access screen. The app cannot bypass
+that or guarantee a file's MIME type. Contributors must share an actual PDF.
+
+**On Vercel, use Drive links:** writing to `public/uploads` is disabled, with a
+clear UI/API explanation, because those files would not persist. Local installs
+still allow PDF/image attachments up to 8 MB. Existing local attachments are not
+automatically uploaded when moving to Vercel.
+
+Each account has one saved vote per note. Desired-state requests are idempotent,
+ranking updates immediately, and write transactions keep the +50 XP milestone
+at ten votes one-time. Guest Student/Faculty are shared demo identities; sign in
+with separate accounts for separate votes and progress.
+
+## AI features
+
+- **Ask Pragyan AI**: a floating, keyboard-accessible chat on every page.
+- **AI Tutor** tab: chapter-scoped conversation.
+- **AI Quiz Generator**: 3/5/7/10 original practice questions on the objective tab,
+  answer checking and explanations. Generated questions are **not official PYQs**
+  and do not award XP or change the stored assessment bank.
+- **AI Study Notes**: summary, key points or a simpler explanation in the learning tab.
+
+Browser requests go to same-origin `POST /api/ai/chat` or `/api/ai/study`.
+Only the server calls Groq. The configured model is passed unchanged; a blank
+model defaults to `llama-3.3-70b-versatile`. Missing/masked keys return a clear
+503 without breaking notes, quizzes or previews. No document is sent to Groq
+by the PDF preview feature. Conversations are not automatically saved.
+
+Requests have bounded input, a 30-second provider timeout, validated quiz output,
+sanitized errors and a **best-effort per-instance** 10-request/minute/account
+limit shared across AI endpoints. For a public deployment, also configure
+provider spending limits and distributed/gateway rate limiting; an in-process
+map does not enforce a global limit across Vercel instances.
+
+This is a hackathon demo with public guest/faculty personas, not a verified
+school identity service. Harden account provisioning and moderation before use
+with real student records. AI can make mistakes; confirm important answers
+against NCERT or a teacher, and do not enter private personal information.
+
+## Checks and database commands
+
+```bash
+npm test
+npm run typecheck
+npm run lint
+npm run build
+npm run test:integration  # running local test app required
+
+npm run db:setup         # migrate + seed, non-destructive
+npm run db:migrate
+npm run db:seed
+npm run db:generate
+npm run db:push          # development only; review schema changes
+```
+
+Integration tests create/delete uniquely named fixtures. Run them against a
+local test database using the same file and SESSION_SECRET as the running app,
+not against a production deployment. `TEST_BASE_URL` defaults to
+`http://127.0.0.1:3000`. Groq and hosted-driver unit tests mock transport: they do
+not need real keys, spend credits, or claim to validate a live cloud database.
+
+Next.js 16 · React 19 · SQLite/libSQL · Drizzle ORM · Tailwind CSS 4 · Groq.

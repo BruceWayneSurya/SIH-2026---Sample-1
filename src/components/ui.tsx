@@ -1,3 +1,4 @@
+import { TranslatedText as T } from "@/components/language-provider";
 import type { LucideIcon } from "lucide-react";
 import {
   Calculator,
@@ -9,10 +10,21 @@ import {
   type LucideProps,
 } from "lucide-react";
 
-export function ChakraMark({ className = "h-10 w-10" }: { className?: string }) {
+export function ChakraMark({
+  className = "h-10 w-10",
+}: {
+  className?: string;
+}) {
   return (
     <svg viewBox="0 0 40 40" className={className} aria-hidden="true">
-      <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" strokeWidth="2.4" />
+      <circle
+        cx="20"
+        cy="20"
+        r="18"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+      />
       <circle cx="20" cy="20" r="3.2" fill="currentColor" />
       {Array.from({ length: 24 }).map((_, i) => (
         <line
@@ -32,13 +44,23 @@ export function ChakraMark({ className = "h-10 w-10" }: { className?: string }) 
 
 export const Wordmark = ({ light = false }: { light?: boolean }) => (
   <span className="flex items-center gap-2.5">
-    <ChakraMark className={light ? "h-9 w-9 text-saffron-400" : "h-9 w-9 text-[#133b5c] dark:text-saffron-400"} />
+    <ChakraMark
+      className={
+        light
+          ? "h-9 w-9 text-saffron-400"
+          : "h-9 w-9 text-[#133b5c] dark:text-saffron-400"
+      }
+    />
     <span className="leading-none">
       <span
         className={`block text-[22px] font-black tracking-tight ${
           light ? "text-white" : "text-[#0c2a43] dark:text-white"
         }`}
-        style={{ fontFamily: "var(--font-deva), 'Noto Serif Devanagari', 'Mukta', serif" }}
+        lang="hi"
+        style={{
+          fontFamily:
+            "var(--font-deva), 'Noto Serif Devanagari', 'Mukta', serif",
+        }}
       >
         प्रज्ञान
       </span>
@@ -62,7 +84,15 @@ export const SUBJECT_ICONS: Record<string, LucideIcon> = {
   palette: Palette,
 };
 
-export function IconBox({ icon: Icon, tint, size = "md" }: { icon: LucideIcon; tint: string; size?: "md" | "lg" }) {
+export function IconBox({
+  icon: Icon,
+  tint,
+  size = "md",
+}: {
+  icon: LucideIcon;
+  tint: string;
+  size?: "md" | "lg";
+}) {
   return (
     <span
       className={`inline-flex items-center justify-center rounded-md border ${tint} ${
@@ -74,7 +104,15 @@ export function IconBox({ icon: Icon, tint, size = "md" }: { icon: LucideIcon; t
   );
 }
 
-export function ProgressBar({ value, max, className = "" }: { value: number; max: number; className?: string }) {
+export function ProgressBar({
+  value,
+  max,
+  className = "",
+}: {
+  value: number;
+  max: number;
+  className?: string;
+}) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
   return (
     <div
@@ -108,8 +146,12 @@ export function EmptyState({
       <span className="mb-3 inline-flex rounded-full bg-white p-3 text-navy-400 shadow-sm">
         <Icon className="h-7 w-7" />
       </span>
-      <h3 className="text-lg font-bold text-navy-900">{title}</h3>
-      <p className="mt-1 max-w-md text-sm text-slate-600">{text}</p>
+      <h3 className="text-lg font-bold text-navy-900">
+        <T>{title}</T>
+      </h3>
+      <p className="mt-1 max-w-md text-sm text-slate-600">
+        <T>{text}</T>
+      </p>
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
@@ -136,10 +178,14 @@ export function StatCard({
   return (
     <div className={`rounded-lg border p-4 shadow-sm ${tones[tone]}`}>
       <div className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-wide opacity-80">
-        <Icon className="h-4 w-4" /> {label}
+        <Icon className="h-4 w-4" /> <T>{label}</T>
       </div>
       <div className="mt-1 text-3xl font-extrabold">{value}</div>
-      {sub && <div className="mt-0.5 text-[13px] font-semibold opacity-70">{sub}</div>}
+      {sub && (
+        <div className="mt-0.5 text-[13px] font-semibold opacity-70">
+          <T>{sub}</T>
+        </div>
+      )}
     </div>
   );
 }
