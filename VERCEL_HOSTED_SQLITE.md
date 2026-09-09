@@ -107,9 +107,9 @@ Rules to avoid a second round-trip:
 
 Then **redeploy**: environment-variable changes only take effect on a new
 deployment. In **Deployments**, open the latest one and choose **Redeploy**.
-Make sure the project builds the branch that contains this code
-(`arena/01a086bd-sih-2026-sample-1` or the branch/PR you merged it into) —
-deploying `main` deploys the older architecture and a different UI behaviour.
+Make sure the project builds the branch that contains this code (the working
+branch, or the branch/PR you merged it into) — deploying `main` deploys the
+older architecture and a different UI behaviour.
 
 ## Step 4 — Verify
 

@@ -113,10 +113,10 @@ Obtain the URL and a database access token from the provider. Keep tokens privat
 - Node.js: **22.x**.
 - Install command: `npm ci`; build command: `npm run build`.
 - Leave the Next.js output-directory setting at its default.
-- Deploy the branch containing this fix: **`arena/01a07506-sih-2026-sample-1`**.
-  A push to this branch does **not** update a production deployment configured
-  to build `main`. Select this branch for the deployment, or merge the fix
-  through your normal review process before redeploying your production branch.
+- Deploy the branch that contains this code. A push to a working branch does
+  **not** update a production deployment configured to build `main`. Select that
+  branch for the deployment, or merge it through your normal review process
+  before redeploying your production branch.
 
 Add the following under **Project Settings → Environment Variables** for the
 appropriate Production/Preview environment:
