@@ -610,6 +610,7 @@ const cfg: Record<number, Record<string, Cfg>> = {
           "Dust of Snow",
           "Fire and Ice",
           "A Tiger in the Zoo",
+          "How to Tell Wild Animals",
           "The Ball Poem",
           "Amanda!",
           "The Trees",
