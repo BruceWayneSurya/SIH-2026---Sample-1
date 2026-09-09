@@ -28,10 +28,12 @@ export function EmailVerifyCard({
   challenge,
   name,
   onBack,
+  backLabel = "Use a different email",
 }: {
   challenge: Challenge;
   name: string;
   onBack: () => void;
+  backLabel?: string;
 }) {
   const router = useRouter();
   const [current, setCurrent] = useState<Challenge>(challenge);
@@ -202,7 +204,7 @@ export function EmailVerifyCard({
           className="inline-flex items-center gap-1.5 font-bold text-slate-500 underline underline-offset-2 transition hover:text-navy-800"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Use a different email
+          {backLabel}
         </button>
       </div>
 

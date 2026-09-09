@@ -155,7 +155,13 @@ export default async function Account() {
               }`}
             >
               <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-              <T>{verificationLabel(user.verificationStatus)}</T>
+              <T>
+                {user.role === "faculty"
+                  ? verificationLabel(user.verificationStatus)
+                  : user.emailVerified
+                    ? "Email verified"
+                    : "Email not verified"}
+              </T>
             </span>
             <span className="break-all text-[14px] font-semibold text-slate-600">
               {user.email}

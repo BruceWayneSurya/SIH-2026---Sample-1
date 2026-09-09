@@ -175,6 +175,7 @@ export default function RegisterPage() {
             challenge={challenge}
             name={challenge.name}
             onBack={() => setChallenge(null)}
+            backLabel="Back to the registration form"
           />
         ) : (
           <>

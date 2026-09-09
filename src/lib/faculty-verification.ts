@@ -70,7 +70,9 @@ export async function startVerification(
   target: Target,
   purpose: OtpPurpose = "login",
   env: Record<string, string | undefined> = process.env,
+  options: { allowReuse?: boolean } = {},
 ): Promise<ChallengeResult> {
+  const allowReuse = options.allowReuse !== false;
   const email = target.email.toLowerCase();
   const now = Date.now();
 
@@ -101,13 +103,32 @@ export async function startVerification(
     );
     if (!decision.ok && decision.reason !== "cooldown")
       return { ok: false, error: describeDecision(decision), status: 429 };
-    if (!decision.ok)
+    if (!decision.ok) {
+      // A code is already on its way: signing in again inside the resend
+      // cooldown must not lock the teacher out, so return the live challenge
+      // (without the code — it is in the mailbox) and let them continue.
+      if (allowReuse)
+        return {
+          ok: true,
+          challengeId: signChallenge({
+            id: reusable.id,
+            email,
+            expiresAt: reusable.expiresAt.getTime(),
+          }),
+          maskedEmail: maskEmail(email),
+          resendAfter: resendCountdown(
+            reusable.lastSentAt?.getTime() ?? null,
+            now,
+          ),
+          delivered: false,
+        };
       return {
         ok: false,
         error: describeDecision(decision),
         status: 429,
         retryAfter: Math.ceil((decision.retryAfterMs ?? 0) / 1000),
       };
+    }
   }
 
   const code = generateOtp();
@@ -292,14 +313,19 @@ export async function resendVerification(
     };
   // The challenge id addresses a verification row; find the account it belongs to.
   const [owner] = await db
-    .select({ id: users.id, email: users.email, name: users.name })
+    .select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      purpose: emailVerifications.purpose,
+    })
     .from(users)
     .innerJoin(emailVerifications, eq(emailVerifications.userId, users.id))
     .where(eq(emailVerifications.id, payload.id))
     .limit(1);
   if (!owner)
     return { ok: false, error: "Verification session not found.", status: 400 };
-  return startVerification(owner, "login", env);
+  return startVerification(owner, owner.purpose, env, { allowReuse: false });
 }
 
 /* --------------------------- review queue --------------------------- */
