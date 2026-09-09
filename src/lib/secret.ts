@@ -4,7 +4,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export function portalSecret(
   env: Record<string, string | undefined> = process.env,
 ): string {
-  return env.SESSION_SECRET ?? "vidyasetu-sih-demo-secret";
+  return env.SESSION_SECRET ?? "pragyan-dev-fallback-secret";
 }
 
 export function hmac(payload: string, secret: string): string {

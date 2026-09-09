@@ -38,7 +38,7 @@ describe("Vercel / hosted SQLite configuration", () => {
     assert.ok(!publicDatabaseError(new Error("token=private-secret")).includes("private-secret"));
   });
   it("requires a non-demo session secret for Vercel", () => {
-    for (const SESSION_SECRET of [undefined, "", "demo", "vidyasetu-sih-demo-secret", "replace-with-a-long-random-secret-in-production"]) {
+    for (const SESSION_SECRET of [undefined, "", "demo", "vidyasetu-sih-demo-secret", "pragyan-dev-fallback-secret", "replace-with-a-long-random-secret-in-production"]) {
       assert.throws(() => assertDeploymentConfig({ ...remote, VERCEL: "1", SESSION_SECRET }), /SESSION_SECRET/);
     }
     assert.doesNotThrow(() => assertDeploymentConfig({ ...remote, VERCEL: "1", SESSION_SECRET: "test-only-long-secret-12345678901234567890" }));
