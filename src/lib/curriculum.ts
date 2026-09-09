@@ -218,16 +218,15 @@ const cfg: Record<number, Record<string, Cfg>> = {
         ],
       },
       {
-        book: "Geography · Contemporary India II",
+        book: "Geography · Our Environment",
         items: [
           "Environment",
           "Inside Our Earth",
           "Our Changing Earth",
-          "Air: A Lifeline",
-          "Forests: A Lifeline",
-          "Water: A Lifeline",
-          "Ground Water",
-          "Urbanisation and its Challenges",
+          "Air",
+          "Water",
+          "Human-Environment Interactions — The Tropical and the Subtropical Region",
+          "Life in the Deserts",
         ],
       },
       {
@@ -419,7 +418,7 @@ const cfg: Record<number, Record<string, Cfg>> = {
       "I’m Up and Down and Round and Round",
       "Measuring Space: Perimeter and Area",
       "The Mathematics of Maybe: Introduction to Probability",
-      "Predicting What Comes Next: Sequences and Progressions",
+      "Predicting What Comes Next: Exploring Sequences and Progressions",
     ].map((t) => ({ title: t, book: "Ganit" }) as ChapterRow),
     "social-science": [
       {
