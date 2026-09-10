@@ -182,7 +182,7 @@ export function SubjectivePractice({
             </button>
           </div>
         </div>
-        {error && <p role="alert" className="mt-3 text-sm font-bold text-rose-600">{error}</p>}
+        {error && <p role="alert" className="mt-3 text-sm font-bold text-rose-600"><T>{error}</T></p>}
       </div>
 
       {GROUPS.map((g) => {

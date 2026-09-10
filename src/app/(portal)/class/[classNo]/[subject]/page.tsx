@@ -77,7 +77,9 @@ export default async function SubjectIndex({
           <T>Class</T> {cn}
         </span>
         <span aria-hidden="true">/</span>
-        <span className="text-navy-800">{subjectName(subject)}</span>
+        <span className="text-navy-800">
+          <T>{subjectName(subject)}</T>
+        </span>
       </TranslatedElement>
 
       <header className="vsv-enter flex flex-wrap items-center gap-4 rounded-lg border border-line bg-white p-5 shadow-sm">
@@ -87,7 +89,7 @@ export default async function SubjectIndex({
             <T>Class</T> {cn} · Chapter Index
           </p>
           <h1 className="text-2xl font-extrabold text-navy-900">
-            {subjectName(subject)}
+            <T>{subjectName(subject)}</T>
           </h1>
         </div>
         <div className="w-full sm:w-64">

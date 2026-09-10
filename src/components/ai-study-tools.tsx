@@ -199,7 +199,7 @@ export function AiStudyTools({
           role="alert"
           className="mt-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"
         >
-          {error}
+          <T>{error}</T>
         </p>
       )}
       {reply && (

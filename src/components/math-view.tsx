@@ -72,6 +72,22 @@ function NodeView({ node }: { node: MathNode }) {
           </span>
         </span>
       );
+
+    case "env":
+      // aligned / cases / pmatrix and friends: rows of cells, stacked.
+      return (
+        <span className="mx-0.5 inline-flex flex-col items-start gap-0.5 align-middle">
+          {node.rows.map((row, rowIndex) => (
+            <span key={rowIndex} className="flex flex-wrap items-baseline gap-2">
+              {row.map((cell, cellIndex) => (
+                <span key={cellIndex} className="whitespace-nowrap">
+                  <Nodes nodes={cell} />
+                </span>
+              ))}
+            </span>
+          ))}
+        </span>
+      );
   }
 }
 

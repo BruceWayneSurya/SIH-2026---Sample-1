@@ -96,7 +96,7 @@ export default async function ChapterPage({
           href={`/class/${cn}/${subject}`}
           className="hover:text-navy-700 hover:underline"
         >
-          <T>Class</T> {cn} · {subjectName(subject)}
+          <T>Class</T> {cn} · <T>{subjectName(subject)}</T>
         </Link>
         <span aria-hidden="true">/</span>
         <span className="text-navy-800">

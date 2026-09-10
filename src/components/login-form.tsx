@@ -181,7 +181,7 @@ export function LoginForm({
                   className="mb-5 flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3.5 text-sm text-rose-800"
                 >
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
-                  <span>{error}</span>
+                  <span><T>{error}</T></span>
                 </div>
               )}
 

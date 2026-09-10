@@ -1,9 +1,23 @@
+import { CLASSES } from "../curriculum";
 import {
   DEFAULT_LANGUAGE,
   isLanguage,
   languageName,
   type Language,
 } from "../i18n/config";
+
+/**
+ * Notation the portal's renderer understands.
+ *
+ * The reader draws fractions, scripts, radicals, symbols and environments from
+ * a LaTeX subset; anything outside it reaches the student as raw backslashes.
+ * Asking for this subset is what makes an equation render instead of leak.
+ */
+const MATHS_INSTRUCTION =
+  "For mathematics, write LaTeX for this subset and nothing else: \\frac{a}{b}, x^{2}, x_{i}, \\sqrt{x}, " +
+  "symbol commands such as \\times \\pm \\leq \\pi \\theta, and \\begin{aligned}/\\begin{cases}/\\begin{pmatrix} " +
+  "environments for multi-line working. Wrap inline maths in single $ and display maths in $$. " +
+  "Do not use \\begin{equation}, \\label, \\tag, unicode superscripts, or code fences for maths.";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 export type GroqConfig = { apiKey: string; model: string };
@@ -109,7 +123,7 @@ export async function completeGroqChat(
           messages: [
             {
               role: "system",
-              content: `You are Pragyan, a learning assistant for NCERT Classes 7 and 8. Explain concepts clearly in age-appropriate language. Be honest when uncertain. Never claim generated practice is an official PYQ. Write learner-facing explanations, questions, and answer options in ${languageName(options.language ?? DEFAULT_LANGUAGE)} unless the learner explicitly requests another language. Keep JSON field names, numeric answer indices, identifiers, and URLs unchanged. ${options.context ? `Current chapter: ${options.context}.` : ""}`,
+              content: `You are Pragyan, a learning assistant for the NCERT curriculum, Classes ${CLASSES[0]} to ${CLASSES[CLASSES.length - 1]}. Explain concepts clearly in age-appropriate language. Be honest when uncertain. Never claim generated practice is an official PYQ. Write learner-facing explanations, questions, and answer options in ${languageName(options.language ?? DEFAULT_LANGUAGE)} unless the learner explicitly requests another language. Keep JSON field names, numeric answer indices, identifiers, and URLs unchanged. ${MATHS_INSTRUCTION} ${options.context ? `Current chapter: ${options.context}.` : ""}`,
             },
             ...messages,
           ],

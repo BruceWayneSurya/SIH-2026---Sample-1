@@ -18,7 +18,8 @@ export type MathNode =
   | { kind: "sup"; base: MathNode[]; exponent: MathNode[] }
   | { kind: "sub"; base: MathNode[]; subscript: MathNode[] }
   | { kind: "frac"; numerator: MathNode[]; denominator: MathNode[] }
-  | { kind: "sqrt"; index?: MathNode[]; body: MathNode[] };
+  | { kind: "sqrt"; index?: MathNode[]; body: MathNode[] }
+  | { kind: "env"; name: string; rows: MathNode[][][] };
 
 const SYMBOLS: Record<string, string> = {
   // Greek, lower case
@@ -183,6 +184,10 @@ class Reader {
     if (!/[a-zA-Z]/.test(escaped)) {
       if (escaped) {
         this.i++;
+        // Spacing commands (\, \; \: \! \ ) look like escaped punctuation but
+        // are layout, so they must not print the character itself.
+        if (Object.hasOwn(SYMBOLS, escaped))
+          return { kind: "text", text: SYMBOLS[escaped] };
         return { kind: "text", text: escaped };
       }
       this.i = start + 1;
@@ -219,6 +224,21 @@ class Reader {
         index = new Reader(raw).parseNodes(false);
       }
       return { kind: "sqrt", index, body: this.parseGroupArgument() };
+    }
+
+    // \begin{aligned} … \end{aligned} and friends: models lean on these for
+    // multi-line working, so they are read as rows of cells rather than
+    // leaking the literal \begin to the student.
+    if (name === "begin") {
+      const env = this.readGroupRaw().trim();
+      const body = this.readEnvironmentBody(env);
+      return {
+        kind: "env",
+        name: env,
+        rows: splitRows(body).map((row) =>
+          splitCells(row).map((cell) => new Reader(cell).parseNodes(false)),
+        ),
+      };
     }
 
     if (WRAPPED_TEXT.has(name)) {
@@ -260,6 +280,20 @@ class Reader {
     return this.readUntil("}");
   }
 
+  /** Consume everything up to and including \end{name}, tolerating a missing one. */
+  private readEnvironmentBody(env: string): string {
+    const stop = `\\end{${env}}`;
+    const at = this.src.indexOf(stop, this.i);
+    if (at === -1) {
+      const rest = this.src.slice(this.i);
+      this.i = this.src.length;
+      return rest;
+    }
+    const body = this.src.slice(this.i, at);
+    this.i = at + stop.length;
+    return body;
+  }
+
   private readUntil(stop: string): string {
     let out = "";
     let depth = 0;
@@ -297,9 +331,57 @@ function flatten(nodes: MathNode[]): string {
           return `${flatten(node.numerator)}/${flatten(node.denominator)}`;
         case "sqrt":
           return `√${flatten(node.body)}`;
+        case "env":
+          return node.rows
+            .map((row) => row.map((cell) => flatten(cell)).join(" "))
+            .join(" ");
       }
     })
     .join("");
+}
+
+/**
+ * Split an environment body on `\\` row breaks, ignoring any that sit inside a
+ * brace group so `\frac{a\\b}{c}` is not treated as two rows.
+ */
+function splitRows(body: string): string[] {
+  const rows: string[] = [];
+  let current = "";
+  let depth = 0;
+  for (let i = 0; i < body.length; i++) {
+    const char = body[i];
+    if (char === "{") depth++;
+    else if (char === "}") depth = Math.max(0, depth - 1);
+    if (char === "\\" && body[i + 1] === "\\" && depth === 0) {
+      rows.push(current);
+      current = "";
+      i++;
+      continue;
+    }
+    current += char;
+  }
+  rows.push(current);
+  return rows.filter((row) => row.trim() !== "");
+}
+
+/** Split one row on `&` cell separators, again respecting brace depth. */
+function splitCells(row: string): string[] {
+  const cells: string[] = [];
+  let current = "";
+  let depth = 0;
+  for (let i = 0; i < row.length; i++) {
+    const char = row[i];
+    if (char === "{") depth++;
+    else if (char === "}") depth = Math.max(0, depth - 1);
+    if (char === "&" && depth === 0) {
+      cells.push(current.trim());
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  cells.push(current.trim());
+  return cells;
 }
 
 /** Parse a TeX fragment into a renderable tree. */

@@ -195,3 +195,26 @@ describe("markdown mathematics", () => {
     assert.equal(mathAt(parseInline("$\\frac{1}{2}$"), 0).tex, "\\frac{1}{2}");
   });
 });
+
+describe("currency is not mistaken for maths", () => {
+  it("leaves $5 and $10 as prose", () => {
+    const parts = parseInline("Price is $5 and $10 dollars.");
+    assert.equal(parts.some((p) => p.kind === "math"), false);
+    assert.equal(textOf(parts), "Price is $5 and $10 dollars.");
+  });
+
+  it("still parses a real equation delimited by $", () => {
+    const parts = parseInline("Area $= \\frac{1}{2} bh$.");
+    assert.equal(parts.filter((p) => p.kind === "math").length, 1);
+  });
+
+  it("parses a trailing unit superscript after text", () => {
+    const parts = parseInline("Volume is 5 cm$^{3}$.");
+    assert.equal(parts.filter((p) => p.kind === "math").length, 1);
+  });
+
+  it("detects a bare \\begin{cases} environment inline", () => {
+    const parts = parseInline("Solve \\begin{cases} x = 1 \\end{cases} now");
+    assert.equal(parts.filter((p) => p.kind === "math").length, 1);
+  });
+});

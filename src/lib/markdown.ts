@@ -50,7 +50,12 @@ const MATH = [
   String.raw`\$\$[\s\S]+?\$\$`,
   String.raw`\\\[[\s\S]+?\\\]`,
   String.raw`\\\(.+?\\\)`,
-  String.raw`\$[^$\n]+?\$`,
+  // Inline $. Requiring a non-space inside both delimiters, and no digit right
+  // after the closing one, is what keeps "Price is $5 and $10" prose from being
+  // read as an equation.
+  String.raw`\$(?=\S)(?:[^$\n]|(?<=\\)\$)*?(?<=\S)\$(?!\d)`,
+  // Environments: \begin{aligned} … \end{aligned}, cases, pmatrix, array.
+  String.raw`\\begin\{[a-zA-Z*]+\}[\s\S]*?\\end\{[a-zA-Z*]+\}`,
   String.raw`\\[dt]?frac\s*` + GROUP + String.raw`\s*` + GROUP,
   String.raw`\\sqrt\s*(?:\[[^\]\n]*\])?\s*` + GROUP,
   // Script notation. A caret in prose is essentially always mathematics, but an

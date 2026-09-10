@@ -93,7 +93,8 @@ export default async function Home() {
   let facultyQueue: {
     id: number;
     title: string;
-    chapter: string;
+    classNo: number;
+    chapterTitle: string;
     author: string;
   }[] = [];
   if (isFaculty) {
@@ -114,7 +115,8 @@ export default async function Home() {
       id: p.id,
       title: p.title,
       author: p.authorName,
-      chapter: `${classLabel(p.classNo)} · ${p.chapterTitle}`,
+      classNo: p.classNo,
+      chapterTitle: p.chapterTitle,
     }));
   }
 
@@ -259,7 +261,7 @@ export default async function Home() {
                   <span className="font-bold text-navy-900">{n.title}</span>
                   <span className="text-sm text-slate-500">by {n.author}</span>
                   <span className="ml-auto rounded-sm bg-navy-50 px-2 py-0.5 text-[12px] font-semibold text-navy-600">
-                    {n.chapter}
+                    <T>{classLabel(n.classNo)}</T> · {n.chapterTitle}
                   </span>
                 </li>
               ))}

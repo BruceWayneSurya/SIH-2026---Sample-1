@@ -46,7 +46,7 @@ export function AccountActions() {
       </button>
       {error && (
         <p role="alert" className="text-rose-600">
-          {error}
+          <T>{error}</T>
         </p>
       )}
     </div>

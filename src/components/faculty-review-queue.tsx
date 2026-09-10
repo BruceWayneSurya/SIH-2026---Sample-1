@@ -55,7 +55,7 @@ export function FacultyReviewQueue({ initial }: { initial: PendingRow[] }) {
     <div className="mt-3">
       {error && (
         <p role="alert" className="mb-2 text-sm font-bold text-rose-600">
-          {error}
+          <T>{error}</T>
         </p>
       )}
       <ul className="divide-y divide-line">

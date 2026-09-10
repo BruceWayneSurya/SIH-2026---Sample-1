@@ -17,6 +17,10 @@ function show(nodes: MathNode[]): string {
           return `FRAC(${show(node.numerator)} / ${show(node.denominator)})`;
         case "sqrt":
           return `SQRT${node.index ? `[${show(node.index)}]` : ""}(${show(node.body)})`;
+        case "env":
+          return `ENV<${node.name}>[${node.rows
+            .map((row) => row.map((cell) => show(cell)).join(" | "))
+            .join(" // ")}]`;
       }
     })
     .join(" ");
@@ -101,5 +105,57 @@ describe("math reader", () => {
     const nodes = parseMath("a \\times b");
     assert.ok(nodes.length > normalizeMath(nodes).length);
     assert.equal(normalizeMath(nodes).length, 1);
+  });
+});
+
+describe("LaTeX environments", () => {
+  it("renders aligned rows instead of leaking \\begin", () => {
+    assert.equal(
+      read("\\begin{aligned} x &= 2 \\\\ y &= 3 \\end{aligned}"),
+      'ENV<aligned>["x" | "= 2" // "y" | "= 3"]',
+    );
+  });
+
+  it("splits cases on the row break and drops & separators", () => {
+    const nodes = normalizeMath(parseMath("\\begin{cases} x + y = 5 \\\\ x - y = 1 \\end{cases}"));
+    assert.equal(nodes[0].kind, "env");
+    if (nodes[0].kind !== "env") return;
+    assert.equal(nodes[0].rows.length, 2);
+    assert.equal(nodes[0].rows[0].length, 1);
+  });
+
+  it("splits pmatrix cells on &", () => {
+    assert.equal(
+      read("\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}"),
+      'ENV<pmatrix>["1" | "2" // "3" | "4"]',
+    );
+  });
+
+  it("does not treat a row break inside a brace group as a new row", () => {
+    const nodes = parseMath("\\begin{aligned} \\frac{a\\\\b}{c} \\\\ d \\end{aligned}");
+    assert.equal(nodes[0].kind, "env");
+    if (nodes[0].kind !== "env") return;
+    assert.equal(nodes[0].rows.length, 2);
+  });
+
+  it("survives an unterminated environment", () => {
+    const nodes = parseMath("\\begin{aligned} x &= 2");
+    assert.equal(nodes[0].kind, "env");
+  });
+});
+
+describe("spacing commands", () => {
+  it("renders \\, as layout space, not a literal comma", () => {
+    assert.equal(read("\\int_0^1 x\\,dx"), 'SUP[SUB["∫"_{"0"}]^{"1"}] " x dx"');
+  });
+
+  it("renders \\; as a space and \\! as nothing", () => {
+    assert.equal(read("a\\;b"), '"a b"');
+    assert.equal(read("n\\!"), '"n"');
+  });
+
+  it("still renders escaped punctuation literally", () => {
+    assert.equal(read("50\\%"), '"50%"');
+    assert.equal(read("a \\& b"), '"a & b"');
   });
 });
