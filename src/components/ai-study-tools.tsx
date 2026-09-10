@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { PracticeQuestion, StudyMode } from "@/lib/ai/study";
+import { MarkdownText } from "@/components/markdown-text";
 
 export function AiStudyTools({
   chapterId,
@@ -203,10 +204,10 @@ export function AiStudyTools({
       )}
       {reply && (
         <div
-          className="mt-4 whitespace-pre-wrap break-words rounded-lg border border-line bg-paper p-4 text-sm leading-relaxed text-navy-900"
+          className="mt-4 rounded-lg border border-line bg-paper p-4 text-sm leading-relaxed text-navy-900"
           aria-live="polite"
         >
-          {reply}
+          <MarkdownText text={reply} />
         </div>
       )}
       {!reply && questions.length === 0 && !busy && (
@@ -263,10 +264,10 @@ export function AiStudyTools({
                 ))}
               </div>
               {graded && (
-                <p className="mt-3 whitespace-pre-wrap text-sm text-navy-700">
+                <div className="mt-3 text-sm text-navy-700">
                   <b>{t("Explanation: ")}</b>
-                  {question.explanation}
-                </p>
+                  <MarkdownText text={question.explanation} />
+                </div>
               )}
             </fieldset>
           ))}

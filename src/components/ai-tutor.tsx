@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import type { ChatMessage } from "@/lib/ai/groq-client";
+import { MarkdownText } from "@/components/markdown-text";
 
 // Bound conversation history before sending; an AI reply can be longer than a
 // user message. Keep recent context without overflowing server validation.
@@ -173,7 +174,11 @@ export function AiTutor({
             <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide opacity-70">
               <T>{message.role === "user" ? "You" : "Pragyan"}</T>
             </span>
-            <p className="whitespace-pre-wrap break-words">{message.content}</p>
+            {message.role === "user" ? (
+              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+            ) : (
+              <MarkdownText text={message.content} />
+            )}
           </div>
         ))}
         {busy && (
