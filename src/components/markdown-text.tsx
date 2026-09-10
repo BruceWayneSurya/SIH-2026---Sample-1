@@ -1,6 +1,6 @@
 "use client";
 
-import { parseMarkdown, type MdInline } from "@/lib/markdown";
+import { parseInline, parseMarkdown, type MdInline } from "@/lib/markdown";
 
 /**
  * Renders model output as React elements.
@@ -47,6 +47,16 @@ const HEADING_CLASS: Record<number, string> = {
   5: "text-sm font-semibold",
   6: "text-sm font-semibold",
 };
+
+/**
+ * Inline-only variant for phrasing contexts such as <legend> and <label>,
+ * where emitting a block element would be invalid nesting. Renders bold,
+ * italic and inline code, and drops block structure.
+ */
+export function MarkdownInline({ text }: { text: string }) {
+  const parts = parseInline(String(text ?? ""));
+  return <Inline parts={parts} />;
+}
 
 export function MarkdownText({ text }: { text: string }) {
   const blocks = parseMarkdown(text);

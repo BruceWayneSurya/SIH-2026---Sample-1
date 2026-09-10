@@ -14,7 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { PracticeQuestion, StudyMode } from "@/lib/ai/study";
-import { MarkdownText } from "@/components/markdown-text";
+import { MarkdownInline, MarkdownText } from "@/components/markdown-text";
 
 export function AiStudyTools({
   chapterId,
@@ -241,7 +241,7 @@ export function AiStudyTools({
               className="rounded-lg border border-line p-3"
             >
               <legend className="px-1 text-sm font-bold text-navy-900">
-                {i + 1}. {question.question}
+                {i + 1}. <MarkdownInline text={question.question} />
               </legend>
               <div className="mt-1 space-y-2">
                 {question.options.map((option, j) => (
@@ -259,7 +259,7 @@ export function AiStudyTools({
                       }
                       className="mt-1 accent-[#133b5c]"
                     />
-                    <span>{option}</span>
+                    <span><MarkdownInline text={option} /></span>
                   </label>
                 ))}
               </div>

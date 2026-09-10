@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { MarkdownText } from "../src/components/markdown-text";
+import { MarkdownInline, MarkdownText } from "../src/components/markdown-text";
 
 // The AI tutor and study tools print model output, which is normally Markdown.
 // These assert the UI turns it into real elements instead of showing students
@@ -55,8 +55,23 @@ describe("AI reply rendering", () => {
     assert.ok(html.includes("alert(1)"), "the text itself should still be visible");
   });
 
+  it("renders the inline variant without block elements for <legend>/<label>", () => {
+    const html = renderToStaticMarkup(
+      createElement(MarkdownInline, { text: "Which is **H2O**? Use `n = m/M`." }),
+    );
+    assert.ok(html.includes("<strong"), "bold should still render");
+    assert.ok(html.includes("<code"), "inline code should still render");
+    assert.equal(html.includes("**"), false, "literal ** survived");
+    for (const tag of ["<div", "<p", "<ul", "<ol", "<pre", "<blockquote"])
+      assert.equal(html.includes(tag), false, `${tag} is invalid inside a legend/label`);
+  });
+
   it("renders an empty reply without throwing", () => {
     assert.equal(typeof render(""), "string");
     assert.equal(typeof render(undefined as unknown as string), "string");
+    assert.equal(
+      typeof renderToStaticMarkup(createElement(MarkdownInline, { text: "" })),
+      "string",
+    );
   });
 });
