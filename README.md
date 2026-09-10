@@ -232,10 +232,46 @@ ranking updates immediately, and write transactions keep the +50 XP milestone
 at ten votes one-time. Guest Student/Faculty are shared demo identities; sign in
 with separate accounts for separate votes and progress.
 
+## Grounded tutoring, mastery and offline packs
+
+This build adds the outcome-graph spine described in `docs/PLAN.md` and scripted
+in `docs/DEMO.md`:
+
+- **Mastery map**: MCQ answers are mapped to NCERT-aligned learning outcomes
+  (`src/lib/outcomes/taxonomy.ts`) and recounted on read
+  (`src/lib/outcomes/mastery.ts`). Students see a concept tree coloured by their
+  own evidence; teachers see `/teacher` with headlines such as *"31 of 45
+  students haven't understood ignition temperature"*, the most-chosen wrong
+  option, and the learners behind it.
+- **Grounded tutor**: `POST /api/ai/tutor` (+ `POST /api/ai/chat`, which shares
+  the pipeline) retrieves from `source_chunks` by BM25 × source authority and
+  returns `citations` that link to `/source/{chunkId}`. Out-of-syllabus
+  questions are refused by `src/lib/tutor/scope.ts` before any model call, and
+  Socratic replies pass a leak guard that removes sentences giving away an
+  answer before hint level 3.
+- **Offline-first**: `public/sw.js` + a standalone `public/offline/offline-app.html`
+  run the chapter pack (notes, outcomes, question bank with explanations,
+  revision sheet) with no network; `/api/offline/sync` re-scores queued attempts
+  server-side and credits XP once per device attempt id.
+- **Content pipeline**: `/faculty/studio` turns text, a PDF, a photographed page
+  or a recording into transcript, notes, outcome-tagged MCQs and a translation,
+  which the teacher reviews and publishes into the chapter, its tutor index and
+  its class notebook.
+- **Revision sheet**: `/api/revision/{chapterId}` renders a one-page A4 SVG
+  built from the same outcome map and bank the dashboard uses.
+
+Every AI surface degrades to a deterministic, source-grounded local path when
+`GROQ_API_KEY` is absent, and says so on screen (`degraded`, with the reason).
+The demo corpus in `src/db/corpus.ts` is a derived, attributed index written for
+this build — the teacher pipeline is the production path for real textbooks.
+
 ## AI features
 
-- **Ask Pragyan AI**: a floating, keyboard-accessible chat on every page.
-- **AI Tutor** tab: chapter-scoped conversation.
+- **Ask Pragyan AI**: a floating, keyboard-accessible chat on every page. On a
+  chapter page it grounds itself in that chapter; elsewhere it asks which chapter
+  to open rather than answering from memory.
+- **Grounded Tutor** tab: Socratic hints, photo-to-help, evidence chips and the
+  polite out-of-syllabus refusal (see above).
 - **AI Quiz Generator**: 3/5/7/10 original practice questions on the objective tab,
   answer checking and explanations. Generated questions are **not official PYQs**
   and do not award XP or change the stored assessment bank.

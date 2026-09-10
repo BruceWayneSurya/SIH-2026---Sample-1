@@ -1,0 +1,28 @@
+{
+  "name": "Pragyan — National Learning Portal",
+  "short_name": "Pragyan",
+  "description": "NCERT-aligned learning with offline chapter packs, mastery maps and a grounded tutor.",
+  "start_url": "/home",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f6f9",
+  "theme_color": "#133b5c",
+  "icons": [
+    {
+      "src": "/icons/pragyan.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/pragyan-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Offline study", "url": "/offline/offline-app.html" },
+    { "name": "My mastery map", "url": "/teacher" }
+  ]
+}

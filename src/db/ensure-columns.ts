@@ -34,7 +34,32 @@ export const REQUIRED_COLUMNS: { table: string; column: string; ddl: string }[] 
       column: "verified_by",
       ddl: "ALTER TABLE users ADD COLUMN verified_by text",
     },
+    // Added by the mastery / grounded-tutor release: the outcome a question is
+    // tagged to, and the wrong option that represents the classic misconception.
+    {
+      table: "mcq_questions",
+      column: "lo_code",
+      ddl: "ALTER TABLE mcq_questions ADD COLUMN lo_code text",
+    },
+    {
+      table: "mcq_questions",
+      column: "trap_index",
+      ddl: "ALTER TABLE mcq_questions ADD COLUMN trap_index integer",
+    },
+    {
+      table: "mcq_questions",
+      column: "trap",
+      ddl: "ALTER TABLE mcq_questions ADD COLUMN trap text",
+    },
   ];
+
+/**
+ * Indexes that depend on an adopted column and therefore cannot live in the SQL
+ * migration: `mcq_lo` indexes `mcq_questions.lo_code`, which is added below.
+ */
+export const REQUIRED_INDEXES: string[] = [
+  "CREATE INDEX IF NOT EXISTS mcq_lo ON mcq_questions (lo_code)",
+];
 
 /** The lazy libSQL client (or anything that runs a raw statement). */
 export type ColumnExecutor = {
@@ -51,6 +76,7 @@ function columnName(row: unknown): string {
 export async function ensureSchemaColumns(
   executor: ColumnExecutor,
   required: typeof REQUIRED_COLUMNS = REQUIRED_COLUMNS,
+  indexes: string[] = REQUIRED_INDEXES,
 ): Promise<string[]> {
   const added: string[] = [];
   for (const table of [...new Set(required.map((r) => r.table))]) {
@@ -62,5 +88,6 @@ export async function ensureSchemaColumns(
       added.push(`${table}.${entry.column}`);
     }
   }
+  for (const ddl of indexes) await executor.execute(ddl);
   return added;
 }

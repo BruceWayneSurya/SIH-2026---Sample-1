@@ -14,7 +14,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:setup": "tsx scripts/migrate.ts && tsx scripts/seed.ts",
-    "db:check": "tsx scripts/check-db.ts"
+    "db:check": "tsx scripts/check-db.ts",
+    "mastery:check": "tsx scripts/check-mastery.ts"
   },
   "dependencies": {
     "@fontsource/mukta": "^5.3.0",

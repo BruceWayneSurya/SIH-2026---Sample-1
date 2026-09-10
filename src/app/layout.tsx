@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import { LanguageProvider } from "@/components/language-provider";
 import { FloatingAiTutor } from "@/components/ai-tutor";
+import { ServiceWorkerRegistrar } from "@/components/service-worker";
 
 // Fonts are self-hosted via @fontsource CSS with correct Unicode ranges.
 // This keeps Devanagari visible without any build-time Google Fonts request.
@@ -12,6 +13,15 @@ export const metadata: Metadata = {
     "Pragyan (प्रज्ञान) — National Digital Learning Portal | Ministry of Education",
   description:
     "NCERT-aligned learning and assessment portal for Class 6 to 10: verified faculty lectures, moderated community notes, PYQ assessments, leaderboards and an AI tutor. Department of School Education & Literacy, Government of India.",
+  manifest: "/manifest.webmanifest",
+  applicationName: "Pragyan",
+  appleWebApp: { title: "Pragyan", capable: true, statusBarStyle: "default" },
+};
+
+export const viewport = {
+  themeColor: "#133b5c",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -34,6 +44,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </a>
           {children}
           <FloatingAiTutor />
+          <ServiceWorkerRegistrar />
         </LanguageProvider>
       </body>
     </html>

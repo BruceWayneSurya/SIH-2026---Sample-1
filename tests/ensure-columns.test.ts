@@ -20,9 +20,13 @@ describe("adopting SQLite files from an earlier release", () => {
   it("adds only the columns the database is missing", async () => {
     const fake = executor({
       users: ["id", "handle", "name", "email", "password_hash", "role", "is_guest"],
+      mcq_questions: ["id", "chapter_id", "qtext", "options", "correct_index"],
     });
     const added = await ensureSchemaColumns(fake);
-    assert.deepEqual(added, REQUIRED_COLUMNS.map((c) => `users.${c.column}`));
+    assert.deepEqual(
+      added,
+      REQUIRED_COLUMNS.map((c) => `${c.table}.${c.column}`),
+    );
     for (const column of REQUIRED_COLUMNS)
       assert.ok(
         fake.ran.includes(column.ddl),
@@ -34,7 +38,11 @@ describe("adopting SQLite files from an earlier release", () => {
     const fake = executor({
       users: [
         "id",
-        ...REQUIRED_COLUMNS.map((c) => c.column),
+        ...REQUIRED_COLUMNS.filter((c) => c.table === "users").map((c) => c.column),
+      ],
+      mcq_questions: [
+        "id",
+        ...REQUIRED_COLUMNS.filter((c) => c.table === "mcq_questions").map((c) => c.column),
       ],
     });
     const added = await ensureSchemaColumns(fake);

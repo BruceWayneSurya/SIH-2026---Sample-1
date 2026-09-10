@@ -92,6 +92,11 @@ export async function completeGroqChat(
     context?: string;
     maxTokens?: 2_048 | 4_096;
     language?: Language;
+    /**
+     * Replacement system prompt. The caller (the tutor service) builds it from
+     * the retrieved sources so the grounding rules travel with the request.
+     */
+    systemPromptOverride?: string;
   } = {},
 ): Promise<string> {
   let response: Response;
@@ -109,7 +114,7 @@ export async function completeGroqChat(
           messages: [
             {
               role: "system",
-              content: `You are Pragyan, a learning assistant for NCERT Classes 7 and 8. Explain concepts clearly in age-appropriate language. Be honest when uncertain. Never claim generated practice is an official PYQ. Write learner-facing explanations, questions, and answer options in ${languageName(options.language ?? DEFAULT_LANGUAGE)} unless the learner explicitly requests another language. Keep JSON field names, numeric answer indices, identifiers, and URLs unchanged. ${options.context ? `Current chapter: ${options.context}.` : ""}`,
+              content: options.systemPromptOverride ?? `You are Pragyan, a learning assistant for NCERT Classes 7 and 8. Explain concepts clearly in age-appropriate language. Be honest when uncertain. Never claim generated practice is an official PYQ. Write learner-facing explanations, questions, and answer options in ${languageName(options.language ?? DEFAULT_LANGUAGE)} unless the learner explicitly requests another language. Keep JSON field names, numeric answer indices, identifiers, and URLs unchanged. ${options.context ? `Current chapter: ${options.context}.` : ""}`,
             },
             ...messages,
           ],

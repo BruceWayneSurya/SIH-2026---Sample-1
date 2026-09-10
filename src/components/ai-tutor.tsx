@@ -17,6 +17,20 @@ import {
 } from "lucide-react";
 import type { ChatMessage } from "@/lib/ai/groq-client";
 import { MarkdownText } from "@/components/markdown-text";
+import { CitationChips, type CitationChip } from "@/components/citation-chips";
+
+/**
+ * A turn in the visible conversation. Assistant turns carry the passages the
+ * answer was grounded in, so the chip under the bubble is part of the reply and
+ * never invented by the client.
+ */
+type Turn = {
+  role: "user" | "assistant";
+  content: string;
+  citations?: CitationChip[];
+  suggestions?: { title: string; href: string }[];
+  note?: string;
+};
 
 // Bound conversation history before sending; an AI reply can be longer than a
 // user message. Keep recent context without overflowing server validation.
@@ -42,7 +56,7 @@ export function AiTutor({
   compact?: boolean;
 }) {
   const { language, t } = useTranslation();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +69,7 @@ export function AiTutor({
     if (log.current) log.current.scrollTop = log.current.scrollHeight;
   }, [messages, busy]);
 
-  async function send(next: ChatMessage[]) {
+  async function send(next: Turn[]) {
     if (request.current) return;
     const controller = new AbortController();
     request.current = controller;
@@ -68,7 +82,12 @@ export function AiTutor({
         body: JSON.stringify({
           language,
           messages: recentHistory(next),
-          ...(chapterId ? { chapterId } : {}),
+          // The chapter page passes its id; the floating tutor reads the URL.
+          ...(chapterId
+            ? { chapterId }
+            : typeof window !== "undefined"
+              ? { chapterPath: window.location.pathname }
+              : {}),
         }),
         signal: controller.signal,
       });
@@ -77,7 +96,16 @@ export function AiTutor({
         throw new Error(
           data?.error ?? "The AI tutor could not reply. Please try again.",
         );
-      setMessages([...next, { role: "assistant", content: data.reply }]);
+      setMessages([
+        ...next,
+        {
+          role: "assistant",
+          content: data.reply,
+          citations: Array.isArray(data.citations) ? (data.citations as CitationChip[]) : [],
+          suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
+          note: data.grounded === false ? (data.degradedReason as string | undefined) : undefined,
+        },
+      ]);
     } catch (err) {
       if (!controller.signal.aborted)
         setError(
@@ -93,7 +121,7 @@ export function AiTutor({
   }
   function ask(text: string) {
     if (!text.trim() || request.current) return;
-    const next = [...messages, { role: "user" as const, content: text.trim() }];
+    const next: Turn[] = [...messages, { role: "user", content: text.trim() }];
     setMessages(next);
     setInput("");
     void send(next);
@@ -177,7 +205,27 @@ export function AiTutor({
             {message.role === "user" ? (
               <p className="whitespace-pre-wrap break-words">{message.content}</p>
             ) : (
-              <MarkdownText text={message.content} />
+              <>
+                <MarkdownText text={message.content} />
+                {message.citations && message.citations.length > 0 && (
+                  <CitationChips citations={message.citations} className="mt-3" />
+                )}
+                {message.suggestions && message.suggestions.length > 0 && (
+                  <ul className="mt-2 space-y-1">
+                    {message.suggestions.map((entry) => (
+                      <li key={entry.href}>
+                        <a
+                          href={entry.href}
+                          className="text-xs font-bold text-navy-700 underline decoration-dotted"
+                        >
+                          {entry.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {message.note && <p className="mt-2 text-[11px] text-slate-500">{message.note}</p>}
+              </>
             )}
           </div>
         ))}

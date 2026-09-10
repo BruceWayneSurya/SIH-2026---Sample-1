@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pragyan Offline — Chapter packs</title>
+<meta name="theme-color" content="#133b5c" />
+<style>
+  :root{
+    --navy-900:#0c2a43; --navy-800:#133b5c; --navy-600:#1d5080; --navy-100:#dce8f2; --navy-50:#eef4f9;
+    --saffron-500:#ff9933; --saffron-600:#e07b0f; --saffron-50:#fff6ea; --saffron-200:#ffd9a8;
+    --leaf-500:#2f9e44; --leaf-50:#e8f5e6; --leaf-700:#1e6b30;
+    --rose-500:#e11d48; --rose-50:#fff1f2; --amber-50:#fffbeb; --amber-500:#f59e0b;
+    --paper:#f3f6f9; --line:#d9e2ea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;background:var(--paper);color:var(--navy-900)}
+  header{background:var(--navy-800);color:#fff;padding:14px 18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  header h1{font-size:17px;margin:0;font-weight:800}
+  header .tag{background:rgba(255,255,255,.14);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
+  header .spacer{flex:1}
+  main{max-width:900px;margin:0 auto;padding:18px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(12,42,67,.05);margin-bottom:14px}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  h2{font-size:19px;margin:0 0 4px}
+  h3{font-size:15px;margin:18px 0 6px}
+  p{margin:6px 0}
+  .muted{color:#64748b;font-size:13px}
+  button{font:inherit;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--navy-800);
+    padding:9px 14px;font-weight:700;cursor:pointer}
+  button:hover{border-color:var(--saffron-500)}
+  button.primary{background:var(--saffron-500);border-color:transparent;color:#081f33}
+  button.primary:hover{background:#ffaa4b}
+  button.ghost{background:transparent}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;background:var(--paper);color:var(--navy-800)}
+  .pill.ok{background:var(--leaf-50);border-color:rgba(47,158,68,.4);color:var(--leaf-700)}
+  .pill.warn{background:var(--amber-50);border-color:rgba(245,158,11,.5);color:#92400e}
+  .option{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:11px 13px;
+    margin:8px 0;cursor:pointer;background:#fff}
+  .option:hover{border-color:var(--navy-600)}
+  .option.sel{border-color:var(--saffron-500);background:var(--saffron-50)}
+  .option.right{border-color:rgba(47,158,68,.6);background:var(--leaf-50)}
+  .option.wrong{border-color:rgba(225,29,72,.5);background:var(--rose-50)}
+  .option b{display:inline-block;min-width:18px}
+  .progress{height:8px;background:var(--navy-100);border-radius:999px;overflow:hidden;margin:10px 0}
+  .progress>i{display:block;height:100%;background:var(--navy-600)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;border-bottom:1px solid var(--line);padding:7px 6px}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  .log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--navy-900);color:#e2e8f0;
+    border-radius:10px;padding:10px;max-height:200px;overflow:auto;white-space:pre-wrap}
+  .hidden{display:none}
+  a{color:var(--navy-600)}
+  @media print{header,.no-print{display:none}body{background:#fff}.card{border:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>प्रज्ञान · Pragyan Offline</h1>
+  <span class="tag" id="netTag">checking network…</span>
+  <span class="tag" id="xpTag">… XP</span>
+  <span class="spacer"></span>
+  <button class="ghost" id="syncBtn" style="background:rgba(255,255,255,.16);color:#fff">Sync now</button>
+  <button class="primary" id="homeBtn">My packs</button>
+</header>
+
+<main>
+  <!-- PACK LIST -->
+  <section id="listView">
+    <div class="card">
+      <h2>Downloaded chapter packs</h2>
+      <p class="muted">A pack holds the chapter's notes, learning outcomes, the full MCQ bank with explanations, the indexed
+        textbook paragraphs and the printable revision sheet. Everything here works with the network off.</p>
+      <p><a href="/offline/">← Back to the portal&rsquo;s offline page</a></p>
+    </div>
+    <div id="packList" class="grid"></div>
+    <div class="card" id="emptyCard">
+      <h3>No packs yet</h3>
+      <p class="muted">Open a chapter in Pragyan while you have Wi-Fi and press “Download chapter pack”. It is stored on this
+        device and shows up here.</p>
+    </div>
+    <div class="card">
+      <h3>Queued results <span class="pill" id="queueCount">0</span></h3>
+      <p class="muted">Quiz results taken offline are kept here until a connection is available. Marks are recalculated on
+        the server from your chosen options — a device cannot award itself XP.</p>
+      <div id="queueList"></div>
+      <div class="log hidden" id="syncLog"></div>
+    </div>
+  </section>
+
+  <!-- QUIZ VIEW -->
+  <section id="quizView" class="hidden">
+    <div class="card">
+      <div class="row">
+        <div>
+          <h2 id="quizTitle">Chapter</h2>
+          <p class="muted" id="quizSub"></p>
+        </div>
+        <span class="pill warn" id="offlineHint">Offline — your answers are saved on this device</span>
+      </div>
+      <div class="progress"><i id="quizProgress" style="width:0%"></i></div>
+      <div id="questionArea"></div>
+      <div class="row no-print" style="margin-top:12px">
+        <div>
+          <button id="prevBtn">Previous</button>
+          <button id="nextBtn">Next</button>
+        </div>
+        <div>
+          <button id="sheetBtn" class="ghost">Revision sheet</button>
+          <button id="submitBtn" class="primary">Submit test</button>
+        </div>
+      </div>
+    </div>
+    <div class="card hidden" id="resultCard">
+      <h2 id="resultTitle">Result</h2>
+      <p id="resultLine" class="muted"></p>
+      <div id="resultBreakdown"></div>
+      <div class="row" style="margin-top:12px">
+        <button id="reviewBtn">Review answers with explanations</button>
+        <button id="retakeBtn" class="ghost">Retake offline</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVISION VIEW -->
+  <section id="revisionView" class="hidden">
+    <div class="card no-print">
+      <div class="row">
+        <div>
+          <h2>Revision sheet</h2>
+          <p class="muted">Printable A4 — generated on the server and stored inside the pack.</p>
+        </div>
+        <div>
+          <button id="printBtn">Print</button>
+          <button id="revisionBack" class="ghost">Back</button>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="revisionHost"></div>
+  </section>
+</main>
+
+<script>
+/* ------------------------------------------------------------------ *
+ * Pragyan offline study app — no framework, no build step, no network.
+ * Storage contract shared with the portal (see src/lib/offline/client.ts):
+ *   DB "pragyan-offline" v1
+ *     store "packs"  keyPath chapterId  { chapterId, pack, savedAt, sizeKb }
+ *     store "queue"  keyPath clientId   { clientId, chapterId, answers, durationSec, completedAt, packVersion }
+ *     store "meta"   keyPath key        { key, value }
+ * ------------------------------------------------------------------ */
+const DB_NAME = "pragyan-offline";
+const DB_VERSION = 1;
+
+function openDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains("packs")) db.createObjectStore("packs", { keyPath: "chapterId" });
+      if (!db.objectStoreNames.contains("queue")) db.createObjectStore("queue", { keyPath: "clientId" });
+      if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta", { keyPath: "key" });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+async function dbAll(store) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction(store, "readonly").objectStore(store).getAll();
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
+  });
+}
+async function dbPut(store, value) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, "readwrite");
+    tx.objectStore(store).put(value);
+    tx.oncomplete = () => resolve(value);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function dbDelete(store, key) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, "readwrite");
+    tx.objectStore(store).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function dbClear(store) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, "readwrite");
+    tx.objectStore(store).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function metaGet(key, fallback) {
+  const rows = await dbAll("meta");
+  const row = rows.find((entry) => entry.key === key);
+  return row ? row.value : fallback;
+}
+const metaSet = (key, value) => dbPut("meta", { key, value });
+
+/* ----------------------------- state ----------------------------- */
+const state = { packs: [], queue: [], pack: null, answers: [], index: 0, startedAt: 0, submitted: false };
+
+const $ = (id) => document.getElementById(id);
+
+function show(view) {
+  for (const name of ["listView", "quizView", "revisionView"]) $(name).classList.toggle("hidden", name !== view);
+}
+
+function writeLog(message) {
+  const log = $("syncLog");
+  log.classList.remove("hidden");
+  log.textContent = new Date().toLocaleTimeString() + " · " + message + "\n" + log.textContent;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+}
+
+/* --------------------------- pack list --------------------------- */
+async function renderPacks() {
+  state.packs = (await dbAll("packs")).sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt)));
+  state.queue = await dbAll("queue");
+  const host = $("packList");
+  host.innerHTML = "";
+  $("emptyCard").classList.toggle("hidden", state.packs.length > 0);
+  $("queueCount").textContent = String(state.queue.length);
+  $("xpTag").textContent = (await metaGet("xp", 0)) + " XP";
+
+  for (const entry of state.packs) {
+    const pack = entry.pack || {};
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML =
+      '<h3 style="margin-top:0">' + escapeHtml(pack.chapterTitle || "Chapter " + entry.chapterId) + "</h3>" +
+      '<p class="muted">Class ' + escapeHtml(pack.classNo) + " · " + escapeHtml(pack.subjectName) + " · saved " +
+      escapeHtml(new Date(entry.savedAt).toLocaleDateString()) + "</p>" +
+      '<p><span class="pill">' + (pack.questions || []).length + " questions</span> " +
+      '<span class="pill">' + (pack.outcomes || []).length + " outcomes</span> " +
+      '<span class="pill">' + (pack.notes || []).length + " notes</span> " +
+      '<span class="pill">' + (entry.sizeKb || pack.sizeKb) + " KB</span></p>";
+    const actions = document.createElement("div");
+    actions.className = "row";
+    actions.style.marginTop = "10px";
+    const study = document.createElement("button");
+    study.className = "primary";
+    study.textContent = "Study offline";
+    study.onclick = () => startQuiz(entry);
+    const sheet = document.createElement("button");
+    sheet.className = "ghost";
+    sheet.textContent = "Revision sheet";
+    sheet.onclick = () => showRevision(entry);
+    const remove = document.createElement("button");
+    remove.className = "ghost";
+    remove.textContent = "Delete";
+    remove.onclick = async () => {
+      await dbDelete("packs", entry.chapterId);
+      renderPacks();
+    };
+    actions.append(study, sheet, remove);
+    card.append(actions);
+    host.append(card);
+  }
+  renderQueue();
+}
+
+function renderQueue() {
+  const host = $("queueList");
+  if (state.queue.length === 0) {
+    host.innerHTML = '<p class="muted">Nothing waiting to sync.</p>';
+    return;
+  }
+  host.innerHTML = state.queue
+    .map(
+      (item) =>
+        '<span class="pill warn">' +
+        escapeHtml(item.chapterTitle || "Chapter " + item.chapterId) +
+        " · " +
+        escapeHtml(new Date(item.completedAt).toLocaleString()) +
+        " · " +
+        (item.answers || []).length +
+        " answers</span> ",
+    )
+    .join("");
+}
+
+/* ----------------------------- quiz ----------------------------- */
+function startQuiz(entry, options) {
+  state.pack = entry.pack;
+  state.answers = new Array((state.pack.questions || []).length).fill(null);
+  state.index = 0;
+  state.startedAt = Date.now();
+  state.submitted = false;
+  $("quizTitle").textContent = state.pack.chapterTitle;
+  $("quizSub").textContent =
+    "Class " + state.pack.classNo + " · " + state.pack.subjectName + " · " + (state.pack.questions || []).length + " MCQs · " +
+    Math.round((state.pack.quiz && state.pack.quiz.seconds ? state.pack.quiz.seconds : 1200) / 60) + " minutes";
+  $("resultCard").classList.add("hidden");
+  updateNetworkTag();
+  renderQuestion();
+  show("quizView");
+  window.scrollTo({ top: 0 });
+}
+
+function renderQuestion() {
+  const questions = state.pack.questions || [];
+  const question = questions[state.index];
+  if (!question) return;
+  $("quizProgress").style.width = Math.round(((state.index + 1) / questions.length) * 100) + "%";
+  const chosen = state.answers[state.index];
+  const area = $("questionArea");
+  area.innerHTML =
+    '<p class="muted">Question ' + (state.index + 1) + " of " + questions.length + " · " +
+    escapeHtml(question.loCode || "untagged") + "</p>" +
+    '<h3 style="font-size:17px">' + escapeHtml(question.qtext) + "</h3>";
+  (question.options || []).forEach((option, optionIndex) => {
+    const label = document.createElement("label");
+    label.className = "option" + (chosen === optionIndex ? " sel" : "");
+    label.innerHTML =
+      "<b>" + "ABCD"[optionIndex] + "</b><span>" + escapeHtml(option) + "</span>";
+    label.onclick = () => {
+      state.answers[state.index] = optionIndex;
+      renderQuestion();
+    };
+    area.append(label);
+  });
+  $("prevBtn").disabled = state.index === 0;
+  $("nextBtn").disabled = state.index === questions.length - 1;
+}
+
+async function submitQuiz() {
+  if (state.submitted) return;
+  const questions = state.pack.questions || [];
+  const answers = state.answers.map((answer) => (answer === null ? -1 : answer));
+  const score = questions.reduce((total, question, index) => total + (answers[index] === question.correctIndex ? 1 : 0), 0);
+  const clientId = "off-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+  const attempt = {
+    clientId,
+    chapterId: state.pack.chapterId,
+    chapterTitle: state.pack.chapterTitle,
+    answers,
+    durationSec: Math.round((Date.now() - state.startedAt) / 1000),
+    completedAt: new Date().toISOString(),
+    packVersion: state.pack.packVersion || 1,
+  };
+  await dbPut("queue", attempt);
+  state.submitted = true;
+  state.queue = await dbAll("queue");
+  renderQueue();
+
+  // If we happen to be online, sync immediately and show the awarded XP.
+  let syncNote = "Saved on this device. It will sync the next time you are on Wi-Fi.";
+  if (navigator.onLine) {
+    const result = await syncQueue({ quiet: true });
+    if (result) syncNote = "Synced: " + (result.applied || 0) + " applied, " + result.xpTotal + " XP from this device.";
+  }
+
+  $("resultCard").classList.remove("hidden");
+  $("resultTitle").textContent = "You scored " + score + "/" + questions.length;
+  $("resultLine").textContent = syncNote;
+  $("resultBreakdown").innerHTML =
+    "<table><tbody>" +
+    questions
+      .map((question, index) => {
+        const right = answers[index] === question.correctIndex;
+        return (
+          "<tr><td>" + (index + 1) + "</td><td>" +
+          (right ? '<span class="pill ok">correct</span>' : '<span class="pill" style="background:var(--rose-50);color:#9f1239">check</span>') +
+          "</td><td>" + escapeHtml(question.loCode || "") + "</td></tr>"
+        );
+      })
+      .join("") +
+    "</tbody></table>";
+}
+
+async function reviewAnswers() {
+  const questions = state.pack.questions || [];
+  const area = $("questionArea");
+  const answers = state.answers;
+  area.innerHTML = '<h3>Explanations</h3>';
+  questions.forEach((question, index) => {
+    const block = document.createElement("div");
+    block.className = "option " + (answers[index] === question.correctIndex ? "right" : "wrong");
+    block.style.display = "block";
+    block.innerHTML =
+      "<p><b>" + (index + 1) + ". " + escapeHtml(question.qtext) + "</b></p>" +
+      '<p class="muted">Your answer: ' + escapeHtml((question.options || [])[answers[index]] || "not attempted") + "</p>" +
+      '<p class="muted">Correct: ' + escapeHtml((question.options || [])[question.correctIndex]) + "</p>" +
+      (question.trap && answers[index] !== question.correctIndex
+        ? '<p style="color:#9f1239"><b>Careful —</b> ' + escapeHtml(question.trap) + "</p>"
+        : "") +
+      '<p>' + escapeHtml(question.explanation || "") + "</p>";
+    area.append(block);
+  });
+  show("quizView");
+  $("quizProgress").style.width = "100%";
+}
+
+function showRevision(entry) {
+  state.pack = entry.pack;
+  $("revisionHost").innerHTML = (entry.pack.revision && entry.pack.revision.svg) || "<p>No revision sheet in this pack.</p>";
+  show("revisionView");
+}
+
+/* ----------------------------- sync ----------------------------- */
+async function syncQueue(options) {
+  const queue = await dbAll("queue");
+  if (queue.length === 0) {
+    if (!options || !options.quiet) writeLog("Nothing to sync.");
+    return null;
+  }
+  const payload = {
+    attempts: queue.map((item) => ({
+      clientId: item.clientId,
+      chapterId: item.chapterId,
+      answers: item.answers,
+      durationSec: item.durationSec || 0,
+      completedAt: item.completedAt,
+      packVersion: item.packVersion || 1,
+    })),
+  };
+  try {
+    const response = await fetch("/api/offline/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      writeLog("Sync refused: " + ((data && data.error) || response.status) + " — will retry when you are signed in and online.");
+      return null;
+    }
+    // Only remove what the server confirmed it applied or recognised.
+    for (const outcome of data.outcomes || []) {
+      if (outcome.status !== "rejected") await dbDelete("queue", outcome.clientId);
+    }
+    const previous = await metaGet("xp", 0);
+    const xp = typeof data.totalXp === "number" ? data.totalXp : previous + (data.xpTotal || 0);
+    await metaSet("xp", xp);
+    $("xpTag").textContent = xp + " XP";
+    writeLog(
+      "Synced " + (data.applied || 0) + " result(s), " + (data.duplicates || 0) + " already known, " +
+      "XP +" + (data.xpTotal || 0) + " (total " + xp + ").",
+    );
+    state.queue = await dbAll("queue");
+    renderQueue();
+    return data;
+  } catch (error) {
+    writeLog("Could not reach the server (" + error.message + "). Your results stay on this device.");
+    return null;
+  }
+}
+
+/* ----------------------------- chrome ----------------------------- */
+function updateNetworkTag() {
+  const tag = $("netTag");
+  const online = navigator.onLine;
+  tag.textContent = online ? "online" : "airplane mode — working from the pack";
+  tag.style.background = online ? "rgba(47,158,68,.35)" : "rgba(225,29,72,.35)";
+  $("offlineHint").textContent = online
+    ? "Answers are saved locally and synced on submit"
+    : "Offline — your answers are saved on this device";
+}
+
+$("homeBtn").onclick = () => { renderPacks(); show("listView"); };
+$("prevBtn").onclick = () => { state.index = Math.max(0, state.index - 1); renderQuestion(); };
+$("nextBtn").onclick = () => { state.index = Math.min((state.pack.questions || []).length - 1, state.index + 1); renderQuestion(); };
+$("submitBtn").onclick = submitQuiz;
+$("reviewBtn").onclick = reviewAnswers;
+$("retakeBtn").onclick = () => startQuiz({ pack: state.pack }, {});
+$("sheetBtn").onclick = () => showRevision({ pack: state.pack });
+$("revisionBack").onclick = () => show("quizView");
+$("printBtn").onclick = () => window.print();
+$("syncBtn").onclick = () => syncQueue({});
+window.addEventListener("online", () => { updateNetworkTag(); syncQueue({ quiet: true }); });
+window.addEventListener("offline", updateNetworkTag);
+
+(async function boot() {
+  updateNetworkTag();
+  await renderPacks();
+  // A pack opened from the portal can be requested directly: ?chapter=12
+  const wanted = Number(new URLSearchParams(location.search).get("chapter"));
+  if (wanted) {
+    const entry = state.packs.find((item) => Number(item.chapterId) === wanted);
+    if (entry) startQuiz(entry);
+  }
+  if ("serviceWorker" in navigator) {
+    try { await navigator.serviceWorker.register("/sw.js"); } catch (error) { /* offline still works from IndexedDB */ }
+  }
+})();
+</script>
+</body>
+</html>

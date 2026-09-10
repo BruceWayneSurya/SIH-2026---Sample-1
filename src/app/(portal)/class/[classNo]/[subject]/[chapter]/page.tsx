@@ -11,8 +11,10 @@ import {
   ListChecks,
   MapPinned,
   MonitorPlay,
+  Network,
   NotebookPen,
   PenLine,
+  Printer,
   ShieldCheck,
   StickyNote,
   Trophy,
@@ -35,8 +37,17 @@ import { EmptyState } from "@/components/ui";
 import { VideoPlayer } from "@/components/video-player";
 import { NotesSection } from "@/components/notes-section";
 import { canModerateNotes } from "@/lib/faculty-email";
-import { AiTutor } from "@/components/ai-tutor";
 import { AiStudyTools } from "@/components/ai-study-tools";
+import { TutorPanel } from "@/components/tutor-panel";
+import { ConceptMap, type ConceptNode } from "@/components/concept-map";
+import { RevisionSheetView } from "@/components/revision-sheet";
+import { OfflineManager } from "@/components/offline-manager";
+import { ClassNotebook, type NotebookItem } from "@/components/class-notebook";
+import { getChapterOutcomes, getClassNotebook, getRetrieval, getSourceSummary, getStudentMasteryView } from "@/lib/queries-learning";
+import { outcomeTree } from "@/lib/outcomes/taxonomy";
+import { buildRevisionSheet } from "@/lib/revision/sheet";
+import { masteryTone } from "@/lib/outcomes/mastery";
+import { canModerateNotes as canCurateNotebook } from "@/lib/faculty-email";
 import { ObjectiveQuiz } from "@/components/objective-quiz";
 import { SubjectivePractice } from "@/components/subjective-practice";
 
@@ -46,7 +57,9 @@ const TABS = [
   { id: "learn", label: "1 · Learning Hub", icon: BookOpen },
   { id: "objective", label: "2 · Objective (20 MCQs)", icon: ListChecks },
   { id: "subjective", label: "3 · Subjective (2/3/5M)", icon: PenLine },
-  { id: "ai", label: "4 · AI Tutor", icon: Bot },
+  { id: "ai", label: "4 · Grounded Tutor", icon: Bot },
+  { id: "concept", label: "5 · Concept Map", icon: Network },
+  { id: "revision", label: "6 · Revision Sheet", icon: Printer },
 ] as const;
 
 export default async function ChapterPage({
@@ -59,7 +72,7 @@ export default async function ChapterPage({
   const { classNo, subject, chapter } = await params;
   const { tab = "learn" } = await searchParams;
   if (!validClass(classNo) || !validSubject(subject)) notFound();
-  if (!["learn", "objective", "subjective", "ai"].includes(tab)) notFound();
+  if (!["learn", "objective", "subjective", "ai", "concept", "revision"].includes(tab)) notFound();
   const user = await getActiveUser();
   if (!user) return <DatabaseSetup />;
 
@@ -72,6 +85,92 @@ export default async function ChapterPage({
   const notesList = await getRankedNotes(ch.id, user.id);
   const best = await getBestAttempt(user.id, ch.id);
   const top = (await getChapterLeaderboard(ch.id)).slice(0, 5);
+  // Learning-outcome map, the indexed source set, the curated class notebook and
+  // this learner's own mastery — all read models, nothing stored twice.
+  const [outcomes, sourceSummary, notebook, selfMastery] = await Promise.all([
+    getChapterOutcomes(cn, subject, ch.num),
+    getSourceSummary(ch.id),
+    getClassNotebook(ch.id),
+    user.role === "student" ? getStudentMasteryView(user.id, cn, subject, ch.num) : Promise.resolve(null),
+  ]);
+  const masteryByCode = new Map(
+    (selfMastery?.mastery.outcomes ?? []).map((entry) => [entry.code, entry]),
+  );
+  const citationByOutcome = new Map<string, { label: string; href: string; snippet: string }[]>();
+  for (const outcome of outcomes) {
+    const { results } = await getRetrieval(ch.id, `${outcome.concept} ${outcome.statement}`.slice(0, 300), { k: 2 });
+    citationByOutcome.set(
+      outcome.code,
+      results.map((result) => ({
+        label: result.citation.label,
+        href: `/class/${cn}/${subject}/${ch.slug}/source/${result.chunk.id}`,
+        snippet: result.snippet.slice(0, 190),
+      })),
+    );
+  }
+  const toConceptNode = (outcome: typeof outcomes[number]): ConceptNode => {
+    const cell = masteryByCode.get(outcome.code);
+    const marker = videos
+      .flatMap((video) => (video.markers ?? []).map((m) => ({ ...m, video })))
+      .find((entry) =>
+        outcome.keywords.some((keyword) =>
+          entry.label.toLowerCase().includes(keyword.toLowerCase().split(" ")[0]),
+        ),
+      );
+    return {
+      code: outcome.code,
+      concept: outcome.concept,
+      statement: outcome.statement,
+      definition: outcome.definition,
+      page: outcome.textbookPage,
+      kind: outcome.kind,
+      diagram: outcome.diagram,
+      misconceptions: outcome.misconceptions,
+      keywords: outcome.keywords,
+      level: cell?.level ?? "not_started",
+      accuracy: Math.round((cell?.accuracy ?? 0) * 100),
+      confidence: cell?.confidence ?? "low",
+      videoMarker: marker
+        ? { t: marker.t, label: marker.label, url: marker.video.videoUrl, title: marker.video.title }
+        : null,
+      citations: citationByOutcome.get(outcome.code) ?? [],
+      children: [],
+    };
+  };
+  const conceptTree = outcomeTree(outcomes).map(function build(node): ConceptNode {
+    const self = toConceptNode(node.outcome);
+    return { ...self, children: node.children.map(build) };
+  });
+  const revisionSheet = buildRevisionSheet({
+    classNo: cn,
+    subjectName: subjectName(subject),
+    chapterNum: ch.num,
+    chapterTitle: ch.title,
+    book: staticRow?.book ?? null,
+    outcomes,
+    questions: mcqs.map((question) => ({
+      qtext: question.qtext,
+      options: question.options ?? [],
+      correctIndex: question.correctIndex,
+      loCode: question.loCode ?? null,
+      trap: question.trap ?? null,
+    })),
+    sources: [...new Set(sourceSummary.map((source) => source.title))],
+  });
+  const notebookItems: NotebookItem[] = (notebook?.items ?? []).map((item) => ({
+    id: item.id,
+    kind: item.kind,
+    title: item.title,
+    url: item.url,
+    addedByName: item.addedByName,
+    note: item.note
+      ? {
+          facultyVerified: item.note.facultyVerified,
+          authorName: item.note.authorName,
+          content: item.note.content ?? null,
+        }
+      : null,
+  }));
   const pyqCount = mcqs.filter((m) => m.isPyq).length;
   const pyqPct = mcqs.length ? Math.round((pyqCount / mcqs.length) * 100) : 0;
 
@@ -185,10 +284,35 @@ export default async function ChapterPage({
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]">
         <div className="min-w-0 space-y-5">
           {tab === "ai" && (
-            <AiTutor
+            <TutorPanel
               key={`tutor-${ch.id}`}
               chapterId={ch.id}
               chapterTitle={`${subjectName(subject)} · ${ch.title}`}
+              classNo={cn}
+              aiConfigured={Boolean(process.env.GROQ_API_KEY && !process.env.GROQ_API_KEY.includes("*"))}
+              sources={sourceSummary.map((source) => ({
+                title: source.title,
+                kind: source.kind,
+                authority: source.authority,
+                chunks: source.chunks,
+              }))}
+            />
+          )}
+
+          {tab === "concept" && (
+            <ConceptMap
+              nodes={conceptTree}
+              chapterTitle={ch.title}
+              mastered={selfMastery?.mastery.secureCount ?? 0}
+              total={outcomes.length}
+            />
+          )}
+
+          {tab === "revision" && (
+            <RevisionSheetView
+              sheet={revisionSheet}
+              svgHref={`/api/revision/${ch.id}`}
+              chapterHref={`${base}?tab=revision`}
             />
           )}
           {tab === "objective" && (
@@ -251,8 +375,52 @@ export default async function ChapterPage({
                   allowLocalUploads={process.env.VERCEL !== "1"}
                 />
               </section>
+              <ClassNotebook
+                chapterId={ch.id}
+                notebookTitle={notebook?.notebook.title ?? null}
+                curatorName={notebook?.notebook.curatorName ?? null}
+                items={notebookItems}
+                canCurate={canCurateNotebook(user)}
+              />
               <AiStudyTools key={`notes-${ch.id}`} chapterId={ch.id} />
+              <OfflineManager chapterId={ch.id} chapterTitle={ch.title} />
             </div>
+          )}
+
+          {tab === "objective" && selfMastery && outcomes.length > 0 && (
+            <section className="mb-5 rounded-lg border border-line bg-white p-4 shadow-sm">
+              <h2 className="text-[15px] font-extrabold text-navy-900">
+                Your mastery of this chapter&apos;s outcomes
+              </h2>
+              <p className="mt-1 text-[12.5px] text-slate-500">
+                {selfMastery.mastery.secureCount} of {outcomes.length} secured ·{" "}
+                {selfMastery.mastery.needsHelpCount} need help ·{" "}
+                {selfMastery.mastery.notStartedCount} not attempted. Open the{" "}
+                <Link href={`${base}?tab=concept`} className="font-bold text-navy-600 underline">
+                  concept map
+                </Link>{" "}
+                to see which is which.
+              </p>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {selfMastery.mastery.outcomes.map((cell) => {
+                  const outcome = outcomes.find((entry) => entry.code === cell.code);
+                  if (!outcome) return null;
+                  const tone = masteryTone(cell.level);
+                  return (
+                    <li
+                      key={cell.code}
+                      className={`rounded-full border px-3 py-1 text-[12px] font-bold ${tone.chip}`}
+                      title={outcome.statement}
+                    >
+                      {outcome.concept}
+                      {cell.level !== "not_started" && cell.level !== "secure"
+                        ? ` · ${Math.round(cell.accuracy * 100)}%`
+                        : ""}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           )}
 
           {tab === "objective" &&

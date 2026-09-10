@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Pragyan">
+  <rect width="512" height="512" rx="96" fill="#133b5c"/>
+  <g transform="translate(256 256)" stroke="#ff9933" stroke-width="10" fill="none">
+    <circle r="150"/>
+    <circle r="34" fill="#ff9933" stroke="none"/>
+    <g>
+      <line y1="-150" y2="-176"/><line y1="-150" y2="-176" transform="rotate(45)"/>
+      <line y1="-150" y2="-176" transform="rotate(90)"/><line y1="-150" y2="-176" transform="rotate(135)"/>
+      <line y1="-150" y2="-176" transform="rotate(180)"/><line y1="-150" y2="-176" transform="rotate(225)"/>
+      <line y1="-150" y2="-176" transform="rotate(270)"/><line y1="-150" y2="-176" transform="rotate(315)"/>
+    </g>
+  </g>
+</svg>
