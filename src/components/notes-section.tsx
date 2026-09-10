@@ -92,7 +92,7 @@ export function NotesSection({
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
         throw new Error(
-          data?.error ?? "Could not save your vote. Please try again.",
+          data?.error ?? t("Could not save your vote. Please try again."),
         );
       }
       updateItems((prev) =>
@@ -108,11 +108,21 @@ export function NotesSection({
         ),
       );
       setVoteStatus(
-        `${data.voted ? "Upvote added to" : "Upvote removed from"} ${note.title}. ${data.upvotes} helpful votes.`,
+        data.voted
+          ? t("Upvote added to {title}. {count} helpful votes.", {
+              title: note.title,
+              count: data.upvotes,
+            })
+          : t("Upvote removed from {title}. {count} helpful votes.", {
+              title: note.title,
+              count: data.upvotes,
+            }),
       );
       if (data.reward) {
         setNotice(
-          "Your upvote pushed this note to 10+ — the author earned +50 XP!",
+          t(
+            "Your upvote pushed this note to 10+ — the author earned +50 XP!",
+          ),
         );
         router.refresh();
       }
@@ -122,7 +132,7 @@ export function NotesSection({
         message:
           error instanceof Error
             ? error.message
-            : "Could not record your vote. Please try again.",
+            : t("Could not save your vote. Please try again."),
       });
     } finally {
       voteInFlight.current = false;
@@ -144,7 +154,7 @@ export function NotesSection({
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok)
         throw new Error(
-          data?.error ?? "Could not verify this note. Please try again.",
+          data?.error ?? t("Could not verify this note. Please try again."),
         );
       updateItems((prev) =>
         prev.map((n) =>
@@ -164,7 +174,7 @@ export function NotesSection({
         message:
           error instanceof Error
             ? error.message
-            : "Could not verify this note. Please try again.",
+            : t("Could not verify this note. Please try again."),
       });
     } finally {
       verifyInFlight.current = false;
@@ -186,19 +196,19 @@ export function NotesSection({
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok)
         throw new Error(
-          data?.error ?? "Could not publish your note. Please try again.",
+          data?.error ?? t("Could not publish your note. Please try again."),
         );
       setShowForm(false);
       setDriveUrl("");
       setDraftPreview(null);
       setFileName(null);
-      setNotice("Your note has been published.");
+      setNotice(t("Your note has been published."));
       router.refresh();
     } catch (err) {
       setUploadErr(
         err instanceof Error
           ? err.message
-          : "Could not publish your note. Please try again.",
+          : t("Could not publish your note. Please try again."),
       );
     } finally {
       uploadInFlight.current = false;
@@ -344,15 +354,20 @@ export function NotesSection({
                 id={`note-drive-help-${chapterId}`}
                 className="mt-2 text-[12px] leading-relaxed text-slate-500"
               >
-                Upload your PDF to Google Drive, set General access to{" "}
-                <b>Anyone with the link · Viewer</b>, then paste its
-                file-sharing link here. Use a PDF file, not a folder or Google
-                Doc. Only the link is saved; the document stays in your Drive
-                and is previewed here. Optional for text-only notes.
+                <T>
+                  Upload your PDF to Google Drive, set General access to
+                  Anyone with the link · Viewer, then paste its file-sharing
+                  link here. Use a PDF file, not a folder or Google Doc. Only
+                  the link is saved; the document stays in your Drive and is
+                  previewed here. Optional for text-only notes.
+                </T>
               </p>
               {fileName && (
                 <p className="mt-1 text-[12px] text-slate-500">
-                  Remove the local attachment below to use a Drive link instead.
+                  <T>
+                    Remove the local attachment below to use a Drive link
+                    instead.
+                  </T>
                 </p>
               )}
               <button
@@ -369,7 +384,7 @@ export function NotesSection({
                   <GoogleDrivePreview
                     key={draftPreview}
                     url={draftPreview}
-                    title="Document draft"
+                    title={t("Document draft")}
                   />
                 </div>
               )}
@@ -416,15 +431,19 @@ export function NotesSection({
                 </div>
                 {driveUrl.trim() && (
                   <p className="mt-1 text-[12px]">
-                    Clear the Drive link to attach a local file instead.
+                    <T>
+                      Clear the Drive link to attach a local file instead.
+                    </T>
                   </p>
                 )}
               </details>
             ) : (
               <p className="text-xs text-slate-500">
-                Hosted uploads use Google Drive links so documents remain
-                available across deployments. Local file attachments are only
-                available when running the portal locally.
+                <T>
+                  Hosted uploads use Google Drive links so documents remain
+                  available across deployments. Local file attachments are
+                  only available when running the portal locally.
+                </T>
               </p>
             )}
             {uploadErr && (
@@ -444,8 +463,10 @@ export function NotesSection({
             </div>
           </fieldset>
           <p className="text-[12px] text-slate-500">
-            Notes reach the top when classmates mark them helpful (Δ) and
-            faculty verify them. 10+ upvotes earn the author <b>+50 XP</b>.
+            <T>
+              Notes reach the top when classmates mark them helpful (Δ) and
+              faculty verify them. 10+ upvotes earn the author +50 XP.
+            </T>
           </p>
         </form>
       )}
@@ -470,8 +491,14 @@ export function NotesSection({
               ? normalizeGoogleDriveUrl(n.fileUrl)
               : null;
             const format = n.fileUrl
-              ? `${n.content ? "Text + " : ""}${n.fileType === "image" ? "Image" : "PDF"}`
-              : "Text";
+              ? n.content
+                ? n.fileType === "image"
+                  ? t("Text + Image")
+                  : t("Text + PDF")
+                : n.fileType === "image"
+                  ? t("Image")
+                  : t("PDF")
+              : t("Text");
             return (
               <li
                 key={n.id}
@@ -491,8 +518,8 @@ export function NotesSection({
                     )}
                     title={
                       n.iVoted
-                        ? "Your upvote is saved. Click to remove it."
-                        : "Upvote this helpful note"
+                        ? t("Your upvote is saved. Click to remove it.")
+                        : t("Upvote this helpful note")
                     }
                     className={`flex w-16 shrink-0 flex-col items-center rounded-md border py-2 transition disabled:cursor-wait disabled:opacity-60 ${
                       n.iVoted
@@ -509,7 +536,7 @@ export function NotesSection({
                       {n.upvotes}
                     </span>
                     <span className="text-[10px] font-bold uppercase">
-                      {n.iVoted ? "voted" : "helpful"}
+                      <T>{n.iVoted ? "voted" : "helpful"}</T>
                     </span>
                   </button>
 
@@ -517,7 +544,8 @@ export function NotesSection({
                     <div className="flex flex-wrap items-center gap-2">
                       {i === 0 && (
                         <span className="inline-flex items-center gap-1 rounded-sm bg-saffron-500 px-1.5 py-0.5 text-[11px] font-extrabold uppercase text-navy-950">
-                          <Sparkles className="h-3 w-3" /> Recommended
+                          <Sparkles className="h-3 w-3" />{" "}
+                          <T>Recommended</T>
                         </span>
                       )}
                       <h4 className="text-[16px] font-bold text-navy-900">
@@ -526,18 +554,22 @@ export function NotesSection({
                       {n.facultyVerified && (
                         <span
                           className="inline-flex items-center gap-1 rounded-full border border-leaf-500/40 bg-leaf-50 px-2 py-0.5 text-[11px] font-extrabold uppercase tracking-wide text-leaf-700"
-                          title={`Verified by ${n.verifiedByName ?? "faculty"}`}
+                          title={t("Verified by {name}", {
+                            name: n.verifiedByName ?? t("Faculty"),
+                          })}
                         >
                           <BadgeCheck className="h-3.5 w-3.5" />{" "}
                           <T>Faculty Verified</T>
                         </span>
                       )}
                       <span className="ml-auto text-[12px] font-semibold text-slate-400">
-                        rank score {n.rankScore.toFixed(1)}
+                        <T values={{ score: n.rankScore.toFixed(1) }}>
+                          {"rank score {score}"}
+                        </T>
                       </span>
                     </div>
                     <p className="mt-0.5 text-[13px] font-semibold text-slate-500">
-                      by {n.authorName}
+                      <T values={{ name: n.authorName }}>{"by {name}"}</T>
                       {n.authorIsFaculty && (
                         <span className="ml-1.5 rounded-sm bg-navy-800 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">
                           <T>Faculty</T>
@@ -565,7 +597,7 @@ export function NotesSection({
                           <FileText className="h-4 w-4 shrink-0" />
                         )}
                         <span className="break-all">
-                          {n.fileName ?? "Download file"}
+                          {n.fileName ?? <T>Download file</T>}
                         </span>
                       </a>
                     )}

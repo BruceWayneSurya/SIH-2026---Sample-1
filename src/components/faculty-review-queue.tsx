@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  TranslatedText as T,
+  useTranslation,
+} from "@/components/language-provider";
 import { Loader2, ShieldCheck, ShieldX } from "lucide-react";
 
 export type PendingRow = {
@@ -16,6 +20,7 @@ export type PendingRow = {
 /** Verified reviewers confirm or reject pending institutional claims. */
 export function FacultyReviewQueue({ initial }: { initial: PendingRow[] }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [rows, setRows] = useState(initial);
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,11 +36,14 @@ export function FacultyReviewQueue({ initial }: { initial: PendingRow[] }) {
         body: JSON.stringify({ facultyId, approve }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.error ?? "Could not update this account.");
+      if (!res.ok)
+        throw new Error(data?.error ?? t("Could not update this account."));
       setRows((current) => current.filter((row) => row.id !== facultyId));
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Please try again.");
+      setError(
+        err instanceof Error ? err.message : t("Please try again."),
+      );
     } finally {
       setBusy(null);
     }
@@ -44,7 +52,7 @@ export function FacultyReviewQueue({ initial }: { initial: PendingRow[] }) {
   if (rows.length === 0)
     return (
       <p className="mt-3 text-sm text-slate-600">
-        No teacher is waiting for an institutional check right now.
+        <T>No teacher is waiting for an institutional check right now.</T>
       </p>
     );
 
@@ -80,7 +88,7 @@ export function FacultyReviewQueue({ initial }: { initial: PendingRow[] }) {
                 ) : (
                   <ShieldCheck className="h-4 w-4" />
                 )}
-                Confirm
+                <T>Confirm</T>
               </button>
               <button
                 type="button"
@@ -89,7 +97,7 @@ export function FacultyReviewQueue({ initial }: { initial: PendingRow[] }) {
                 className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-3 py-1.5 text-[13px] font-bold text-slate-600 transition hover:border-rose-300 hover:text-rose-600 disabled:opacity-60"
               >
                 <ShieldX className="h-4 w-4" />
-                Reject
+                <T>Reject</T>
               </button>
             </span>
           </li>

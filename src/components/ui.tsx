@@ -165,9 +165,10 @@ export function StatCard({
   tone = "navy",
 }: {
   icon: LucideIcon;
-  label: string;
+  /** A plain string is translated; pass a node for values-aware text. */
+  label: React.ReactNode;
   value: React.ReactNode;
-  sub?: string;
+  sub?: React.ReactNode;
   tone?: "navy" | "saffron" | "leaf";
 }) {
   const tones = {
@@ -178,12 +179,13 @@ export function StatCard({
   return (
     <div className={`rounded-lg border p-4 shadow-sm ${tones[tone]}`}>
       <div className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-wide opacity-80">
-        <Icon className="h-4 w-4" /> <T>{label}</T>
+        <Icon className="h-4 w-4" />{" "}
+        {typeof label === "string" ? <T>{label}</T> : label}
       </div>
       <div className="mt-1 text-3xl font-extrabold">{value}</div>
       {sub && (
         <div className="mt-0.5 text-[13px] font-semibold opacity-70">
-          <T>{sub}</T>
+          {typeof sub === "string" ? <T>{sub}</T> : sub}
         </div>
       )}
     </div>

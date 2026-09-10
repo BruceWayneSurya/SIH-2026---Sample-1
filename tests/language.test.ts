@@ -227,3 +227,59 @@ describe("AI language selection", () => {
     }
   });
 });
+
+describe("portal-wide translated surfaces", () => {
+  // These cover the screens a learner touches most: government strip, footer,
+  // dashboard, quiz, subjective practice, notes, leaderboard and AI study
+  // tools. If one of these keys is removed from MESSAGES the language switch
+  // silently regresses to English, so pin them here.
+  const COVERED_SURFACES = [
+    "Government of India",
+    "Ministry of Education",
+    "Toll-free helpline 1800-11-8004",
+    "About this portal",
+    "Your progress",
+    "Chapter Index",
+    "Top performers · this chapter",
+    "Peer Benchmarking Engine",
+    "Class-Wide Leaderboard · Class {classNo}",
+    "Objective Assessment · {chapter}",
+    "Question {current} of {total}",
+    "You have answered {answered} of {total} questions. Unanswered questions will be marked incorrect.",
+    "Step-by-step solutions ({correct} correct · {review} to review)",
+    "Subjective Assessment · {chapter}",
+    "{count} questions × {marks} marks",
+    "Model answer & scoring key",
+    "Step {n}",
+    "No notes yet for this chapter. Be the first contributor!",
+    "Faculty Verified",
+    "Upvote added to {title}. {count} helpful votes.",
+    "Your upvote pushed this note to 10+ — the author earned +50 XP!",
+    "Data saver on — tap to stream compressed video",
+    "Chapter markers",
+    "Uploaded by",
+    "Faculty lecture",
+    "Verify your email address",
+    "Resend code in {seconds}s",
+    "AI Quiz Generator",
+    "AI Study Notes",
+    "Practice result: {score}/{total}. No XP awarded.",
+    "Explanation: ",
+    "e.g. flame zones, comparing fractions…",
+  ];
+
+  it("keeps every major UI surface in the dictionary", () => {
+    for (const surface of COVERED_SURFACES)
+      assert.ok(Object.hasOwn(MESSAGES, surface), `missing key: ${surface}`);
+  });
+
+  it("translates those surfaces into all five languages, not English", () => {
+    for (const surface of COVERED_SURFACES) {
+      for (const language of ["te", "hi", "ta", "kn", "ml"] as Language[]) {
+        const translated = translate(language, surface);
+        assert.notEqual(translated, surface, `${language}: ${surface}`);
+        assert.ok(translated.trim().length > 0, `${language}: ${surface}`);
+      }
+    }
+  });
+});

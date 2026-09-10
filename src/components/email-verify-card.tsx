@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  TranslatedText as T,
+  useTranslation,
+} from "@/components/language-provider";
+import {
   AlertCircle,
   ArrowLeft,
   Info,
@@ -36,6 +40,7 @@ export function EmailVerifyCard({
   backLabel?: string;
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [current, setCurrent] = useState<Challenge>(challenge);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<"verify" | "resend" | null>(null);
@@ -63,13 +68,16 @@ export function EmailVerifyCard({
         body: JSON.stringify({ challengeId: current.challengeId, code }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.error ?? "Verification failed.");
-      setNotice(data?.notice ?? "Email verified.");
+      if (!res.ok)
+        throw new Error(data?.error ?? t("Verification failed."));
+      setNotice(data?.notice ?? t("Email verified."));
       router.push(data?.redirect ?? "/home");
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Verification failed. Try again.",
+        err instanceof Error
+          ? err.message
+          : t("Verification failed. Try again."),
       );
     } finally {
       inFlight.current = false;
@@ -89,7 +97,8 @@ export function EmailVerifyCard({
         body: JSON.stringify({ challengeId: current.challengeId }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.error ?? "Could not resend the code.");
+      if (!res.ok)
+        throw new Error(data?.error ?? t("Could not resend the code."));
       setCurrent({
         challengeId: data.challengeId,
         maskedEmail: data.maskedEmail,
@@ -99,10 +108,10 @@ export function EmailVerifyCard({
       });
       setSeconds(data.resendAfter ?? 60);
       setCode("");
-      setNotice("A new code has been sent to your inbox.");
+      setNotice(t("A new code has been sent to your inbox."));
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Could not resend the code.",
+        err instanceof Error ? err.message : t("Could not resend the code."),
       );
     } finally {
       inFlight.current = false;
@@ -118,7 +127,7 @@ export function EmailVerifyCard({
         </span>
         <div>
           <h2 className="text-xl font-extrabold text-navy-900">
-            Verify your email address
+            <T>Verify your email address</T>
           </h2>
           <p className="text-[13px] font-semibold text-slate-500">
             {name ? `${name} · ` : ""}
@@ -128,8 +137,10 @@ export function EmailVerifyCard({
       </div>
 
       <p className="mt-4 text-[14px] text-slate-600">
-        We have sent a six-digit code to your mailbox. It is valid for ten
-        minutes and can be used once.
+        <T>
+          We have sent a six-digit code to your mailbox. It is valid for ten
+          minutes and can be used once.
+        </T>
       </p>
 
       {error && (
@@ -154,7 +165,7 @@ export function EmailVerifyCard({
             htmlFor="otp-code"
             className="block text-xs font-bold uppercase tracking-wider text-navy-800"
           >
-            One-time code
+            <T>One-time code</T>
           </label>
           <input
             id="otp-code"
@@ -180,7 +191,7 @@ export function EmailVerifyCard({
           ) : (
             <ShieldCheck className="h-4 w-4" />
           )}
-          Verify and continue
+          <T>Verify and continue</T>
         </button>
       </form>
 
@@ -196,7 +207,11 @@ export function EmailVerifyCard({
           ) : (
             <RefreshCw className="h-3.5 w-3.5" />
           )}
-          {seconds > 0 ? `Resend code in ${seconds}s` : "Resend code"}
+          {seconds > 0 ? (
+            <T values={{ seconds }}>{"Resend code in {seconds}s"}</T>
+          ) : (
+            <T>Resend code</T>
+          )}
         </button>
         <button
           type="button"
@@ -204,7 +219,7 @@ export function EmailVerifyCard({
           className="inline-flex items-center gap-1.5 font-bold text-slate-500 underline underline-offset-2 transition hover:text-navy-800"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          {backLabel}
+          <T>{backLabel}</T>
         </button>
       </div>
 
@@ -212,18 +227,25 @@ export function EmailVerifyCard({
         <p className="mt-5 flex items-start gap-2 rounded-lg border border-navy-200 bg-navy-50 p-3 text-[13px] text-navy-700">
           <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>
-            <b>Demo build:</b> no mail provider is configured on this server, so
-            your code is <b className="tracking-widest">{current.devCode}</b>.
-            Set <code className="font-bold">MAIL_PROVIDER</code> in the
-            environment to send real mail.
+            <b>
+              <T>Demo build:</T>
+            </b>{" "}
+            <T>
+              no mail provider is configured on this server, so your code is
+            </T>{" "}
+            <b className="tracking-widest">{current.devCode}</b>.{" "}
+            <T>in the environment to send real mail.</T>{" "}
+            <code className="font-bold">MAIL_PROVIDER</code>
           </span>
         </p>
       )}
 
       {!current.delivered && !current.devCode && (
         <p className="mt-5 text-[13px] text-slate-500">
-          The mail service did not confirm delivery. Check your spam folder, or
-          use “Resend code” in a minute.
+          <T>
+            The mail service did not confirm delivery. Check your spam folder,
+            or use “Resend code” in a minute.
+          </T>
         </p>
       )}
     </div>

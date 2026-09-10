@@ -97,7 +97,9 @@ export default async function ChapterPage({
           <T>Class</T> {cn} · {subjectName(subject)}
         </Link>
         <span aria-hidden="true">/</span>
-        <span className="text-navy-800">Chapter {ch.num}</span>
+        <span className="text-navy-800">
+          <T values={{ num: ch.num }}>{"Chapter {num}"}</T>
+        </span>
       </nav>
 
       <header className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm">
@@ -134,7 +136,7 @@ export default async function ChapterPage({
           <div className="hidden shrink-0 gap-2 text-right sm:flex">
             <div className="rounded-md border border-line bg-paper px-3 py-2">
               <p className="text-[11px] font-bold uppercase text-slate-400">
-                Videos
+                <T>Videos</T>
               </p>
               <p className="text-lg font-extrabold text-navy-800">
                 {videos.length}
@@ -150,7 +152,7 @@ export default async function ChapterPage({
             </div>
             <div className="rounded-md border border-saffron-200 bg-saffron-50 px-3 py-2">
               <p className="text-[11px] font-bold uppercase text-saffron-600">
-                PYQ MCQs
+                <T>PYQ MCQs</T>
               </p>
               <p className="text-lg font-extrabold text-saffron-700">
                 {mcqs.length}
@@ -235,9 +237,11 @@ export default async function ChapterPage({
                   <StickyNote className="h-5 w-5 text-saffron-600" />{" "}
                   <T>Community Notes &amp; Handouts</T>
                   <span className="rounded-full bg-navy-50 px-2 py-0.5 text-[12px] font-bold text-navy-600">
-                    {user.role === "faculty"
-                      ? "you can verify"
-                      : "upvote the useful ones"}
+                    <T>
+                      {user.role === "faculty"
+                        ? "you can verify"
+                        : "upvote the useful ones"}
+                    </T>
                   </span>
                 </h2>
                 <NotesSection
@@ -305,12 +309,12 @@ export default async function ChapterPage({
         <aside className="space-y-4">
           <section className="rounded-lg border border-line bg-white p-4 shadow-sm">
             <h3 className="flex items-center gap-2 text-[15px] font-extrabold text-navy-900">
-              <Trophy className="h-4 w-4 text-saffron-600" /> Top performers ·
-              this chapter
+              <Trophy className="h-4 w-4 text-saffron-600" />{" "}
+              <T>Top performers · this chapter</T>
             </h3>
             {top.length === 0 ? (
               <p className="mt-2 text-[13px] text-slate-500">
-                No attempts yet — be the first on the board.
+                <T>No attempts yet — be the first on the board.</T>
               </p>
             ) : (
               <ol className="mt-3 space-y-2">
@@ -339,7 +343,7 @@ export default async function ChapterPage({
                     <span className="truncate font-bold text-navy-800">
                       @{r.handle}
                       {r.id === user.id && (
-                        <span className="text-saffron-600"> (you)</span>
+                        <span className="text-saffron-600"> (<T>you</T>)</span>
                       )}
                     </span>
                     <span className="ml-auto shrink-0 font-extrabold text-navy-700">
@@ -353,26 +357,33 @@ export default async function ChapterPage({
               href={`/leaderboard?chapter=${ch.id}`}
               className="mt-3 block rounded-md bg-navy-800 py-2 text-center text-[13px] font-bold text-white hover:bg-navy-700"
             >
-              Full chapter leaderboard
+              <T>Full chapter leaderboard</T>
             </Link>
           </section>
 
           <section className="rounded-lg border border-navy-200 bg-navy-800 p-4 text-white shadow-sm">
             <h3 className="flex items-center gap-2 text-[15px] font-extrabold">
-              <ShieldCheck className="h-4 w-4 text-saffron-400" /> XP available
-              here
+              <ShieldCheck className="h-4 w-4 text-saffron-400" />{" "}
+              <T>XP available here</T>
             </h3>
             <ul className="mt-2 space-y-1.5 text-[13px] text-navy-100">
               <li>
-                • {mcqs.length > 0 ? `+${mcqs.length * 10} XP max` : "—"} ·
-                objective test (10 per correct)
+                •{" "}
+                {mcqs.length > 0 ? (
+                  <T values={{ xp: mcqs.length * 10 }}>{"{xp} XP max"}</T>
+                ) : (
+                  "—"
+                )}{" "}
+                · <T>objective test (10 XP per correct)</T>
               </li>
-              <li>• +30 XP · complete subjective set</li>
-              <li>• +50 XP · note reaching 10 upvotes</li>
+              <li>• <T>+30 XP · complete subjective set</T></li>
+              <li>• <T>+50 XP · note reaching 10 upvotes</T></li>
             </ul>
             {best && (
               <p className="mt-3 rounded-md bg-navy-900/70 p-2.5 text-[13px] font-bold text-saffron-300">
-                Your best: {best.score}/{best.total} · {best.xpEarned} XP earned
+                <T values={{ score: best.score, total: best.total, xp: best.xpEarned }}>
+                  {"Your best: {score}/{total} · {xp} XP earned"}
+                </T>
               </p>
             )}
           </section>

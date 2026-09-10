@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { TranslatedText as T } from "@/components/language-provider";
 import { useDataSaver, useHydrated } from "@/lib/ui-preferences";
+import { normalizeYouTubeUrl } from "@/lib/youtube";
 import { Download, MonitorPlay, Pause, Play, WifiOff } from "lucide-react";
 
 type Marker = { t: number; label: string };
@@ -33,6 +35,9 @@ export function VideoPlayer({ video }: { video: Video }) {
   const [playing, setPlaying] = useState(false);
   const [active, setActive] = useState(-1);
   const ref = useRef<HTMLVideoElement>(null);
+  // Uploaded lectures may be YouTube links; those need an iframe, not <video>.
+  const youtube =
+    video.kind === "youtube" ? normalizeYouTubeUrl(video.videoUrl) : null;
 
   const onTime = () => {
     const v = ref.current;
@@ -58,10 +63,17 @@ export function VideoPlayer({ video }: { video: Video }) {
         <h3 className="text-[15px] font-bold text-navy-900">{video.title}</h3>
         <span className="ml-auto flex items-center gap-3 text-[12px] font-semibold text-slate-500">
           <span>{fmt(video.durationSec)}</span>
-          {video.fileSizeMb && <span>{video.fileSizeMb.toFixed(1)} MB stream</span>}
+          {video.fileSizeMb && (
+            <span>
+              <T values={{ size: video.fileSizeMb.toFixed(1) }}>
+                {"{size} MB stream"}
+              </T>
+            </span>
+          )}
           {video.slidesUrl && (
             <a href={video.slidesUrl} download className="inline-flex items-center gap-1 font-bold text-navy-700 hover:underline">
-              <Download className="h-3.5 w-3.5" /> {video.slidesTitle ?? "Slides"}
+              <Download className="h-3.5 w-3.5" />{" "}
+              {video.slidesTitle ?? <T>Slides</T>}
             </a>
           )}
         </span>
@@ -69,6 +81,18 @@ export function VideoPlayer({ video }: { video: Video }) {
 
       {armed ? (
         <div className="relative bg-black">
+          {youtube ? (
+            <iframe
+              src={youtube.embedUrl}
+              title={video.title}
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allow="accelerometer; encrypted-media; picture-in-picture"
+              allowFullScreen
+              onLoad={() => setPlaying(true)}
+              className="aspect-video w-full border-0"
+            />
+          ) : (
           <video
             ref={ref}
             src={video.videoUrl}
@@ -79,6 +103,7 @@ export function VideoPlayer({ video }: { video: Video }) {
             onPause={() => setPlaying(false)}
             className="aspect-video w-full"
           />
+          )}
         </div>
       ) : (
         <button
@@ -91,7 +116,7 @@ export function VideoPlayer({ video }: { video: Video }) {
           </span>
           <span className="flex items-center gap-2 text-sm font-bold text-navy-100">
             <WifiOff className="h-4 w-4" />
-            Data saver on — tap to stream compressed video
+            <T>Data saver on — tap to stream compressed video</T>
           </span>
           <span className="text-[12px] text-navy-300">
             {video.fileSizeMb ? `${video.fileSizeMb.toFixed(1)} MB · ` : ""}
@@ -104,34 +129,49 @@ export function VideoPlayer({ video }: { video: Video }) {
         {video.markers.length > 0 && (
           <>
             <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Chapter markers
+              <T>Chapter markers</T>
             </p>
             <div className="flex flex-wrap gap-1.5">
-              {video.markers.map((m, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  disabled={!armed}
-                  onClick={() => seek(m.t)}
-                  className={`rounded-full border px-2.5 py-1 text-[12px] font-bold transition disabled:opacity-50 ${
-                    active === i
-                      ? "border-saffron-500 bg-saffron-500 text-navy-950"
-                      : "border-line bg-white text-navy-600 hover:border-navy-300"
-                  }`}
-                >
-                  {fmt(m.t)} · {m.label}
-                </button>
-              ))}
+              {video.markers.map((m, i) =>
+                youtube ? (
+                  <span
+                    key={i}
+                    className="rounded-full border border-line bg-white px-2.5 py-1 text-[12px] font-bold text-navy-600"
+                  >
+                    {fmt(m.t)} · {m.label}
+                  </span>
+                ) : (
+                  <button
+                    key={i}
+                    type="button"
+                    disabled={!armed}
+                    onClick={() => seek(m.t)}
+                    className={`rounded-full border px-2.5 py-1 text-[12px] font-bold transition disabled:opacity-50 ${
+                      active === i
+                        ? "border-saffron-500 bg-saffron-500 text-navy-950"
+                        : "border-line bg-white text-navy-600 hover:border-navy-300"
+                    }`}
+                  >
+                    {fmt(m.t)} · {m.label}
+                  </button>
+                ),
+              )}
             </div>
           </>
         )}
         {video.uploadedByName && (
           <p className="mt-3 border-t border-dashed border-line pt-2 text-[12px] font-semibold text-slate-500">
-            Uploaded by <b className="text-navy-700">{video.uploadedByName}</b> · Faculty lecture
+            <T>Uploaded by</T>{" "}
+            <b className="text-navy-700">{video.uploadedByName}</b> ·{" "}
+            <T>Faculty lecture</T>
           </p>
         )}
       </div>
-      {playing && <span className="sr-only" aria-live="polite">Lecture playing</span>}
+      {playing && (
+        <span className="sr-only" aria-live="polite">
+          <T>Lecture playing</T>
+        </span>
+      )}
     </article>
   );
 }

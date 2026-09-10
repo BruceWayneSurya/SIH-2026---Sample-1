@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { parseInline, parseMarkdown } from "../src/lib/markdown";
+import { normalizeModelMath, parseInline, parseMarkdown } from "../src/lib/markdown";
 
 function textOf(inline: { kind: string; text?: string }[]): string {
   return inline.map((part) => part.text ?? "").join("");
@@ -18,7 +18,7 @@ describe("markdown inline runs", () => {
   it("reads ** as bold rather than two italics", () => {
     const parts = parseInline("a **b** c");
     assert.deepEqual(parts.map((p) => p.kind), ["text", "bold", "text"]);
-    assert.equal(parts[1].text, "b");
+    assert.equal(textOf([parts[1]]), "b");
   });
 
   it("keeps surrounding words attached to the emphasis", () => {
@@ -46,9 +46,9 @@ describe("markdown inline runs", () => {
   it("does not let an arithmetic asterisk swallow the rest of the sentence", () => {
     const parts = parseInline("5 * 3 = 15, but *emphasis* works");
     assert.deepEqual(parts.map((p) => p.kind), ["text", "italic", "text"]);
-    assert.equal(parts[0].text, "5 * 3 = 15, but ");
-    assert.equal(parts[1].text, "emphasis");
-    assert.equal(parts[2].text, " works");
+    assert.equal(textOf([parts[0]]), "5 * 3 = 15, but ");
+    assert.equal(textOf([parts[1]]), "emphasis");
+    assert.equal(textOf([parts[2]]), " works");
   });
 
   it("keeps chemical formulae and slashes as plain text", () => {
@@ -126,5 +126,58 @@ describe("markdown blocks", () => {
     assert.deepEqual(parseMarkdown(undefined as unknown as string), []);
     const blocks = parseMarkdown("one\r\n- a\r\n- b");
     assert.deepEqual(blocks.map((b) => b.kind), ["paragraph", "list"]);
+  });
+});
+
+describe("markdown math", () => {
+  it("reads delimited inline and display math as math tokens", () => {
+    const parts = parseInline("So $x^2 + y^2$ holds");
+    assert.deepEqual(parts.map((p) => p.kind), ["text", "math", "text"]);
+    assert.equal(parts[1].kind === "math" && parts[1].tex, "x^2 + y^2");
+    const display = parseInline("answer $$E = mc^2$$ yes");
+    assert.equal(display[1].kind === "math" && display[1].display, true);
+  });
+
+  it("keeps prose dollars as plain text", () => {
+    assert.deepEqual(parseInline("Costs $5 and $10 total"), [
+      { kind: "text", text: "Costs $5 and $10 total" },
+    ]);
+  });
+
+  it("normalises \\(…\\) and \\[…\\] delimiters", () => {
+    const parts = parseInline(normalizeModelMath("So \\(\\frac{a}{b}\\) is a fraction"));
+    assert.equal(parts[1].kind, "math");
+    const blocks = parseMarkdown("Proof:\n\n\\[ a^2 + b^2 = c^2 \\]");
+    assert.equal(blocks.some((b) => b.kind === "math"), true);
+  });
+
+  it("auto-wraps bare LaTeX commands and exponents outside code", () => {
+    const blocks = parseMarkdown("Where \\frac{1}{2} means half and 10^-19 is tiny");
+    const inline = blocks.flatMap((b) => (b.kind === "paragraph" ? b.inline : []));
+    const tex = inline.filter((p) => p.kind === "math").map((p) => (p as { tex: string }).tex);
+    assert.ok(tex.includes("\\frac{1}{2}"));
+    assert.ok(tex.includes("10^-19"));
+
+    // Code fences are never touched.
+    const [code] = parseMarkdown("```\n\\frac{1}{2} and 10^-19\n```");
+    assert.equal(code.kind, "code");
+    assert.equal(code.kind === "code" && code.text, "\\frac{1}{2} and 10^-19");
+  });
+
+  it("does not wrap exponents a second time inside existing math", () => {
+    const blocks = parseMarkdown("The area is $\\pi r^2$ exactly");
+    const inline = blocks.flatMap((b) => (b.kind === "paragraph" ? b.inline : []));
+    const math = inline.filter((p) => p.kind === "math");
+    assert.equal(math.length, 1);
+    assert.equal(math[0].kind === "math" && math[0].tex, "\\pi r^2");
+  });
+
+  it("reads a multi-line display formula as one math block", () => {
+    const blocks = parseMarkdown("$$\n\\frac{1}{2} + \\frac{1}{4}\n= \\frac{3}{4}\n$$");
+    assert.equal(blocks[0].kind, "math");
+    assert.equal(
+      blocks[0].kind === "math" && blocks[0].tex,
+      "\\frac{1}{2} + \\frac{1}{4}\n= \\frac{3}{4}",
+    );
   });
 });

@@ -1,13 +1,60 @@
 "use client";
 
-import { parseInline, parseMarkdown, type MdInline } from "@/lib/markdown";
+import { useMemo } from "react";
+import katex from "katex";
+import {
+  normalizeModelMath,
+  parseInline,
+  parseMarkdown,
+  type MdInline,
+} from "@/lib/markdown";
 
 /**
  * Renders model output as React elements.
  *
- * Nothing here assigns innerHTML, so a reply containing markup or a script tag
- * is shown as inert text rather than executed or styled as HTML.
+ * Nothing here assigns innerHTML from the model: ordinary text stays inert, so
+ * a reply containing markup or a script tag is shown as text rather than
+ * executed or styled as HTML. The one deliberate exception is mathematics:
+ * KaTeX is handed the LaTeX between `$…$` / `$$…$$` delimiters, and KaTeX
+ * escapes that input itself while producing only its own styled spans (URLs,
+ * links and events stay disabled), which is the standard safe way to typeset
+ * fractions, exponents and every other notation.
  */
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function MathSpan({ tex, display }: { tex: string; display: boolean }) {
+  const html = useMemo(() => {
+    try {
+      return katex.renderToString(tex, {
+        displayMode: display,
+        throwOnError: false,
+        strict: "ignore",
+        trust: false,
+      });
+    } catch {
+      // KaTeX with throwOnError:false almost never throws; keep the raw text
+      // visible if it somehow does.
+      return `<span class="katex-error">${escapeHtml(tex)}</span>`;
+    }
+  }, [tex, display]);
+
+  if (display) {
+    return (
+      <span
+        className="my-2 block overflow-x-auto text-center"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  }
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+}
 
 function Inline({ parts }: { parts: MdInline[] }) {
   return (
@@ -17,11 +64,16 @@ function Inline({ parts }: { parts: MdInline[] }) {
           case "bold":
             return (
               <strong key={index} className="font-bold">
-                {part.text}
+                {/* Re-parse so math inside **…** still typesets. */}
+                <Inline parts={parseInline(part.text)} />
               </strong>
             );
           case "italic":
-            return <em key={index}>{part.text}</em>;
+            return (
+              <em key={index}>
+                <Inline parts={parseInline(part.text)} />
+              </em>
+            );
           case "code":
             return (
               <code
@@ -30,6 +82,10 @@ function Inline({ parts }: { parts: MdInline[] }) {
               >
                 {part.text}
               </code>
+            );
+          case "math":
+            return (
+              <MathSpan key={index} tex={part.tex} display={part.display} />
             );
           default:
             return <span key={index}>{part.text}</span>;
@@ -51,15 +107,18 @@ const HEADING_CLASS: Record<number, string> = {
 /**
  * Inline-only variant for phrasing contexts such as <legend> and <label>,
  * where emitting a block element would be invalid nesting. Renders bold,
- * italic and inline code, and drops block structure.
+ * italic, inline code and inline math, and drops block structure.
  */
 export function MarkdownInline({ text }: { text: string }) {
-  const parts = parseInline(String(text ?? ""));
+  const parts = useMemo(
+    () => parseInline(normalizeModelMath(String(text ?? ""))),
+    [text],
+  );
   return <Inline parts={parts} />;
 }
 
 export function MarkdownText({ text }: { text: string }) {
-  const blocks = parseMarkdown(text);
+  const blocks = useMemo(() => parseMarkdown(text), [text]);
 
   return (
     <div className="space-y-2 break-words">
@@ -70,6 +129,11 @@ export function MarkdownText({ text }: { text: string }) {
               <p key={index} className={HEADING_CLASS[block.level] ?? HEADING_CLASS[6]}>
                 <Inline parts={block.inline} />
               </p>
+            );
+
+          case "math":
+            return (
+              <MathSpan key={index} tex={block.tex} display />
             );
 
           case "list":

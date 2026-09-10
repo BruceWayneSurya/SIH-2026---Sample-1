@@ -1,6 +1,9 @@
 "use client";
 
-import { TranslatedText as T } from "@/components/language-provider";
+import {
+  TranslatedText as T,
+  useTranslation,
+} from "@/components/language-provider";
 
 import { useRef, useState } from "react";
 import Link from "next/link";
@@ -71,6 +74,7 @@ const SUBJECTS = [
 ];
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [role, setRole] = useState<"student" | "faculty">("student");
   const [name, setName] = useState("");
@@ -143,7 +147,9 @@ export default function RegisterPage() {
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred.",
+        err instanceof Error
+          ? err.message
+          : t("An unexpected error occurred."),
       );
     } finally {
       inFlight.current = false;
@@ -209,7 +215,7 @@ export default function RegisterPage() {
             }`}
           >
             <GraduationCap className="h-4 w-4" />
-            Faculty / Teacher Account
+            <T>Faculty / Teacher Account</T>
           </button>
         </div>
 

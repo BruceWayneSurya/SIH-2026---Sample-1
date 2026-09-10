@@ -157,8 +157,10 @@ export default async function Home() {
             )}
           </p>
           <p className="mt-0.5 text-[13px] text-slate-500">
-            Department of School Education &amp; Literacy · National Digital
-            Learning Portal
+            <T>
+              Department of School Education &amp; Literacy · National Digital
+              Learning Portal
+            </T>
           </p>
         </div>
         <Link
@@ -185,11 +187,13 @@ export default async function Home() {
               <span className="ml-2 font-semibold opacity-80">{user.email}</span>
             </p>
             <p className="text-[13px] font-semibold opacity-90">
-              {user.verificationStatus === "verified"
-                ? "Your institutional mailbox is confirmed — you can verify community notes and review pending teachers."
-                : user.verificationStatus === "pending_review"
-                  ? "Your mailbox is confirmed. A verified reviewer will confirm your institution before note verification is unlocked."
-                  : "Verify your email ID to continue using the faculty console."}
+              <T>
+                {user.verificationStatus === "verified"
+                  ? "Your institutional mailbox is confirmed — you can verify community notes and review pending teachers."
+                  : user.verificationStatus === "pending_review"
+                    ? "Your mailbox is confirmed. A verified reviewer will confirm your institution before note verification is unlocked."
+                    : "Verify your email ID to continue using the faculty console."}
+              </T>
             </p>
           </div>
         </section>
@@ -212,13 +216,23 @@ export default async function Home() {
           icon={Medal}
           label="Class Rank"
           value={stats.rank ? `#${stats.rank}` : "—"}
-          sub={`Class ${classNo} · all subjects`}
+          sub={
+            <T values={{ classNo }}>{"Class {classNo} · all subjects"}</T>
+          }
         />
         <StatCard
           icon={Target}
           label="Accuracy"
           value={stats.accuracy !== null ? `${stats.accuracy}%` : "—"}
-          sub={`${stats.objectiveAttempts} objective test${stats.objectiveAttempts === 1 ? "" : "s"} attempted`}
+          sub={
+            <T values={{ count: stats.objectiveAttempts }}>
+              {
+                stats.objectiveAttempts === 1
+                  ? "{count} objective test attempted"
+                  : "{count} objective tests attempted"
+              }
+            </T>
+          }
         />
         <StatCard
           icon={Sparkles}
@@ -237,13 +251,17 @@ export default async function Home() {
             <ShieldCheck className="h-5 w-5 text-saffron-600" />{" "}
             <T>Moderation queue</T>
             <span className="rounded-full bg-saffron-100 px-2 py-0.5 text-[12px] font-bold text-saffron-700">
-              {facultyQueue.length} awaiting review
+              <T values={{ count: facultyQueue.length }}>
+                {"{count} awaiting review"}
+              </T>
             </span>
           </h2>
           {facultyQueue.length === 0 ? (
             <p className="mt-3 text-sm text-slate-600">
-              All community notes are verified. New submissions will appear
-              here.
+              <T>
+                All community notes are verified. New submissions will appear
+                here.
+              </T>
             </p>
           ) : (
             <ul className="mt-3 divide-y divide-line">
@@ -254,7 +272,9 @@ export default async function Home() {
                 >
                   <ClipboardCheck className="h-4 w-4 text-navy-400" />
                   <span className="font-bold text-navy-900">{n.title}</span>
-                  <span className="text-sm text-slate-500">by {n.author}</span>
+                  <span className="text-sm text-slate-500">
+                    <T values={{ name: n.author }}>{"by {name}"}</T>
+                  </span>
                   <span className="ml-auto rounded-sm bg-navy-50 px-2 py-0.5 text-[12px] font-semibold text-navy-600">
                     {n.chapter}
                   </span>
@@ -263,18 +283,20 @@ export default async function Home() {
             </ul>
           )}
           <p className="mt-2 text-[13px] text-slate-500">
-            Open any chapter’s Notes section and use the one-click{" "}
+            <T>Open any chapter’s Notes section and use the one-click</T>{" "}
             <b>
               <T>Verify</T>
             </b>{" "}
-            toggle — verified notes jump to the top with a green tick.
+            <T>
+              toggle — verified notes jump to the top with a green tick.
+            </T>
           </p>
 
           {canModerate && (
             <div className="mt-5 border-t border-line pt-4">
               <h3 className="flex items-center gap-2 text-[15px] font-bold text-navy-900">
                 <BadgeCheck className="h-4 w-4 text-saffron-600" />
-                Teachers awaiting institutional confirmation
+                <T>Teachers awaiting institutional confirmation</T>
                 <span className="rounded-full bg-navy-50 px-2 py-0.5 text-[12px] font-bold text-navy-600">
                   {pendingFaculty.length}
                 </span>
@@ -296,7 +318,7 @@ export default async function Home() {
               <li key={c.title} className="py-2.5">
                 <p className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-slate-500">
                   <span className="rounded-sm bg-navy-50 px-1.5 py-0.5 text-navy-600">
-                    {c.tag}
+                    <T>{c.tag}</T>
                   </span>
                   {new Date(c.date).toLocaleDateString("en-IN", {
                     day: "2-digit",
@@ -305,15 +327,19 @@ export default async function Home() {
                   })}
                 </p>
                 <p className="mt-0.5 text-[15px] font-bold text-navy-900">
-                  {c.title}
+                  <T>{c.title}</T>
                 </p>
-                <p className="text-[13px] text-slate-600">{c.body}</p>
+                <p className="text-[13px] text-slate-600">
+                  <T>{c.body}</T>
+                </p>
               </li>
             ))}
           </ul>
           <p className="mt-2 text-[12px] text-slate-500">
-            Circulars are issued by the portal administrator and apply to all
-            classes.
+            <T>
+              Circulars are issued by the portal administrator and apply to all
+              classes.
+            </T>
           </p>
         </section>
 
@@ -327,7 +353,9 @@ export default async function Home() {
             </T>
           </h2>
           <p className="mt-1 text-[13px] text-slate-600">
-            {chapterTotal?.n ?? 0} chapters indexed for your class.
+            <T values={{ count: chapterTotal?.n ?? 0 }}>
+              {"{count} chapters indexed for your class."}
+            </T>
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {CLASSES.map((c) => (
@@ -343,15 +371,17 @@ export default async function Home() {
                 <T values={{ classNo: c }}>{"Class {classNo}"}</T>
                 {c === classNo && (
                   <span className="rounded-sm bg-white/20 px-1 text-[11px] uppercase">
-                    yours
+                    <T>yours</T>
                   </span>
                 )}
               </Link>
             ))}
           </div>
           <p className="mt-3 text-[13px] text-slate-600">
-            Switching a class opens its subject list; your own class stays the
-            default for progress, XP and the leaderboard.
+            <T>
+              Switching a class opens its subject list; your own class stays
+              the default for progress, XP and the leaderboard.
+            </T>
           </p>
         </section>
       </div>
@@ -418,8 +448,10 @@ export default async function Home() {
           </h2>
           {testableChapters.length === 0 ? (
             <p className="mt-3 text-sm text-slate-600">
-              Assessments for your class are being uploaded by faculty. Check
-              back soon!
+              <T>
+                Assessments for your class are being uploaded by faculty.
+                Check back soon!
+              </T>
             </p>
           ) : (
             <ul className="mt-3 divide-y divide-line">
@@ -437,7 +469,7 @@ export default async function Home() {
                     </span>
                     {c.best ? (
                       <span className="ml-auto rounded-full bg-leaf-50 px-2.5 py-0.5 text-[12px] font-bold text-leaf-700">
-                        Best {c.best}
+                        <T values={{ score: c.best }}>{"Best {score}"}</T>
                       </span>
                     ) : (
                       <span className="ml-auto rounded-full bg-saffron-50 px-2.5 py-0.5 text-[12px] font-bold text-saffron-700">
@@ -493,9 +525,11 @@ export default async function Home() {
       </div>
 
       <p className="mt-6 text-center text-[13px] text-slate-500">
-        Every chapter carries NCERT learning-outcome IDs (LO-…) and a DIKSHA
-        course code — see any chapter page for the full mapping. Questions
-        needing help: 1800-11-8004.
+        <T>
+          Every chapter carries NCERT learning-outcome IDs (LO-…) and a DIKSHA
+          course code — see any chapter page for the full mapping. Questions
+          needing help: 1800-11-8004.
+        </T>
       </p>
     </div>
   );

@@ -26,10 +26,10 @@ export default function About() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <p className="text-sm font-bold uppercase tracking-wider text-saffron-600">
-        About this portal
+        <T>About this portal</T>
       </p>
       <h1 className="mt-1 text-3xl font-extrabold text-navy-900">
-        Pragyan — National Digital Learning Portal
+        <T>Pragyan — National Digital Learning Portal</T>
       </h1>
       <p className="mt-3 text-[15px] leading-relaxed text-slate-600">
         <T>
@@ -37,9 +37,11 @@ export default function About() {
           official NCERT curriculum, built for Class 6 to 10 students and
           educators.
         </T>{" "}
-        Every chapter carries NCERT learning-outcome IDs and a DIKSHA course
-        code so that teaching, practice and reporting can be audited against the
-        national curriculum framework.
+        <T>
+          Every chapter carries NCERT learning-outcome IDs and a DIKSHA course
+          code so that teaching, practice and reporting can be audited against
+          the national curriculum framework.
+        </T>
       </p>
 
       <section
@@ -52,29 +54,39 @@ export default function About() {
         </h2>
         <ol className="mt-3 list-decimal space-y-2 pl-5 text-[15px] text-slate-700">
           <li>
-            A teacher signs in or registers with the email ID issued by the
-            school or department.
+            <T>
+              A teacher signs in or registers with the email ID issued by the
+              school or department.
+            </T>
           </li>
           <li>
-            A six-digit one-time code is sent to that mailbox. The code is valid
-            for ten minutes, may be attempted five times and is never stored in
-            plain form.
+            <T>
+              A six-digit one-time code is sent to that mailbox. The code is
+              valid for ten minutes, may be attempted five times and is never
+              stored in plain form.
+            </T>
           </li>
           <li>
-            Institutional addresses (…gov.in, …nic.in, …edu.in, …ac.in) are
-            marked <b>verified</b> as soon as the mailbox is confirmed, which
-            unlocks verification of community notes.
+            <T>
+              Institutional addresses (…gov.in, …nic.in, …edu.in, …ac.in) are
+              marked verified as soon as the mailbox is confirmed, which
+              unlocks verification of community notes.
+            </T>
           </li>
           <li>
-            Personal mailboxes (Gmail and similar) are accepted with review: the
-            mailbox is confirmed, but a verified reviewer must confirm the
-            institution before moderation rights are granted.
+            <T>
+              Personal mailboxes (Gmail and similar) are accepted with review:
+              the mailbox is confirmed, but a verified reviewer must confirm the
+              institution before moderation rights are granted.
+            </T>
           </li>
         </ol>
         <p className="mt-3 inline-flex items-center gap-2 rounded-md border border-leaf-500/40 bg-leaf-50 px-3 py-2 text-[13px] font-bold text-leaf-700">
           <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-          Verification is mandatory — an unverified account cannot publish a
-          verified note.
+          <T>
+            Verification is mandatory — an unverified account cannot publish a
+            verified note.
+          </T>
         </p>
       </section>
 
@@ -89,10 +101,10 @@ export default function About() {
           {POLICIES.map((policy) => (
             <div key={policy.title}>
               <dt className="text-[15px] font-bold text-navy-800">
-                {policy.title}
+                <T>{policy.title}</T>
               </dt>
               <dd className="mt-0.5 text-[15px] leading-relaxed text-slate-600">
-                {policy.body}
+                <T>{policy.body}</T>
               </dd>
             </div>
           ))}
@@ -117,11 +129,14 @@ export default function About() {
           <T>Accessibility statement</T>
         </h2>
         <p className="mt-2 text-[15px] leading-relaxed text-slate-600">
-          The interface targets WCAG 2.1 AA: keyboard-navigable controls, visible
-          focus, sufficient contrast, a dark theme, adjustable interface
-          language (English, हिन्दी, తెలుగు, தமிழ், ಕನ್ನಡ, മലയാളം) and a data
-          saver mode for low-bandwidth connections. Report a barrier on the
-          helpline above and it will be fixed in the next release.
+          <T>
+            The interface targets WCAG 2.1 AA: keyboard-navigable controls,
+            visible focus, sufficient contrast, a dark theme, adjustable
+            interface language (English, हिन्दी, తెలుగు, தமிழ், ಕನ್ನಡ,
+            മലയാളം) and a data saver mode for low-bandwidth connections. Report
+            a barrier on the helpline above and it will be fixed in the next
+            release.
+          </T>
         </p>
       </section>
     </div>

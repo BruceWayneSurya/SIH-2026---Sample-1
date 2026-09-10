@@ -374,11 +374,10 @@ export default function WelcomePage() {
       </section>
       <footer className="border-t border-line bg-navy-900 px-4 py-8 pb-24 text-center text-navy-200">
         <p className="text-sm font-bold text-white">
-          Pragyan — National Digital Learning Portal
+          <T>Pragyan — National Digital Learning Portal</T>
         </p>
         <p className="mt-2 text-xs">
-          Department of School Education &amp; Literacy, Ministry of Education ·
-          NCERT · DIKSHA · NDEAR · Accessible learning
+          <T>Department of School Education &amp; Literacy, Ministry of Education · NCERT · DIKSHA · NDEAR · Accessible learning</T>
         </p>
       </footer>
     </main>

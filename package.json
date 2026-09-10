@@ -14,7 +14,9 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:setup": "tsx scripts/migrate.ts && tsx scripts/seed.ts",
-    "db:check": "tsx scripts/check-db.ts"
+    "db:check": "tsx scripts/check-db.ts",
+    "content:import": "tsx scripts/import-content.ts",
+    "content:dry-run": "tsx scripts/import-content.ts --dry-run"
   },
   "dependencies": {
     "@fontsource/mukta": "^5.3.0",
@@ -24,8 +26,10 @@
     "@fontsource/noto-sans-telugu": "^5.3.0",
     "@fontsource/noto-serif-devanagari": "^5.3.0",
     "@libsql/client": "^0.18.0",
+    "@types/katex": "^0.16.8",
     "dotenv": "17.3.1",
     "drizzle-orm": "0.45.2",
+    "katex": "^0.18.7",
     "lucide-react": "^1.35.0",
     "next": "16.3.4",
     "react": "19.2.6",

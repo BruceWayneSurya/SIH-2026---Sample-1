@@ -36,22 +36,24 @@ export default async function Account() {
     })(),
   );
 
-  const rows: [string, string | null][] = [
+  const rows: [string, React.ReactNode][] = [
     ["Handle", `@${user.handle}`],
     [
       "Role",
-      user.isGuest
-        ? `Guest ${user.role}`
-        : user.role === "faculty"
-          ? "Faculty / Teacher"
-          : "Student",
+      user.isGuest ? (
+        <T values={{ role: user.role }}>{"Guest {role}"}</T>
+      ) : user.role === "faculty" ? (
+        <T>Faculty / Teacher</T>
+      ) : (
+        <T>Student</T>
+      ),
     ],
     [
       user.role === "faculty" ? "Specialization" : "Class",
       user.role === "faculty"
         ? user.subjectSpecialization
         : user.className
-          ? `Class ${user.className}`
+          ? <T values={{ classNo: user.className }}>{"Class {classNo}"}</T>
           : null,
     ],
     ["State / UT", user.state],
@@ -78,7 +80,10 @@ export default async function Account() {
           </p>
           {user.isGuest && (
             <span className="mt-1 inline-block rounded-sm bg-saffron-100 px-2 py-0.5 text-[12px] font-bold text-saffron-700">
-              Shared demo guest — sign in for your own notes, votes, and scores
+              <T>
+                Shared demo guest — sign in for your own notes, votes, and
+                scores
+              </T>
             </span>
           )}
         </div>
@@ -101,7 +106,11 @@ export default async function Account() {
           icon={Target}
           label="Accuracy"
           value={stats.accuracy !== null ? `${stats.accuracy}%` : "—"}
-          sub={`${stats.objectiveAttempts} objective tests`}
+          sub={
+            <T values={{ count: stats.objectiveAttempts }}>
+              {"{count} objective tests"}
+            </T>
+          }
         />
         <StatCard icon={Award} label="Notes Shared" value={stats.notes} />
       </div>
@@ -168,13 +177,15 @@ export default async function Account() {
             </span>
           </p>
           <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
-            {user.role === "faculty"
-              ? user.verificationStatus === "verified"
-                ? "Your institutional mailbox is confirmed. You can verify community notes and confirm pending teachers."
-                : user.verificationStatus === "pending_review"
-                  ? "Your mailbox is confirmed. A verified reviewer must confirm your institution before note verification is unlocked."
-                  : "Sign in again to receive a one-time code at this address and complete verification."
-              : "Student accounts are activated at registration; faculty accounts need this check before they can moderate content."}
+            <T>
+              {user.role === "faculty"
+                ? user.verificationStatus === "verified"
+                  ? "Your institutional mailbox is confirmed. You can verify community notes and confirm pending teachers."
+                  : user.verificationStatus === "pending_review"
+                    ? "Your mailbox is confirmed. A verified reviewer must confirm your institution before note verification is unlocked."
+                    : "Sign in again to receive a one-time code at this address and complete verification."
+                : "Student accounts are activated at registration; faculty accounts need this check before they can moderate content."}
+            </T>
           </p>
         </section>
 
@@ -219,10 +230,15 @@ export default async function Account() {
       </div>
 
       <section className="vsv-enter mt-6 rounded-lg border border-line bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-extrabold text-navy-900">XP activity</h2>
+        <h2 className="text-lg font-extrabold text-navy-900">
+          <T>XP activity</T>
+        </h2>
         {stats.recent.length === 0 ? (
           <p className="mt-2 text-sm text-slate-600">
-            No activity yet — complete an objective test to earn your first +XP!
+            <T>
+              No activity yet — complete an objective test to earn your first
+              +XP!
+            </T>
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-line">

@@ -75,3 +75,39 @@ describe("AI reply rendering", () => {
     );
   });
 });
+
+describe("AI reply math rendering", () => {
+  it("typesets delimited LaTeX with KaTeX", () => {
+    const html = render("Add $\\frac{1}{2} + \\frac{1}{4}$ to get $\\frac{3}{4}$");
+    assert.ok(html.includes("katex"), "expected KaTeX output");
+    assert.equal(html.includes("$"), false, "literal $ delimiters survived");
+  });
+
+  it("typesets fractions, exponents and roots the model wrote bare", () => {
+    const html = render("The area of a circle is \\pi r^2 and 2^{10} = 1024.");
+    assert.ok(html.includes("katex"), "expected KaTeX output");
+    assert.ok((html.match(/katex/g) ?? []).length >= 2, "expected several formulas");
+  });
+
+  it("typesets a display formula block", () => {
+    const html = render("$$\nx = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}\n$$");
+    assert.ok(html.includes("katex-display"), "expected display-mode KaTeX");
+    assert.ok(html.includes("$$") === false, "literal $$ survived");
+  });
+
+  it("renders math inside bold and headings", () => {
+    const html = render("### The identity $(a+b)^2$\n\n**Remember:** $a^2 + b^2$ alone is not enough");
+    assert.ok((html.match(/katex/g) ?? []).length >= 2, "expected math in both places");
+  });
+
+  it("keeps prose dollars untouched", () => {
+    const html = render("Costs $5 and $10 total");
+    assert.ok(html.includes("$5"));
+    assert.equal(html.includes("katex"), false, "money was parsed as math");
+  });
+
+  it("keeps broken LaTeX visible instead of throwing", () => {
+    assert.equal(typeof render("$\\frac{1{$"), "string");
+    assert.equal(typeof render("$$\\sqrt{$$"), "string");
+  });
+});

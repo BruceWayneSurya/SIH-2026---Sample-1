@@ -82,7 +82,7 @@ export default async function SubjectIndex({
         <IconBox icon={Icon} tint={meta.tint} size="lg" />
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-bold uppercase tracking-wider text-saffron-600">
-            <T>Class</T> {cn} · Chapter Index
+            <T>Class</T> {cn} · <T>Chapter Index</T>
           </p>
           <h1 className="text-2xl font-extrabold text-navy-900">
             {subjectName(subject)}
@@ -90,7 +90,7 @@ export default async function SubjectIndex({
         </div>
         <div className="w-full sm:w-64">
           <div className="mb-1 flex justify-between text-[13px] font-bold text-navy-600">
-            <span>Your progress</span>
+            <span><T>Your progress</T></span>
             <span>
               {practiced}/{dbList.length}
             </span>
@@ -137,42 +137,58 @@ export default async function SubjectIndex({
                         {data && data.videoCount > 0 && (
                           <span className="inline-flex items-center gap-1 rounded-sm bg-navy-50 px-1.5 py-0.5 text-[11px] font-bold text-navy-600">
                             <Clapperboard className="h-3 w-3" />{" "}
-                            {data.videoCount} video
-                            {data.videoCount > 1 ? "s" : ""}
+                            <T values={{ count: data.videoCount }}>
+                              {data.videoCount === 1
+                                ? "{count} video"
+                                : "{count} videos"}
+                            </T>
                           </span>
                         )}
                         {data && data.noteCount > 0 && (
                           <span className="inline-flex items-center gap-1 rounded-sm bg-navy-50 px-1.5 py-0.5 text-[11px] font-bold text-navy-600">
-                            <StickyNote className="h-3 w-3" /> {data.noteCount}{" "}
-                            notes
+                            <StickyNote className="h-3 w-3" />{" "}
+                            <T values={{ count: data.noteCount }}>
+                              {"{count} notes"}
+                            </T>
                           </span>
                         )}
                         {data && data.mcqCount > 0 && (
                           <span className="inline-flex items-center gap-1 rounded-sm bg-saffron-50 px-1.5 py-0.5 text-[11px] font-bold text-saffron-700">
-                            <ListChecks className="h-3 w-3" /> {data.mcqCount}{" "}
-                            MCQs · {data.pyqPct}% PYQ
+                            <ListChecks className="h-3 w-3" />{" "}
+                            <T values={{ count: data.mcqCount, pct: data.pyqPct }}>
+                              {"{count} MCQs · {pct}% PYQ"}
+                            </T>
                           </span>
                         )}
                         {data && data.subjCount > 0 && (
                           <span className="inline-flex items-center gap-1 rounded-sm bg-saffron-50 px-1.5 py-0.5 text-[11px] font-bold text-saffron-700">
-                            <PenLine className="h-3 w-3" /> {data.subjCount}{" "}
-                            descriptive
+                            <PenLine className="h-3 w-3" />{" "}
+                            <T values={{ count: data.subjCount }}>
+                              {"{count} descriptive"}
+                            </T>
                           </span>
                         )}
                         {!hasContent && (
                           <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-500">
-                            Content coming soon
+                            <T>Content coming soon</T>
                           </span>
                         )}
                       </div>
                       {data && data.bestScore !== null && (
                         <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-leaf-50 px-2 py-0.5 text-[12px] font-bold text-leaf-700">
-                          Best score {data.bestScore}/{data.bestTotal}
+                          <T
+                            values={{
+                              score: data.bestScore ?? 0,
+                              total: data.bestTotal ?? 0,
+                            }}
+                          >
+                            {"Best score {score}/{total}"}
+                          </T>
                         </p>
                       )}
                       <div className="mt-2 flex items-center gap-1.5 border-t border-dashed border-line pt-2 text-[11px] font-semibold text-slate-400">
                         <MapPinned className="h-3 w-3" />
-                        {data?.dikshaCode ?? "DIKSHA mapping pending"}
+                        {data?.dikshaCode ?? <T>DIKSHA mapping pending</T>}
                       </div>
                     </div>
                     {data && (

@@ -77,13 +77,18 @@ export function GoogleDrivePreview({
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm font-bold text-navy-700 hover:underline"
         >
-          Open PDF in Google Drive <ExternalLink className="h-3.5 w-3.5" />
-          <span className="sr-only">(opens in a new tab)</span>
+          <T>Open PDF in Google Drive</T>{" "}
+          <ExternalLink className="h-3.5 w-3.5" />
+          <span className="sr-only">
+            <T>(opens in a new tab)</T>
+          </span>
         </a>
         <p className="text-[12px] leading-relaxed text-slate-500">
-          Preview unavailable or asking for access? Set the PDF to{" "}
-          <b>Anyone with the link · Viewer</b> in Drive, or use the link above.
-          Google controls file access and embedded previews.
+          <T>
+            Preview unavailable or asking for access? Set the PDF to Anyone
+            with the link · Viewer in Drive, or use the link above. Google
+            controls file access and embedded previews.
+          </T>
         </p>
       </div>
     </div>

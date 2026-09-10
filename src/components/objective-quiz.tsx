@@ -1,6 +1,9 @@
 "use client";
 
-import { TranslatedText as T } from "@/components/language-provider";
+import {
+  TranslatedText as T,
+  useTranslation,
+} from "@/components/language-provider";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -46,6 +49,7 @@ export function ObjectiveQuiz({
   questions: Q[];
   best: { score: number; total: number } | null;
 }) {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<"intro" | "test" | "result">("intro");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(() =>
@@ -125,39 +129,57 @@ export function ObjectiveQuiz({
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="text-xl font-extrabold text-navy-900">
-              Objective Assessment · {chapterTitle}
+              <T values={{ chapter: chapterTitle }}>
+                {"Objective Assessment · {chapter}"}
+              </T>
             </h2>
             <div className="mt-2 flex flex-wrap gap-2 text-[13px] font-bold">
               <span className="rounded-md border border-navy-200 bg-navy-50 px-2.5 py-1 text-navy-700">
-                {questions.length} MCQs
+                <T values={{ count: questions.length }}>
+                  {"{count} MCQs"}
+                </T>
               </span>
               <span className="rounded-md border border-saffron-200 bg-saffron-50 px-2.5 py-1 text-saffron-700">
-                {pyqCount}/{questions.length} PYQs · {pyqPct}% previous-year
+                <T
+                  values={{
+                    pyq: pyqCount,
+                    total: questions.length,
+                    pct: pyqPct,
+                  }}
+                >
+                  {"{pyq}/{total} PYQs · {pct}% previous-year"}
+                </T>
               </span>
               <span className="rounded-md border border-line bg-white px-2.5 py-1 text-slate-600">
-                20:00 timer
+                <T>20:00 timer</T>
               </span>
               <span className="rounded-md border border-saffron-200 bg-saffron-50 px-2.5 py-1 text-saffron-700">
-                +10 XP per correct answer
+                <T>+10 XP per correct answer</T>
               </span>
             </div>
             <ul className="mt-4 space-y-1.5 text-[15px] text-slate-600">
               <li>
-                • Each question is annotated with its source exam (CBSE / State
-                Board / Exemplar).
+                •{" "}
+                <T>
+                  Each question is annotated with its source exam (CBSE / State
+                  Board / Exemplar).
+                </T>
               </li>
               <li>
-                • Instant auto-evaluation with step-by-step solution
-                explanations.
+                •{" "}
+                <T>
+                  Instant auto-evaluation with step-by-step solution
+                  explanations.
+                </T>
               </li>
               {best && (
                 <li>
-                  • Your best so far:{" "}
-                  <b className="text-navy-800">
-                    {best.score}/{best.total}
-                  </b>{" "}
-                  — you can retake any time, but XP is awarded on your first
-                  submission.
+                  •{" "}
+                  <T values={{ score: best.score, total: best.total }}>
+                    {
+                      "Your best so far: {score}/{total} — you can retake any time, but XP is awarded on your first submission."
+                    }
+                  </T>
                 </li>
               )}
             </ul>
@@ -197,7 +219,11 @@ export function ObjectiveQuiz({
               <Clock3 className="h-5 w-5" /> {mm}:{ss}
             </span>
             <span className="text-sm font-bold text-slate-600">
-              Question {current + 1} of {questions.length}
+              <T
+                values={{ current: current + 1, total: questions.length }}
+              >
+                {"Question {current} of {total}"}
+              </T>
             </span>
             <div className="h-2 min-w-24 flex-1 overflow-hidden rounded-full bg-navy-100">
               <div
@@ -206,14 +232,14 @@ export function ObjectiveQuiz({
               />
             </div>
             <span className="text-[13px] font-bold text-slate-500">
-              {answered} answered
+              <T values={{ count: answered }}>{"{count} answered"}</T>
             </span>
             <button
               type="button"
               onClick={() => setConfirmOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-md bg-saffron-500 px-4 py-1.5 text-sm font-extrabold text-navy-950 transition hover:bg-saffron-400"
             >
-              <Send className="h-4 w-4" /> Submit
+              <Send className="h-4 w-4" /> <T>Submit</T>
             </button>
           </div>
           <div
@@ -225,7 +251,7 @@ export function ObjectiveQuiz({
                 key={i}
                 type="button"
                 onClick={() => setCurrent(i)}
-                aria-label={`Go to question ${i + 1}`}
+                aria-label={t("Go to question {n}", { n: i + 1 })}
                 className={`h-8 w-8 rounded text-[13px] font-extrabold transition ${
                   i === current
                     ? "bg-saffron-500 text-navy-950 ring-2 ring-saffron-300"
@@ -316,7 +342,7 @@ export function ObjectiveQuiz({
                 onClick={() => setConfirmOpen(true)}
                 className="inline-flex items-center gap-1 rounded-md bg-saffron-500 px-4 py-2 text-sm font-extrabold text-navy-950 transition hover:bg-saffron-400"
               >
-                <Send className="h-4 w-4" /> Finish & Submit
+                <Send className="h-4 w-4" /> <T>Finish & Submit</T>
               </button>
             )}
           </div>
@@ -331,12 +357,15 @@ export function ObjectiveQuiz({
           >
             <div className="vsv-enter w-full max-w-md rounded-lg bg-white p-6 shadow-2xl">
               <h3 className="flex items-center gap-2 text-lg font-extrabold text-navy-900">
-                <AlertTriangle className="h-5 w-5 text-saffron-600" /> Submit
-                test?
+                <AlertTriangle className="h-5 w-5 text-saffron-600" />{" "}
+                <T>Submit test</T>
               </h3>
               <p className="mt-2 text-[15px] text-slate-600">
-                You have answered <b>{answered}</b> of <b>{questions.length}</b>{" "}
-                questions. Unanswered questions will be marked incorrect.
+                <T values={{ answered, total: questions.length }}>
+                  {
+                    "You have answered {answered} of {total} questions. Unanswered questions will be marked incorrect."
+                  }
+                </T>
               </p>
               <div className="mt-5 flex gap-2">
                 <button
@@ -344,7 +373,7 @@ export function ObjectiveQuiz({
                   onClick={() => setConfirmOpen(false)}
                   className="flex-1 rounded-md border border-line px-4 py-2 text-sm font-bold text-navy-700 hover:border-navy-300"
                 >
-                  Keep working
+                  <T>Keep working</T>
                 </button>
                 <button
                   type="button"
@@ -357,7 +386,7 @@ export function ObjectiveQuiz({
                   ) : (
                     <Send className="h-4 w-4" />
                   )}
-                  Submit now
+                  <T>Submit now</T>
                 </button>
               </div>
             </div>
@@ -390,13 +419,19 @@ export function ObjectiveQuiz({
             }`}
           >
             <span className="text-3xl font-extrabold">{pct}%</span>
-            <span className="text-[11px] font-bold uppercase">score</span>
+            <span className="text-[11px] font-bold uppercase">
+              <T>score</T>
+            </span>
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-extrabold text-navy-900">
-              {r.score} / {r.total} correct
+              <T values={{ score: r.score, total: r.total }}>
+                {"{score} / {total} correct"}
+              </T>
             </h2>
-            <p className="mt-1 text-[15px] text-slate-600">{msg}</p>
+            <p className="mt-1 text-[15px] text-slate-600">
+              <T>{msg}</T>
+            </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span
                 className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-extrabold ${
@@ -406,13 +441,19 @@ export function ObjectiveQuiz({
                 }`}
               >
                 <Award className="h-4 w-4" />
-                {r.xpEarned > 0
-                  ? `+${r.xpEarned} XP added to your profile`
-                  : "Practice attempt — XP is awarded on your first submission"}
+                {r.xpEarned > 0 ? (
+                  <T values={{ xp: r.xpEarned }}>
+                    {"+{xp} XP added to your profile"}
+                  </T>
+                ) : (
+                  <T>
+                    Practice attempt — XP is awarded on your first submission
+                  </T>
+                )}
               </span>
               {r.firstTime && (
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-navy-50 px-3 py-1.5 text-sm font-bold text-navy-700">
-                  First attempt on this chapter
+                  <T>First attempt on this chapter</T>
                 </span>
               )}
             </div>
@@ -422,23 +463,29 @@ export function ObjectiveQuiz({
               href={`/leaderboard?chapter=${chapterId}`}
               className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-navy-800 px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-700 sm:flex-none"
             >
-              <Trophy className="h-4 w-4 text-saffron-400" /> Chapter
-              leaderboard
+              <Trophy className="h-4 w-4 text-saffron-400" />{" "}
+              <T>Chapter leaderboard</T>
             </Link>
             <button
               type="button"
               onClick={() => setPhase("intro")}
               className="inline-flex items-center gap-2 rounded-md border border-line px-4 py-2.5 text-sm font-bold text-navy-700 hover:border-navy-300"
             >
-              <RotateCcw className="h-4 w-4" /> Retake
+              <RotateCcw className="h-4 w-4" /> <T>Retake</T>
             </button>
           </div>
         </div>
       </div>
 
       <h3 className="mt-6 mb-3 text-lg font-extrabold text-navy-900">
-        Step-by-step solutions ({r.score} correct · {r.total - r.score} to
-        review)
+        <T
+          values={{
+            correct: r.score,
+            review: r.total - r.score,
+          }}
+        >
+          {"Step-by-step solutions ({correct} correct · {review} to review)"}
+        </T>
       </h3>
       <ol className="space-y-3">
         {questions.map((q, i) => {

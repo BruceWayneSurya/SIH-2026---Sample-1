@@ -1,6 +1,9 @@
 "use client";
 
-import { TranslatedText as T } from "@/components/language-provider";
+import {
+  TranslatedText as T,
+  useTranslation,
+} from "@/components/language-provider";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,6 +12,7 @@ import { LogOut, UserRound } from "lucide-react";
 
 export function AccountActions() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function signOut() {
@@ -18,11 +22,11 @@ export function AccountActions() {
     try {
       const response = await fetch("/api/auth/logout", { method: "POST" });
       if (!response.ok)
-        throw new Error("Could not sign out. Please try again.");
+        throw new Error(t("Could not sign out. Please try again."));
       router.push("/");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not sign out.");
+      setError(err instanceof Error ? err.message : t("Could not sign out."));
     } finally {
       setBusy(false);
     }

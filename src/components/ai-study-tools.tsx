@@ -53,7 +53,7 @@ export function AiStudyTools({
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok)
         throw new Error(
-          data?.error ?? "AI generation is unavailable. Please try again.",
+          data?.error ?? t("AI generation is unavailable. Please try again."),
         );
       setReply(data.reply ?? "");
       setQuestions(data.questions ?? []);
@@ -64,7 +64,7 @@ export function AiStudyTools({
         setError(
           err instanceof Error
             ? err.message
-            : "Could not generate study material.",
+            : t("Could not generate study material."),
         );
     } finally {
       if (!controller.signal.aborted) {
@@ -141,7 +141,7 @@ export function AiStudyTools({
           onChange={(event) => setTopic(event.target.value)}
           disabled={busy}
           maxLength={240}
-          placeholder="e.g. flame zones, comparing fractions…"
+          placeholder={t("e.g. flame zones, comparing fractions…")}
           className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-navy-950"
         />
         <div className="flex flex-wrap items-center gap-2">
