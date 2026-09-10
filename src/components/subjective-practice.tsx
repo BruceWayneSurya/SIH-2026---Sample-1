@@ -13,6 +13,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Trophy } from "lucide-react";
+import {
+  TranslatedText as T,
+  useTranslation,
+} from "@/components/language-provider";
 
 type Q = {
   id: number;
@@ -37,6 +41,7 @@ export function SubjectivePractice({
   chapterTitle: string;
   questions: Q[];
 }) {
+  const { t } = useTranslation();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -98,10 +103,14 @@ export function SubjectivePractice({
         <span className="mx-auto mb-4 inline-flex rounded-full bg-leaf-50 p-4 text-leaf-600">
           <CheckCheck className="h-10 w-10" />
         </span>
-        <h2 className="text-2xl font-extrabold text-navy-900">Subjective practice completed</h2>
+        <h2 className="text-2xl font-extrabold text-navy-900">
+          <T>Subjective practice completed</T>
+        </h2>
         <p className="mx-auto mt-2 max-w-md text-[15px] text-slate-600">
-          Your drafted answers were saved. Cross-check them with each scoring key below (or
-          download the full scheme for classroom evaluation with your teacher).
+          <T>
+            Your drafted answers were saved. Cross-check them with each scoring key below
+            (or download the full scheme for classroom evaluation with your teacher).
+          </T>
         </p>
         <div className="mt-4 flex justify-center">
           <span
@@ -111,8 +120,12 @@ export function SubjectivePractice({
           >
             <Award className="h-5 w-5" />
             {done.xpEarned > 0
-              ? `+${done.xpEarned} XP for completing the chapter's subjective set`
-              : "Already credited on your first completion — practice as much as you like"}
+              ? t("+{xp} XP for completing the chapter's subjective set", {
+                  xp: done.xpEarned,
+                })
+              : t(
+                  "Already credited on your first completion — practice as much as you like",
+                )}
           </span>
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -120,14 +133,14 @@ export function SubjectivePractice({
             href={`/leaderboard?chapter=${chapterId}`}
             className="inline-flex items-center gap-2 rounded-md bg-navy-800 px-5 py-2.5 text-sm font-bold text-white hover:bg-navy-700"
           >
-            <Trophy className="h-4 w-4 text-saffron-400" /> Chapter leaderboard
+            <Trophy className="h-4 w-4 text-saffron-400" /> <T>Chapter leaderboard</T>
           </Link>
           <button
             type="button"
             onClick={downloadScheme}
             className="inline-flex items-center gap-2 rounded-md border border-line px-5 py-2.5 text-sm font-bold text-navy-700 hover:border-navy-300"
           >
-            <Download className="h-4 w-4" /> Download marking scheme
+            <Download className="h-4 w-4" /> <T>Download marking scheme</T>
           </button>
         </div>
       </div>
@@ -156,7 +169,7 @@ export function SubjectivePractice({
               onClick={downloadScheme}
               className="inline-flex items-center gap-1.5 rounded-md border border-line px-3.5 py-2 text-sm font-bold text-navy-700 hover:border-navy-300"
             >
-              <Download className="h-4 w-4" /> Marking scheme
+              <Download className="h-4 w-4" /> <T>Marking scheme</T>
             </button>
             <button
               type="button"
@@ -178,8 +191,12 @@ export function SubjectivePractice({
         return (
           <section key={g.marks} className="mb-6">
             <div className="mb-3 flex items-baseline gap-2">
-              <h3 className="text-lg font-extrabold text-navy-900">{g.label}</h3>
-              <span className="text-[13px] font-bold text-slate-500">{g.desc}</span>
+              <h3 className="text-lg font-extrabold text-navy-900">
+                <T>{g.label}</T>
+              </h3>
+              <span className="text-[13px] font-bold text-slate-500">
+                <T>{g.desc}</T>
+              </span>
             </div>
             <ol className="space-y-3">
               {qs.map((q, i) => {
@@ -212,7 +229,7 @@ export function SubjectivePractice({
                         setDrafts((d) => ({ ...d, [q.id]: e.target.value }))
                       }
                       rows={3}
-                      placeholder="Draft your answer here (optional — you can also write on paper)."
+                      placeholder={t("Draft your answer here (optional — you can also write on paper).")}
                       className="mt-3 w-full rounded-md border border-line bg-paper px-3 py-2 text-[15px] focus:border-navy-500"
                       aria-label={`Your answer to question ${i + 1}`}
                     />
@@ -220,7 +237,7 @@ export function SubjectivePractice({
                     {open && (
                       <div className="vsv-enter mt-3 rounded-md border border-leaf-100 bg-leaf-50/60 p-4">
                         <p className="text-[13px] font-extrabold uppercase tracking-wide text-leaf-700">
-                          Model answer &amp; scoring key
+                          <T>Model answer &amp; scoring key</T>
                         </p>
                         <p className="mt-2 text-[15px] leading-relaxed text-slate-700">{q.modelAnswer}</p>
                         <ul className="mt-3 space-y-1.5">

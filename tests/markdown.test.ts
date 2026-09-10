@@ -1,9 +1,23 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { parseInline, parseMarkdown } from "../src/lib/markdown";
+import { parseInline, parseMarkdown, type MdInline } from "../src/lib/markdown";
 
-function textOf(inline: { kind: string; text?: string }[]): string {
-  return inline.map((part) => part.text ?? "").join("");
+function textOf(inline: MdInline[]): string {
+  return inline.map((part) => (part.kind === "math" ? part.tex : part.text)).join("");
+}
+
+/** The text carried by one part, narrowing away the mathematics variant. */
+function textAt(inline: MdInline[], index: number): string {
+  const part = inline[index];
+  return part.kind === "math" ? part.tex : part.text;
+}
+
+/** The mathematics part at an index, asserting that it is one. */
+function mathAt(inline: MdInline[], index: number) {
+  const part = inline[index];
+  assert.equal(part?.kind, "math");
+  if (part?.kind !== "math") throw new Error(`part ${index} is not mathematics`);
+  return part;
 }
 
 describe("markdown inline runs", () => {
@@ -18,7 +32,7 @@ describe("markdown inline runs", () => {
   it("reads ** as bold rather than two italics", () => {
     const parts = parseInline("a **b** c");
     assert.deepEqual(parts.map((p) => p.kind), ["text", "bold", "text"]);
-    assert.equal(parts[1].text, "b");
+    assert.equal(textAt(parts, 1), "b");
   });
 
   it("keeps surrounding words attached to the emphasis", () => {
@@ -46,9 +60,9 @@ describe("markdown inline runs", () => {
   it("does not let an arithmetic asterisk swallow the rest of the sentence", () => {
     const parts = parseInline("5 * 3 = 15, but *emphasis* works");
     assert.deepEqual(parts.map((p) => p.kind), ["text", "italic", "text"]);
-    assert.equal(parts[0].text, "5 * 3 = 15, but ");
-    assert.equal(parts[1].text, "emphasis");
-    assert.equal(parts[2].text, " works");
+    assert.equal(textAt(parts, 0), "5 * 3 = 15, but ");
+    assert.equal(textAt(parts, 1), "emphasis");
+    assert.equal(textAt(parts, 2), " works");
   });
 
   it("keeps chemical formulae and slashes as plain text", () => {
@@ -126,5 +140,58 @@ describe("markdown blocks", () => {
     assert.deepEqual(parseMarkdown(undefined as unknown as string), []);
     const blocks = parseMarkdown("one\r\n- a\r\n- b");
     assert.deepEqual(blocks.map((b) => b.kind), ["paragraph", "list"]);
+  });
+});
+
+describe("markdown mathematics", () => {
+  it("reads delimited inline maths", () => {
+    const parts = parseInline("The area is $\\frac{1}{2} b h$ here");
+    assert.deepEqual(parts.map((p) => p.kind), ["text", "math", "text"]);
+    assert.equal(mathAt(parts, 1).display, false);
+  });
+
+  it("reads inline maths delimited by backslash parentheses", () => {
+    const parts = parseInline("so \\(x^{2} + y^{2} = r^{2}\\) holds");
+    assert.deepEqual(parts.map((p) => p.kind), ["text", "math", "text"]);
+  });
+
+  it("marks dollar-dollar and backslash brackets as display maths", () => {
+    assert.equal(mathAt(parseInline("$$x^{2}$$"), 0).display, true);
+    assert.equal(mathAt(parseInline("\\[x^{2}\\]"), 0).display, true);
+  });
+
+  it("promotes a paragraph that is only an equation to a maths block", () => {
+    const blocks = parseMarkdown("Substituting:\n\n$$\nx = \\frac{-b}{2a}\n$$\n\nDone.");
+    assert.deepEqual(blocks.map((b) => b.kind), ["paragraph", "math", "paragraph"]);
+  });
+
+  it("reads bare TeX that the model sent without delimiters", () => {
+    const parts = parseInline("So \\frac{a}{b} and x^2 both work");
+    assert.deepEqual(parts.map((p) => p.kind), ["text", "math", "text", "math", "text"]);
+  });
+
+  it("does not read an identifier or a file path as maths", () => {
+    assert.deepEqual(parseInline("compare max_value and min_value"), [
+      { kind: "text", text: "compare max_value and min_value" },
+    ]);
+    assert.deepEqual(parseInline("Save it to C:\\path\\to\\file"), [
+      { kind: "text", text: "Save it to C:\\path\\to\\file" },
+    ]);
+  });
+
+  it("still reads a chemical formula subscript as maths", () => {
+    const parts = parseInline("Water is H_2O");
+    assert.deepEqual(parts.map((p) => p.kind), ["text", "math", "text"]);
+    assert.equal(mathAt(parts, 1).tex, "H_2");
+    assert.equal(textAt(parts, 2), "O");
+  });
+
+  it("keeps maths out of an inline code span", () => {
+    const parts = parseInline("Type `x^2` verbatim");
+    assert.deepEqual(parts.map((p) => p.kind), ["text", "code", "text"]);
+  });
+
+  it("carries the original TeX so it can be announced", () => {
+    assert.equal(mathAt(parseInline("$\\frac{1}{2}$"), 0).tex, "\\frac{1}{2}");
   });
 });

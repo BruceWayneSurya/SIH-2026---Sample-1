@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useDataSaver, useHydrated } from "@/lib/ui-preferences";
+import { TranslatedText as T, useTranslation } from "@/components/language-provider";
 import { Download, MonitorPlay, Pause, Play, WifiOff } from "lucide-react";
 
 type Marker = { t: number; label: string };
@@ -27,6 +28,7 @@ const fmt = (s: number) => {
 export function VideoPlayer({ video }: { video: Video }) {
   const saver = useDataSaver();
   const hydrated = useHydrated();
+  const { t } = useTranslation();
   const [playback, setPlayback] = useState({ saver, manual: false });
   if (playback.saver !== saver) setPlayback({ saver, manual: false });
   const armed = hydrated && (!saver || playback.manual);
@@ -58,10 +60,14 @@ export function VideoPlayer({ video }: { video: Video }) {
         <h3 className="text-[15px] font-bold text-navy-900">{video.title}</h3>
         <span className="ml-auto flex items-center gap-3 text-[12px] font-semibold text-slate-500">
           <span>{fmt(video.durationSec)}</span>
-          {video.fileSizeMb && <span>{video.fileSizeMb.toFixed(1)} MB stream</span>}
+          {video.fileSizeMb && (
+            <span>
+              {t("{size} MB stream", { size: video.fileSizeMb.toFixed(1) })}
+            </span>
+          )}
           {video.slidesUrl && (
             <a href={video.slidesUrl} download className="inline-flex items-center gap-1 font-bold text-navy-700 hover:underline">
-              <Download className="h-3.5 w-3.5" /> {video.slidesTitle ?? "Slides"}
+              <Download className="h-3.5 w-3.5" /> {video.slidesTitle ?? t("Slides")}
             </a>
           )}
         </span>
@@ -91,7 +97,7 @@ export function VideoPlayer({ video }: { video: Video }) {
           </span>
           <span className="flex items-center gap-2 text-sm font-bold text-navy-100">
             <WifiOff className="h-4 w-4" />
-            Data saver on — tap to stream compressed video
+            <T>Data saver on — tap to stream compressed video</T>
           </span>
           <span className="text-[12px] text-navy-300">
             {video.fileSizeMb ? `${video.fileSizeMb.toFixed(1)} MB · ` : ""}
@@ -104,7 +110,7 @@ export function VideoPlayer({ video }: { video: Video }) {
         {video.markers.length > 0 && (
           <>
             <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Chapter markers
+              <T>Chapter markers</T>
             </p>
             <div className="flex flex-wrap gap-1.5">
               {video.markers.map((m, i) => (
@@ -127,11 +133,16 @@ export function VideoPlayer({ video }: { video: Video }) {
         )}
         {video.uploadedByName && (
           <p className="mt-3 border-t border-dashed border-line pt-2 text-[12px] font-semibold text-slate-500">
-            Uploaded by <b className="text-navy-700">{video.uploadedByName}</b> · Faculty lecture
+            <T>Uploaded by</T> <b className="text-navy-700">{video.uploadedByName}</b> ·{" "}
+            <T>Faculty lecture</T>
           </p>
         )}
       </div>
-      {playing && <span className="sr-only" aria-live="polite">Lecture playing</span>}
+      {playing && (
+        <span className="sr-only" aria-live="polite">
+          <T>Lecture playing</T>
+        </span>
+      )}
     </article>
   );
 }

@@ -1,4 +1,8 @@
 import { TranslatedText as T } from "@/components/language-provider";
+import {
+  TranslatedElement,
+  TranslatedLink,
+} from "@/components/translated-element";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -82,12 +86,13 @@ export default function WelcomePage() {
       <div className="tricolor-strip h-1.5" aria-hidden="true" />
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
-          <Link href="/" aria-label="Pragyan home">
+          <TranslatedLink href="/" label="Pragyan home">
             <Wordmark />
-          </Link>
-          <nav
+          </TranslatedLink>
+          <TranslatedElement
+            as="nav"
+            label="Welcome navigation"
             className="flex items-center gap-3 text-sm font-bold"
-            aria-label="Welcome navigation"
           >
             <AppearanceControls />
             <Link
@@ -102,15 +107,15 @@ export default function WelcomePage() {
             >
               <T>Dashboard</T> <ArrowRight className="h-4 w-4" />
             </Link>
-          </nav>
+          </TranslatedElement>
         </div>
       </header>
       <section className="gov-grid relative overflow-hidden bg-navy-900 text-white">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[1.15fr_1fr] lg:gap-14 lg:py-20">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-saffron-400/30 bg-saffron-500/10 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-saffron-300">
-              <Sparkles className="h-3.5 w-3.5" /> Ministry of Education ·
-              Government of India
+              <Sparkles className="h-3.5 w-3.5" />{" "}
+              <T>Ministry of Education · Government of India</T>
             </p>
             <h1 className="mt-6 text-4xl font-extrabold leading-[1.15] tracking-tight sm:text-5xl lg:text-[54px]">
               <T>Open digital learning for</T>{" "}
@@ -374,11 +379,13 @@ export default function WelcomePage() {
       </section>
       <footer className="border-t border-line bg-navy-900 px-4 py-8 pb-24 text-center text-navy-200">
         <p className="text-sm font-bold text-white">
-          Pragyan — National Digital Learning Portal
+          <T>Pragyan — National Digital Learning Portal</T>
         </p>
         <p className="mt-2 text-xs">
-          Department of School Education &amp; Literacy, Ministry of Education ·
-          NCERT · DIKSHA · NDEAR · Accessible learning
+          <T>
+            Department of School Education &amp; Literacy, Ministry of Education · NCERT
+            · DIKSHA · NDEAR · Accessible learning
+          </T>
         </p>
       </footer>
     </main>

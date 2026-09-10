@@ -1,4 +1,8 @@
 import { TranslatedText as T } from "@/components/language-provider";
+import {
+  TranslatedElement,
+  TranslatedLink,
+} from "@/components/translated-element";
 import Link from "next/link";
 import { GraduationCap, UserRound } from "lucide-react";
 import { getActiveUser } from "@/lib/session";
@@ -33,12 +37,13 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 border-b-2 border-saffron-500/70 bg-white/95 backdrop-blur">
       <div className="tricolor-strip h-1.5 w-full" aria-hidden="true" />
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5">
-        <Link href="/" className="shrink-0" aria-label="Pragyan home">
+        <TranslatedLink href="/" label="Pragyan home" className="shrink-0">
           <Wordmark />
-        </Link>
+        </TranslatedLink>
 
-        <nav
-          aria-label="Primary"
+        <TranslatedElement
+          as="nav"
+          label="Primary"
           className="order-3 flex w-full min-w-0 flex-wrap items-center gap-1 text-[15px] font-semibold sm:order-none sm:w-auto sm:flex-1"
         >
           {[
@@ -54,19 +59,21 @@ export async function SiteHeader() {
               <T>{l.label}</T>
             </Link>
           ))}
-        </nav>
+        </TranslatedElement>
 
         <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2 sm:ml-0">
           <AppearanceControls />
           <DataSaverToggle />
           {user && (
             <>
-              <span
+              <TranslatedElement
+                as="span"
+                attr="title"
+                label="Total experience points"
                 className="hidden items-center gap-1.5 rounded-full border border-saffron-200 bg-saffron-50 px-3 py-1 text-sm font-bold text-saffron-700 md:inline-flex"
-                title="Total experience points"
               >
                 <GraduationCap className="h-4 w-4" /> {xp} XP
-              </span>
+              </TranslatedElement>
               <Link
                 href="/account"
                 className="inline-flex min-w-0 max-w-[155px] sm:max-w-[190px] items-center gap-2 rounded-full border border-line bg-white px-3 py-1"

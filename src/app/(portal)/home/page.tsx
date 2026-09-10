@@ -157,8 +157,10 @@ export default async function Home() {
             )}
           </p>
           <p className="mt-0.5 text-[13px] text-slate-500">
-            Department of School Education &amp; Literacy · National Digital
-            Learning Portal
+            <T>
+              Department of School Education &amp; Literacy · National Digital Learning
+              Portal
+            </T>
           </p>
         </div>
         <Link
@@ -242,8 +244,9 @@ export default async function Home() {
           </h2>
           {facultyQueue.length === 0 ? (
             <p className="mt-3 text-sm text-slate-600">
-              All community notes are verified. New submissions will appear
-              here.
+              <T>
+                All community notes are verified. New submissions will appear here.
+              </T>
             </p>
           ) : (
             <ul className="mt-3 divide-y divide-line">
@@ -274,7 +277,7 @@ export default async function Home() {
             <div className="mt-5 border-t border-line pt-4">
               <h3 className="flex items-center gap-2 text-[15px] font-bold text-navy-900">
                 <BadgeCheck className="h-4 w-4 text-saffron-600" />
-                Teachers awaiting institutional confirmation
+                <T>Teachers awaiting institutional confirmation</T>
                 <span className="rounded-full bg-navy-50 px-2 py-0.5 text-[12px] font-bold text-navy-600">
                   {pendingFaculty.length}
                 </span>
@@ -312,8 +315,9 @@ export default async function Home() {
             ))}
           </ul>
           <p className="mt-2 text-[12px] text-slate-500">
-            Circulars are issued by the portal administrator and apply to all
-            classes.
+            <T>
+              Circulars are issued by the portal administrator and apply to all classes.
+            </T>
           </p>
         </section>
 
@@ -343,15 +347,17 @@ export default async function Home() {
                 <T values={{ classNo: c }}>{"Class {classNo}"}</T>
                 {c === classNo && (
                   <span className="rounded-sm bg-white/20 px-1 text-[11px] uppercase">
-                    yours
+                    <T>yours</T>
                   </span>
                 )}
               </Link>
             ))}
           </div>
           <p className="mt-3 text-[13px] text-slate-600">
-            Switching a class opens its subject list; your own class stays the
-            default for progress, XP and the leaderboard.
+            <T>
+              Switching a class opens its subject list; your own class stays the default
+              for progress, XP and the leaderboard.
+            </T>
           </p>
         </section>
       </div>
@@ -418,8 +424,9 @@ export default async function Home() {
           </h2>
           {testableChapters.length === 0 ? (
             <p className="mt-3 text-sm text-slate-600">
-              Assessments for your class are being uploaded by faculty. Check
-              back soon!
+              <T>
+                Assessments for your class are being uploaded by faculty. Check back soon!
+              </T>
             </p>
           ) : (
             <ul className="mt-3 divide-y divide-line">
@@ -493,9 +500,11 @@ export default async function Home() {
       </div>
 
       <p className="mt-6 text-center text-[13px] text-slate-500">
-        Every chapter carries NCERT learning-outcome IDs (LO-…) and a DIKSHA
-        course code — see any chapter page for the full mapping. Questions
-        needing help: 1800-11-8004.
+        <T>
+          Every chapter carries NCERT learning-outcome IDs (LO-…) and a DIKSHA course
+          code — see any chapter page for the full mapping. Questions needing help:
+          1800-11-8004.
+        </T>
       </p>
     </div>
   );

@@ -1,4 +1,5 @@
 import { TranslatedText as T } from "@/components/language-provider";
+import { TranslatedElement } from "@/components/translated-element";
 import { DatabaseSetup } from "@/components/database-setup";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -60,9 +61,10 @@ export default async function SubjectIndex({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <nav
+      <TranslatedElement
+        as="nav"
+        label="Breadcrumb"
         className="mb-4 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-slate-500"
-        aria-label="Breadcrumb"
       >
         <Link
           href="/home"
@@ -76,7 +78,7 @@ export default async function SubjectIndex({
         </span>
         <span aria-hidden="true">/</span>
         <span className="text-navy-800">{subjectName(subject)}</span>
-      </nav>
+      </TranslatedElement>
 
       <header className="vsv-enter flex flex-wrap items-center gap-4 rounded-lg border border-line bg-white p-5 shadow-sm">
         <IconBox icon={Icon} tint={meta.tint} size="lg" />
@@ -90,7 +92,7 @@ export default async function SubjectIndex({
         </div>
         <div className="w-full sm:w-64">
           <div className="mb-1 flex justify-between text-[13px] font-bold text-navy-600">
-            <span>Your progress</span>
+            <span><T>Your progress</T></span>
             <span>
               {practiced}/{dbList.length}
             </span>
@@ -161,7 +163,7 @@ export default async function SubjectIndex({
                         )}
                         {!hasContent && (
                           <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-500">
-                            Content coming soon
+                            <T>Content coming soon</T>
                           </span>
                         )}
                       </div>

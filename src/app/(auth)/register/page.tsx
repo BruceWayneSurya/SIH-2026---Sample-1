@@ -1,6 +1,9 @@
 "use client";
 
-import { TranslatedText as T } from "@/components/language-provider";
+import {
+  TranslatedText as T,
+  useTranslation,
+} from "@/components/language-provider";
 
 import { useRef, useState } from "react";
 import Link from "next/link";
@@ -72,6 +75,7 @@ const SUBJECTS = [
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [role, setRole] = useState<"student" | "faculty">("student");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -155,7 +159,7 @@ export default function RegisterPage() {
     <div className="mx-auto max-w-2xl px-4 py-10">
       <div className="text-center">
         <div className="inline-flex justify-center">
-          <Link href="/" aria-label="Pragyan home">
+          <Link href="/" aria-label={t("Pragyan home")}>
             <Wordmark />
           </Link>
         </div>
@@ -209,7 +213,7 @@ export default function RegisterPage() {
             }`}
           >
             <GraduationCap className="h-4 w-4" />
-            Faculty / Teacher Account
+            <T>Faculty / Teacher Account</T>
           </button>
         </div>
 
@@ -238,7 +242,7 @@ export default function RegisterPage() {
               id="register-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Diya Mehta"
+              placeholder={`${t("e.g.")} Diya Mehta`}
               className="mt-1.5 w-full rounded-lg border border-line bg-paper px-3.5 py-2.5 text-[15px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
             />
           </div>
@@ -371,7 +375,7 @@ export default function RegisterPage() {
                     id="register-school"
                     value={school}
                     onChange={(e) => setSchool(e.target.value)}
-                    placeholder="e.g. Kendriya Vidyalaya, Sector 4"
+                    placeholder={`${t("e.g.")} Kendriya Vidyalaya, Sector 4`}
                     className="w-full rounded-lg border border-line bg-paper py-2.5 pl-9 pr-3 text-[15px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
                   />
                 </div>
@@ -422,7 +426,7 @@ export default function RegisterPage() {
                       id="register-institutionId"
                       value={institutionId}
                       onChange={(e) => setInstitutionId(e.target.value)}
-                      placeholder="e.g. SCH-GJ-204"
+                      placeholder={`${t("e.g.")} SCH-GJ-204`}
                       className="w-full rounded-lg border border-line bg-paper py-2.5 pl-9 pr-3 text-[15px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
                     />
                   </div>

@@ -1,4 +1,5 @@
 import { TranslatedText as T } from "@/components/language-provider";
+import { TranslatedElement } from "@/components/translated-element";
 import { DatabaseSetup } from "@/components/database-setup";
 import Link from "next/link";
 
@@ -73,7 +74,7 @@ export default async function Leaderboard({
       <div className="vsv-enter flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm font-bold uppercase tracking-wider text-saffron-600">
-            Peer Benchmarking Engine
+            <T>Peer Benchmarking Engine</T>
           </p>
           <h1 className="mt-1 flex items-center gap-3 text-3xl font-extrabold text-navy-900">
             <Trophy className="h-8 w-8 text-saffron-500" /> <T>Leaderboard</T>
@@ -85,10 +86,11 @@ export default async function Leaderboard({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div
-            className="flex rounded-md border border-line bg-white p-1"
+          <TranslatedElement
+            as="div"
+            label="Class scope"
             role="tablist"
-            aria-label="Class scope"
+            className="flex rounded-md border border-line bg-white p-1"
           >
             {[...CLASSES].map((c) => (
               <Link
@@ -105,7 +107,7 @@ export default async function Leaderboard({
                 <T>Class</T> {c}
               </Link>
             ))}
-          </div>
+          </TranslatedElement>
         </div>
       </div>
 
@@ -114,10 +116,10 @@ export default async function Leaderboard({
           <div className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3">
             <Medal className="h-5 w-5 text-saffron-600" />
             <h2 className="text-lg font-extrabold text-navy-900">
-              Class-Wide Leaderboard · Class {classNo}
+              <T values={{ classNo }}>{"Class-Wide Leaderboard · Class {classNo}"}</T>
             </h2>
             <span className="ml-auto text-[12px] font-bold uppercase tracking-wide text-slate-400">
-              XP · accuracy · badges
+              <T>XP · accuracy · badges</T>
             </span>
           </div>
           <div className="overflow-x-auto">
@@ -133,11 +135,15 @@ export default async function Leaderboard({
                   <th className="px-4 py-2.5 font-bold">
                     <T>Badges</T>
                   </th>
-                  <th className="px-4 py-2.5 text-right font-bold">Tests</th>
+                  <th className="px-4 py-2.5 text-right font-bold">
+                    <T>Tests</T>
+                  </th>
                   <th className="px-4 py-2.5 text-right font-bold">
                     <T>Accuracy</T>
                   </th>
-                  <th className="px-4 py-2.5 text-right font-bold">XP</th>
+                  <th className="px-4 py-2.5 text-right font-bold">
+                    <T>XP</T>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -147,7 +153,7 @@ export default async function Leaderboard({
                       colSpan={6}
                       className="px-4 py-8 text-center text-slate-500"
                     >
-                      No learners in this class yet.
+                      <T>No learners in this class yet.</T>
                     </td>
                   </tr>
                 )}
@@ -242,16 +248,17 @@ export default async function Leaderboard({
             style={{ animationDelay: "60ms" }}
           >
             <h3 className="flex items-center gap-2 text-[15px] font-extrabold text-navy-900">
-              <Target className="h-4 w-4 text-saffron-600" /> Chapter-Wise
-              Masters
+              <Target className="h-4 w-4 text-saffron-600" /> <T>Chapter-Wise Masters</T>
             </h3>
             <p className="mt-1 text-[13px] text-slate-500">
-              Ranks based solely on test performance in a single chapter.
+              <T>Ranks based solely on test performance in a single chapter.</T>
             </p>
             <div className="mt-3 space-y-1.5">
               {opts.length === 0 ? (
                 <p className="text-[13px] text-slate-400">
-                  No assessed chapters in Class {classNo} yet.
+                  <T values={{ classNo }}>
+                    {"No assessed chapters in Class {classNo} yet."}
+                  </T>
                 </p>
               ) : (
                 opts.map((o) => (
@@ -292,7 +299,7 @@ export default async function Leaderboard({
               </p>
               {chapterBoard.length === 0 ? (
                 <p className="mt-3 text-[13px] text-slate-500">
-                  No attempts on this chapter yet.
+                  <T>No attempts on this chapter yet.</T>
                 </p>
               ) : (
                 <ol className="mt-3 space-y-2">
@@ -316,12 +323,22 @@ export default async function Leaderboard({
                           <p className="truncate text-[13px] font-bold text-navy-800">
                             @{r.handle}
                             {me && (
-                              <span className="text-saffron-600"> (you)</span>
+                              <span className="text-saffron-600">
+                                {" "}
+                                <T>(you)</T>
+                              </span>
                             )}
                           </p>
                           <p className="text-[11px] text-slate-500">
-                            best {r.bestScore ?? "—"}/{r.bestTotal ?? "—"} ·{" "}
-                            {r.attempts} attempt{r.attempts === 1 ? "" : "s"}
+                            <T
+                              values={{
+                                score: r.bestScore ?? "—",
+                                total: r.bestTotal ?? "—",
+                                attempts: r.attempts,
+                              }}
+                            >
+                              {"best {score}/{total} · {attempts} attempt(s)"}
+                            </T>
                           </p>
                         </div>
                         <span className="ml-auto shrink-0 text-[14px] font-extrabold text-navy-800">
@@ -336,7 +353,7 @@ export default async function Leaderboard({
                 href={`/leaderboard?class=${classNo}`}
                 className="mt-3 block text-center text-[12px] font-bold text-navy-500 hover:text-navy-800 hover:underline"
               >
-                Clear chapter filter
+                <T>Clear chapter filter</T>
               </Link>
             </section>
           )}

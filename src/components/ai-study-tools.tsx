@@ -141,7 +141,7 @@ export function AiStudyTools({
           onChange={(event) => setTopic(event.target.value)}
           disabled={busy}
           maxLength={240}
-          placeholder="e.g. flame zones, comparing fractions…"
+          placeholder={`${t("e.g.")} ${t("flame zones, comparing fractions…")}`}
           className="w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-navy-950"
         />
         <div className="flex flex-wrap items-center gap-2">

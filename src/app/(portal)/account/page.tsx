@@ -1,4 +1,5 @@
 import { TranslatedText as T } from "@/components/language-provider";
+import { TranslatedElement } from "@/components/translated-element";
 import { AccountActions } from "@/components/account-actions";
 import { DatabaseSetup } from "@/components/database-setup";
 
@@ -78,14 +79,20 @@ export default async function Account() {
           </p>
           {user.isGuest && (
             <span className="mt-1 inline-block rounded-sm bg-saffron-100 px-2 py-0.5 text-[12px] font-bold text-saffron-700">
-              Shared demo guest — sign in for your own notes, votes, and scores
+              <T>
+                Shared demo guest — sign in for your own notes, votes, and scores
+              </T>
             </span>
           )}
         </div>
-        <BadgeCheck
-          className="h-8 w-8 text-leaf-500"
-          aria-label="Verified portal account"
-        />
+        <TranslatedElement
+          as="span"
+          label="Verified portal account"
+          role="img"
+          className="inline-flex"
+        >
+          <BadgeCheck className="h-8 w-8 text-leaf-500" />
+        </TranslatedElement>
       </div>
 
       <AccountActions />
@@ -219,10 +226,14 @@ export default async function Account() {
       </div>
 
       <section className="vsv-enter mt-6 rounded-lg border border-line bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-extrabold text-navy-900">XP activity</h2>
+        <h2 className="text-lg font-extrabold text-navy-900">
+          <T>XP activity</T>
+        </h2>
         {stats.recent.length === 0 ? (
           <p className="mt-2 text-sm text-slate-600">
-            No activity yet — complete an objective test to earn your first +XP!
+            <T>
+              No activity yet — complete an objective test to earn your first +XP!
+            </T>
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-line">

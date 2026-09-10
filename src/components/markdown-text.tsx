@@ -1,6 +1,7 @@
 "use client";
 
 import { parseInline, parseMarkdown, type MdInline } from "@/lib/markdown";
+import { MathView } from "@/components/math-view";
 
 /**
  * Renders model output as React elements.
@@ -30,6 +31,19 @@ function Inline({ parts }: { parts: MdInline[] }) {
               >
                 {part.text}
               </code>
+            );
+          case "math":
+            return (
+              <MathView
+                key={index}
+                tex={part.tex}
+                nodes={part.nodes}
+                className={
+                  part.display
+                    ? "mx-1 inline-flex items-center"
+                    : "mx-0.5 inline-flex items-center"
+                }
+              />
             );
           default:
             return <span key={index}>{part.text}</span>;
@@ -109,6 +123,17 @@ export function MarkdownText({ text }: { text: string }) {
               >
                 <Inline parts={block.inline} />
               </blockquote>
+            );
+
+          case "math":
+            return (
+              <div key={index} className="flex justify-center overflow-x-auto py-1">
+                <MathView
+                  tex={block.tex}
+                  nodes={block.nodes}
+                  className="inline-flex items-center text-base"
+                />
+              </div>
             );
 
           case "rule":

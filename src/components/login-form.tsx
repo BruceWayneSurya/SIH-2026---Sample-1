@@ -1,6 +1,9 @@
 "use client";
 
-import { TranslatedText as T } from "@/components/language-provider";
+import {
+  TranslatedText as T,
+  useTranslation,
+} from "@/components/language-provider";
 
 import { useRef, useState } from "react";
 import Link from "next/link";
@@ -30,6 +33,7 @@ export function LoginForm({
   initialRole?: "student" | "faculty";
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [role, setRole] = useState<"student" | "faculty">(initialRole);
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
@@ -103,7 +107,7 @@ export function LoginForm({
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="mx-auto max-w-md text-center">
         <div className="inline-flex justify-center">
-          <Link href="/" aria-label="Pragyan home">
+          <Link href="/" aria-label={t("Pragyan home")}>
             <Wordmark />
           </Link>
         </div>
@@ -114,7 +118,7 @@ export function LoginForm({
           <T>Open Digital Learning &amp; Assessment Portal</T>
         </p>
         <p className="mt-1 text-[13px] text-slate-500">
-          Ministry of Education · Department of School Education &amp; Literacy
+          <T>Ministry of Education · Department of School Education &amp; Literacy</T>
         </p>
         <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-saffron-50 px-3 py-1 text-xs font-bold text-saffron-700">
           <Sparkles className="h-3.5 w-3.5" />{" "}
@@ -201,8 +205,8 @@ export function LoginForm({
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={
                         role === "student"
-                          ? "e.g. aarav@student.in"
-                          : "e.g. anita.sharma@vidyasetu.gov.in"
+                          ? `${t("e.g.")} aarav@student.in`
+                          : `${t("e.g.")} anita.sharma@pragyan.gov.in`
                       }
                       className="w-full rounded-lg border border-line bg-paper py-2.5 pl-10 pr-3 text-[15px] font-medium text-navy-950 transition focus:border-navy-600 focus:bg-white focus:outline-none"
                     />
@@ -313,7 +317,7 @@ export function LoginForm({
               <T>Pre-Seeded Demo Accounts</T>
             </h3>
             <p className="mt-1 text-xs text-slate-600">
-              Click any persona to sign in instantly (password:{" "}
+              <T>Click any persona to sign in instantly (password:</T>{" "}
               <code className="font-bold">demo123</code>):
             </p>
 
@@ -346,32 +350,40 @@ export function LoginForm({
             </p>
             <ul className="mt-1 list-disc space-y-1 pl-4 leading-relaxed">
               <li>
-                Sign in with the email ID issued by your school or department.
+                <T>
+                  Sign in with the email ID issued by your school or department.
+                </T>
               </li>
               <li>
-                A six-digit code is mailed to you; it expires in ten minutes and
-                allows five attempts.
+                <T>
+                  A six-digit code is mailed to you; it expires in ten minutes and allows
+                  five attempts.
+                </T>
               </li>
               <li>
-                <b>…gov.in, …nic.in, …edu.in, …ac.in</b> addresses are verified
-                immediately.
+                <b>…gov.in, …nic.in, …edu.in, …ac.in</b>{" "}
+                <T>addresses are verified immediately.</T>
               </li>
               <li>
-                Gmail and other personal IDs are marked{" "}
-                <b>pending institutional review</b> until a verified reviewer
-                confirms your institution.
+                <T>Gmail and other personal IDs are marked</T>{" "}
+                <b>
+                  <T>pending institutional review</T>
+                </b>{" "}
+                <T>until a verified reviewer confirms your institution.</T>
               </li>
             </ul>
           </div>
 
           <div className="rounded-xl border border-line bg-white p-4 text-xs text-slate-600 shadow-sm">
             <p className="font-bold text-navy-900">
-              National Curriculum Alignment
+              <T>National Curriculum Alignment</T>
             </p>
             <p className="mt-1 leading-relaxed">
-              Pragyan uses NCERT Learning Outcome mapping (e.g. LO-8-SCI-06) and
-              DIKSHA QR codes. Local SQLite or permanent hosted SQLite stores
-              your session data, depending on the deployment.
+              <T>
+                Pragyan uses NCERT Learning Outcome mapping (e.g. LO-8-SCI-06) and DIKSHA
+                QR codes. Local SQLite or permanent hosted SQLite stores your session
+                data, depending on the deployment.
+              </T>
             </p>
           </div>
         </div>

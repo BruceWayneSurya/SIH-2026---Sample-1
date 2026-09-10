@@ -112,7 +112,7 @@ export function NotesSection({
       );
       if (data.reward) {
         setNotice(
-          "Your upvote pushed this note to 10+ — the author earned +50 XP!",
+          t("Your upvote pushed this note to 10+ — the author earned +50 XP!"),
         );
         router.refresh();
       }
@@ -192,7 +192,7 @@ export function NotesSection({
       setDriveUrl("");
       setDraftPreview(null);
       setFileName(null);
-      setNotice("Your note has been published.");
+      setNotice(t("Your note has been published."));
       router.refresh();
     } catch (err) {
       setUploadErr(
@@ -344,15 +344,21 @@ export function NotesSection({
                 id={`note-drive-help-${chapterId}`}
                 className="mt-2 text-[12px] leading-relaxed text-slate-500"
               >
-                Upload your PDF to Google Drive, set General access to{" "}
-                <b>Anyone with the link · Viewer</b>, then paste its
-                file-sharing link here. Use a PDF file, not a folder or Google
-                Doc. Only the link is saved; the document stays in your Drive
-                and is previewed here. Optional for text-only notes.
+                <T>Upload your PDF to Google Drive, set General access to</T>{" "}
+                <b>
+                  <T>Anyone with the link · Viewer</T>
+                </b>
+                <T>
+                  , then paste its file-sharing link here. Use a PDF file, not a folder or
+                  Google Doc. Only the link is saved; the document stays in your Drive and
+                  is previewed here. Optional for text-only notes.
+                </T>
               </p>
               {fileName && (
                 <p className="mt-1 text-[12px] text-slate-500">
-                  Remove the local attachment below to use a Drive link instead.
+                  <T>
+                    Remove the local attachment below to use a Drive link instead.
+                  </T>
                 </p>
               )}
               <button
@@ -369,7 +375,7 @@ export function NotesSection({
                   <GoogleDrivePreview
                     key={draftPreview}
                     url={draftPreview}
-                    title="Document draft"
+                    title={t("Document draft")}
                   />
                 </div>
               )}
@@ -416,15 +422,17 @@ export function NotesSection({
                 </div>
                 {driveUrl.trim() && (
                   <p className="mt-1 text-[12px]">
-                    Clear the Drive link to attach a local file instead.
+                    <T>Clear the Drive link to attach a local file instead.</T>
                   </p>
                 )}
               </details>
             ) : (
               <p className="text-xs text-slate-500">
-                Hosted uploads use Google Drive links so documents remain
-                available across deployments. Local file attachments are only
-                available when running the portal locally.
+                <T>
+                  Hosted uploads use Google Drive links so documents remain available
+                  across deployments. Local file attachments are only available when
+                  running the portal locally.
+                </T>
               </p>
             )}
             {uploadErr && (
@@ -444,8 +452,14 @@ export function NotesSection({
             </div>
           </fieldset>
           <p className="text-[12px] text-slate-500">
-            Notes reach the top when classmates mark them helpful (Δ) and
-            faculty verify them. 10+ upvotes earn the author <b>+50 XP</b>.
+            <T>
+              Notes reach the top when classmates mark them helpful (Δ) and faculty verify
+              them. 10+ upvotes earn the author
+            </T>{" "}
+            <b>
+              <T>+50 XP</T>
+            </b>
+            .
           </p>
         </form>
       )}
@@ -517,7 +531,7 @@ export function NotesSection({
                     <div className="flex flex-wrap items-center gap-2">
                       {i === 0 && (
                         <span className="inline-flex items-center gap-1 rounded-sm bg-saffron-500 px-1.5 py-0.5 text-[11px] font-extrabold uppercase text-navy-950">
-                          <Sparkles className="h-3 w-3" /> Recommended
+                          <Sparkles className="h-3 w-3" /> <T>Recommended</T>
                         </span>
                       )}
                       <h4 className="text-[16px] font-bold text-navy-900">

@@ -69,7 +69,7 @@ export const Wordmark = ({ light = false }: { light?: boolean }) => (
           light ? "text-navy-200" : "text-[#1d5080] dark:text-slate-300"
         }`}
       >
-        Pragyan · Learning Portal
+        <T>Pragyan · Learning Portal</T>
       </span>
     </span>
   </span>

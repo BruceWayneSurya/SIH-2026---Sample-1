@@ -285,7 +285,7 @@ export function FloatingAiTutor() {
           id="pragyan-ai-panel"
           role="dialog"
           aria-modal="false"
-          aria-label="Pragyan AI tutor"
+          aria-label={t("Pragyan AI tutor")}
           className="mb-3 flex h-[min(580px,calc(100dvh-100px))] w-[calc(100vw-2rem)] max-w-[390px] flex-col overflow-hidden rounded-xl border border-line bg-white shadow-2xl"
         >
           <div className="flex items-center justify-between bg-navy-900 px-4 py-2 text-white">
