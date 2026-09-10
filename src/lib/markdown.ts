@@ -26,8 +26,30 @@ export type MdBlock =
   | { kind: "quote"; inline: MdInline[] }
   | { kind: "rule" };
 
-/** Bold first so `**x**` is not read as two italic markers. */
-const INLINE = /(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\*[^*\n]+\*|_[^_\n]+_)/g;
+/** Inline code span: a backtick, one or more non-backticks, a backtick. */
+const CODE_SPAN = "`[^`]+`";
+
+/**
+ * Inline emphasis, with the flanking rules that keep prose intact.
+ *
+ * A delimiter only opens emphasis when the next character is not whitespace,
+ * and only closes it when the previous one is not whitespace. Without that, the
+ * `*` in "5 * 3" pairs with a later real marker and eats the sentence.
+ * Underscores additionally must not sit inside a word, or an identifier such as
+ * max_value and min_value renders as italics.
+ *
+ * Bold alternatives come first so `**x**` is not read as two italics.
+ */
+const INLINE = new RegExp(
+  [
+    String.raw`\*\*(?=\S)[^*]+?(?<=\S)\*\*`,
+    String.raw`(?<!\w)__(?=\S)[^_]+?(?<=\S)__(?!\w)`,
+    CODE_SPAN,
+    String.raw`\*(?=\S)[^*\n]+?(?<=\S)\*`,
+    String.raw`(?<!\w)_(?=\S)[^_\n]+?(?<=\S)_(?!\w)`,
+  ].join("|"),
+  "g",
+);
 
 const FENCE = /^\s*```/;
 const HEADING = /^(#{1,6})\s+(.*)$/;
@@ -119,8 +141,7 @@ export function parseMarkdown(source: string): MdBlock[] {
       continue;
     }
 
-    const firstList = line.match(ORDERED) ? ORDERED : UNORDERED;
-    if (firstList.test(line)) {
+    if (ORDERED.test(line) || UNORDERED.test(line)) {
       const ordered = ORDERED.test(line);
       const items: MdInline[][] = [];
       while (i < lines.length) {

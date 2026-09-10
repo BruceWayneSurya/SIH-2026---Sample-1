@@ -34,6 +34,29 @@ describe("markdown inline runs", () => {
     assert.equal(textOf(parseInline("an *unfinished emphasis")), "an *unfinished emphasis");
   });
 
+  it("does not read underscores inside an identifier as italics", () => {
+    assert.deepEqual(parseInline("compare max_value and min_value"), [
+      { kind: "text", text: "compare max_value and min_value" },
+    ]);
+    assert.deepEqual(parseInline("Set row_count then col_count"), [
+      { kind: "text", text: "Set row_count then col_count" },
+    ]);
+  });
+
+  it("does not let an arithmetic asterisk swallow the rest of the sentence", () => {
+    const parts = parseInline("5 * 3 = 15, but *emphasis* works");
+    assert.deepEqual(parts.map((p) => p.kind), ["text", "italic", "text"]);
+    assert.equal(parts[0].text, "5 * 3 = 15, but ");
+    assert.equal(parts[1].text, "emphasis");
+    assert.equal(parts[2].text, " works");
+  });
+
+  it("keeps chemical formulae and slashes as plain text", () => {
+    assert.deepEqual(parseInline("Water is H2O and CO2; speed = distance / time"), [
+      { kind: "text", text: "Water is H2O and CO2; speed = distance / time" },
+    ]);
+  });
+
   it("returns no parts for empty input", () => {
     assert.deepEqual(parseInline(""), []);
   });
