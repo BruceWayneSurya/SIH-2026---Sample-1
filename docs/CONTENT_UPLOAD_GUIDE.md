@@ -1,18 +1,23 @@
 # Bulk content upload — Classes 8, 9 and 10
 
 This is the step-by-step process for loading **all** learning material onto the
-portal: chapter-wise **PDFs stored in Google Drive** and **YouTube video links
-kept in an Excel sheet**, for every class → subject → chapter of Classes 8, 9
+portal: chapter-wise **PDFs stored in Google Drive**, **YouTube video links
+kept in an Excel sheet**, and **quiz questions** (objective MCQs and
+subjective questions), for every class → subject → chapter of Classes 8, 9
 and 10 (the same steps work for Classes 6 and 7 too).
 
-The whole flow needs one CSV file and one command:
+The whole flow needs a CSV file per sheet and one command:
 
 ```
 npx tsx scripts/import-content.ts content/my-content.csv
 ```
 
-A ready-made spreadsheet template with all columns lives at
-[`content/content-template.csv`](../content/content-template.csv).
+Ready-made spreadsheet templates with all columns live at
+[`content/content-template.csv`](../content/content-template.csv) (videos +
+notes, Part 1) and
+[`content/questions-template.csv`](../content/questions-template.csv)
+(quiz questions, Part 2). Rows of every type can also be mixed in one sheet —
+each row's `type` column decides what it is.
 
 ---
 
@@ -146,10 +151,90 @@ learning-outcome IDs and DIKSHA codes.
 
 - **Add material later**: append rows to the same CSV (or a new one) and
   re-run the import — only the new rows are inserted.
-- **Remove/replace a video or note**: currently done from the database
-  (`videos` / `notes` tables) — delete the row, or update the URL/title.
+- **Remove/replace a video, note or question**: currently done from the
+  database (`videos` / `notes` / `mcq_questions` / `subjective_questions`
+  tables) — delete the row, or update the URL/title/text.
 - **Curriculum changes**: chapter lists come from `src/lib/curriculum.ts`; if
   NCERT revises a textbook, update that file first, then re-run the import.
+
+---
+
+# Part 2 — Quiz questions (Objective MCQs + Subjective)
+
+Quiz questions also start life in a spreadsheet: **objective MCQs** (the "2 ·
+Objective (20 MCQs)" tab of every chapter) and **subjective questions** (the
+"3 · Subjective (2/3/5M)" written-practice tab). The same importer command
+loads them — Steps 1–2 above (Drive links, YouTube) don't apply here; you only
+need this part.
+
+Template: [`content/questions-template.csv`](../content/questions-template.csv).
+
+## Step 8 — Build the questions CSV
+
+Fill one row per question:
+
+| Column | MCQ | Subjective | What goes in it |
+|---|---|---|---|
+| `class`, `subject`, `chapter` | ✔ | ✔ | same rules as Part 1 (number or NCERT title) |
+| `type` | ✔ | ✔ | `mcq` or `subjective` |
+| `question` | ✔ | ✔ | the question text, exactly as learners see it |
+| `option_a` … `option_d` | ✔ | — | the four choices |
+| `answer` | ✔ | — | the correct option — letter (`B`), number (`2`) or the exact option text (`Maize`); all three work |
+| `explanation` | recommended | — | shown as the "Why" in the quiz review screen |
+| `pyq` | optional | — | previous-year tag, e.g. `CBSE 2023`; empty or `Practice` = a normal practice question |
+| `marks` | — | ✔ | `2`, `3` or `5` — short / medium / long answer (the portal groups questions by exactly these) |
+| `rubric` | — | optional | marking-scheme steps separated by `;` — each step is worth 1 mark unless it ends with `|2` |
+| `model_answer` | — | ✔ | the model answer shown in the marking scheme |
+
+Example rows (from the template):
+
+```csv
+class,subject,chapter,type,question,option_a,option_b,option_c,option_d,answer,explanation,pyq,marks,rubric,model_answer
+8,science,2,mcq,Which of the following is a kharif crop?,Wheat,Maize,Mustard,Barley,B,"Kharif crops are sown in the rainy season (June–July); maize is a kharif crop.",CBSE 2023,,,
+8,science,2,mcq,The process of loosening and turning of the soil is called —,Sowing,Ploughing,Irrigation,Harvesting,Ploughing,Ploughing (tilling) loosens and aerates the soil so roots can breathe and grow deep.,,,,
+8,mathematics,1,subjective,Add: (−3/4) + 5/4. Show your steps.,,,,,,,,,2,Find the common denominator|1; Correct answer 2/4 = 1/2|1,"(−3 + 5)/4 = 2/4 = 1/2."
+```
+
+Good to know:
+
+- **Sheets can be mixed**: question rows and video/note rows can share one
+  sheet (each row has its own `type`) or live in separate sheets — both work
+  with the same command.
+- **Idempotent**: a question whose chapter + question text already exists is
+  skipped, so re-running a file never duplicates; the same question twice in
+  one sheet is imported once.
+- **Aim for 20 MCQs per chapter** — the portal presents every objective test
+  as "20 MCQs" with a 20-minute timer. The importer prints a reminder (`ℹ`)
+  for any chapter that lands on a different number.
+- If a subjective rubric's steps don't add up to `marks`, the importer prints
+  a warning (`⚠`) but imports the question anyway.
+- Common errors: `answer must be the option letter (A–D)…` (answer not
+  recognised — use the letter, the 1-based number, or the exact option text);
+  `marks must be 2, 3 or 5…` (the portal's answer groups only use these);
+  `model_answer is required…`.
+
+## Step 9 — Preview and import
+
+Exactly like Step 5:
+
+```bash
+npx tsx scripts/import-content.ts content/my-questions.csv --dry-run   # preview
+npx tsx scripts/import-content.ts content/my-questions.csv             # apply
+
+# hosted/production database:
+DATABASE_URL="libsql://your-db.turso.io" DATABASE_AUTH_TOKEN="your-token" \
+npx tsx scripts/import-content.ts content/my-questions.csv
+```
+
+## Step 10 — Verify on the portal
+
+1. Open the chapter → **2 · Objective (20 MCQs)** tab: the quiz intro shows
+   the question count and PYQ percentage; take the test and check the review
+   screen — correct option highlighted and the "Why" explanation below each
+   question.
+2. Open the **3 · Subjective (2/3/5M)** tab: your questions appear under the
+   Short / Medium / Long answer groups; **Marking scheme** shows each rubric
+   step with its marks and the model answer.
 
 ## Quick reference
 
@@ -158,7 +243,9 @@ learning-outcome IDs and DIKSHA codes.
 | Preview an import | `npx tsx scripts/import-content.ts <file.csv> --dry-run` |
 | Import (local DB) | `npx tsx scripts/import-content.ts <file.csv>` |
 | Import (hosted DB) | `DATABASE_URL=… DATABASE_AUTH_TOKEN=… npx tsx scripts/import-content.ts <file.csv>` |
-| Template | `content/content-template.csv` |
+| Materials template | `content/content-template.csv` |
+| Questions template | `content/questions-template.csv` |
 
-Supported subjects: `science`, `mathematics`, `social-science`, `english`,
-`hindi`, `arts-vocational`. Supported classes: 6–10 (this rollout: 8, 9, 10).
+Supported row types: `video`, `note`, `mcq`, `subjective`. Supported subjects:
+`science`, `mathematics`, `social-science`, `english`, `hindi`,
+`arts-vocational`. Supported classes: 6–10 (this rollout: 8, 9, 10).

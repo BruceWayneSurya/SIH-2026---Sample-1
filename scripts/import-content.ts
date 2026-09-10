@@ -1,27 +1,37 @@
 /**
  * Bulk content importer.
  *
- * Faculty materials live in two places: PDFs in Google Drive and an Excel
- * sheet of YouTube links. Export that sheet to CSV (File → Download → CSV or
- * Save As → CSV), then run:
+ * Faculty materials live in three places: PDFs in Google Drive, an Excel
+ * sheet of YouTube links, and a question-bank sheet of quiz questions
+ * (objective MCQs and subjective questions). Export any sheet to CSV
+ * (File → Download → CSV or Save As → CSV), then run:
  *
  *   npx tsx scripts/import-content.ts content/my-content.csv            # apply
  *   npx tsx scripts/import-content.ts content/my-content.csv --dry-run  # preview
  *
  * The CSV format and the full step-by-step process are documented in
- * docs/CONTENT_UPLOAD_GUIDE.md; content/content-template.csv is a ready-made
- * header row with one example per row type.
+ * docs/CONTENT_UPLOAD_GUIDE.md. Two ready-made templates exist:
+ * content/content-template.csv (videos + notes) and
+ * content/questions-template.csv (quiz questions). Rows of every type can be
+ * mixed freely in one sheet — each row's "type" column decides what it is.
  *
- * The script is idempotent: it skips rows whose chapter + URL (videos) or
- * chapter + title (notes) already exist, so re-running the same file — or
- * running it again after adding rows — never duplicates content.
+ * The script is idempotent: it skips rows whose chapter + URL (videos),
+ * chapter + title (notes), or chapter + question text (quiz questions)
+ * already exist, so re-running the same file — or running it again after
+ * adding rows — never duplicates content.
  */
 import "dotenv/config";
 import { inArray } from "drizzle-orm";
 import { client, db as database } from "../src/db";
 import { publicDatabaseError } from "../src/db/config";
 import { migrateDatabase } from "../src/db/migrate";
-import { chapters, notes, videos } from "../src/db/schema";
+import {
+  chapters,
+  mcqQuestions,
+  notes,
+  subjectiveQuestions,
+  videos,
+} from "../src/db/schema";
 import {
   CLASSES,
   SUBJECTS,
@@ -94,6 +104,53 @@ const num = (value: string | undefined): number | null => {
 
 const yes = (value: string | undefined): boolean =>
   /^(y(es)?|true|1|✓)$/i.test(value?.trim() ?? "");
+
+/** Collapse whitespace + lowercase — the dedupe key for question text. */
+const normalizeQtext = (value: string): string =>
+  value.toLowerCase().replace(/\s+/g, " ").trim();
+
+/**
+ * The correct option may be given as a letter (A–D), a 1-based number, or the
+ * exact option text — whichever is fastest for whoever fills the sheet.
+ */
+function parseCorrectIndex(value: string, options: string[]): number | null {
+  const v = value.trim();
+  if (!v) return null;
+  if (/^[a-d]$/i.test(v)) {
+    const idx = v.toUpperCase().charCodeAt(0) - 65;
+    return idx < options.length ? idx : null;
+  }
+  const n = num(v);
+  if (n !== null) {
+    return Number.isInteger(n) && n >= 1 && n <= options.length ? n - 1 : null;
+  }
+  const hit = options.findIndex(
+    (o) => o.trim().toLowerCase() === v.toLowerCase(),
+  );
+  return hit >= 0 ? hit : null;
+}
+
+/**
+ * Rubric steps are typed as plain text, separated by ";" — each step worth
+ * 1 mark unless it ends in "|n" (e.g. "Correct statement|2"). Returns null
+ * when a step carries an invalid mark.
+ */
+function parseRubric(
+  value: string,
+): { step: string; marks: number }[] | null {
+  const steps: { step: string; marks: number }[] = [];
+  for (const raw of value.split(";")) {
+    const s = raw.trim();
+    if (!s) continue;
+    const m = /^(.*?)\s*\|\s*(\d+)$/.exec(s);
+    if (m) {
+      const marks = Number(m[2]);
+      if (!marks || !m[1].trim()) return null;
+      steps.push({ step: m[1].trim(), marks });
+    } else steps.push({ step: s, marks: 1 });
+  }
+  return steps;
+}
 
 /** Accept either a subject slug ("science") or display name ("Science"). */
 function resolveSubject(value: string): string | null {
@@ -170,6 +227,26 @@ type Planned =
       content: string | null;
       authorName: string;
       facultyVerified: boolean;
+    }
+  | {
+      kind: "mcq";
+      chapterKey: string;
+      chapterId: number;
+      qtext: string;
+      options: string[];
+      correctIndex: number;
+      explanation: string;
+      isPyq: boolean;
+      pyqTag: string;
+    }
+  | {
+      kind: "subjective";
+      chapterKey: string;
+      chapterId: number;
+      qtext: string;
+      marks: number;
+      rubric: { step: string; marks: number }[];
+      modelAnswer: string;
     };
 
 function fail(message: string): never {
@@ -281,6 +358,7 @@ async function main() {
   // Plan every row, validating links with the same rules the UI enforces.
   const planned: Planned[] = [];
   const errors: string[] = [];
+  const warnings: string[] = [];
   for (const { row, line, classNo, subjectSlug, chapter } of parsed) {
     // In a dry run the missing chapters were not created; a placeholder id
     // keeps the dedupe query valid and simply counts their content as new.
@@ -333,9 +411,88 @@ async function main() {
         authorName: row["author_name"] || "Faculty",
         facultyVerified: yes(row.verify),
       });
+    } else if (type === "mcq" || type === "quiz" || type === "objective") {
+      const question = row.question ?? "";
+      if (!question.trim()) {
+        errors.push(`Row ${line}: "question" is required for mcq rows.`);
+        continue;
+      }
+      const optionCols = ["option_a", "option_b", "option_c", "option_d"];
+      const options = optionCols.map((c) => row[c] ?? "");
+      if (options.some((o) => !o.trim())) {
+        errors.push(
+          `Row ${line}: mcq rows need all four choices filled in — option_a, option_b, option_c and option_d.`,
+        );
+        continue;
+      }
+      const correctIndex = parseCorrectIndex(row.answer ?? "", options);
+      if (correctIndex === null) {
+        errors.push(
+          `Row ${line}: "answer" must be the option letter (A–D), its number (1–4), or the exact option text (got "${row.answer ?? ""}").`,
+        );
+        continue;
+      }
+      const pyqTag = (row.pyq ?? "").trim();
+      const isPyq = pyqTag !== "" && !/^practice$/i.test(pyqTag);
+      planned.push({
+        kind: "mcq",
+        chapterKey,
+        chapterId,
+        qtext: question.trim(),
+        options,
+        correctIndex,
+        explanation: (row.explanation ?? "").trim(),
+        isPyq,
+        pyqTag: isPyq ? pyqTag : "Practice",
+      });
+    } else if (type === "subjective" || type === "written") {
+      const question = row.question ?? "";
+      if (!question.trim()) {
+        errors.push(
+          `Row ${line}: "question" is required for subjective rows.`,
+        );
+        continue;
+      }
+      const marks = num(row.marks ?? "");
+      if (marks !== 2 && marks !== 3 && marks !== 5) {
+        errors.push(
+          `Row ${line}: "marks" must be 2, 3 or 5 (short / medium / long answer) — got "${row.marks ?? ""}".`,
+        );
+        continue;
+      }
+      const rubric = parseRubric(row.rubric ?? "");
+      if (rubric === null) {
+        errors.push(
+          `Row ${line}: "rubric" steps must look like "step text" or "step text|2", separated by ";".`,
+        );
+        continue;
+      }
+      const modelAnswer = (row["model_answer"] ?? "").trim();
+      if (!modelAnswer) {
+        errors.push(
+          `Row ${line}: "model_answer" is required for subjective rows.`,
+        );
+        continue;
+      }
+      if (rubric.length) {
+        const rubricMarks = rubric.reduce((a, r) => a + r.marks, 0);
+        if (rubricMarks !== marks)
+          warnings.push(
+            `Row ${line}: rubric steps add up to ${rubricMarks} marks but "marks" is ${marks} — imported anyway.`,
+          );
+      }
+      planned.push({
+        kind: "subjective",
+        chapterKey,
+        chapterId,
+        qtext: question.trim(),
+        marks,
+        rubric,
+        modelAnswer,
+      });
     } else {
       errors.push(
-        `Row ${line}: "type" must be "video" or "note" (got "${row.type}").`,
+        `Row ${line}: "type" must be "video", "note", "mcq" or "subjective" (got "${row.type}").`,
       );
     }
   }
@@ -346,9 +503,12 @@ async function main() {
     fail(`${errors.length} row(s) need fixing; re-run after correcting the CSV.`);
   }
 
-  // Skip content that already exists (same chapter + URL / chapter + title).
+  // Skip content that already exists (same chapter + URL / chapter + title /
+  // chapter + question text).
   const videoRows = planned.filter((p): p is Extract<Planned, { kind: "video" }> => p.kind === "video");
   const noteRows = planned.filter((p): p is Extract<Planned, { kind: "note" }> => p.kind === "note");
+  const mcqRows = planned.filter((p): p is Extract<Planned, { kind: "mcq" }> => p.kind === "mcq");
+  const subjRows = planned.filter((p): p is Extract<Planned, { kind: "subjective" }> => p.kind === "subjective");
 
   const existingVideos = videoRows.length
     ? await database
@@ -372,6 +532,34 @@ async function main() {
           ),
         )
     : [];
+  const existingMcqs = mcqRows.length
+    ? await database
+        .select({
+          chapterId: mcqQuestions.chapterId,
+          qtext: mcqQuestions.qtext,
+        })
+        .from(mcqQuestions)
+        .where(
+          inArray(
+            mcqQuestions.chapterId,
+            [...new Set(mcqRows.map((q) => q.chapterId))],
+          ),
+        )
+    : [];
+  const existingSubjs = subjRows.length
+    ? await database
+        .select({
+          chapterId: subjectiveQuestions.chapterId,
+          qtext: subjectiveQuestions.qtext,
+        })
+        .from(subjectiveQuestions)
+        .where(
+          inArray(
+            subjectiveQuestions.chapterId,
+            [...new Set(subjRows.map((q) => q.chapterId))],
+          ),
+        )
+    : [];
 
   const seenVideo = new Set(
     existingVideos.map((v) => `${v.chapterId}|${v.videoUrl}`),
@@ -379,9 +567,21 @@ async function main() {
   const seenNote = new Set(
     existingNotes.map((n) => `${n.chapterId}|${n.title.toLowerCase()}`),
   );
+  const seenMcq = new Set(
+    existingMcqs.map((m) => `${m.chapterId}|${normalizeQtext(m.qtext)}`),
+  );
+  const seenSubj = new Set(
+    existingSubjs.map((s) => `${s.chapterId}|${normalizeQtext(s.qtext)}`),
+  );
   const freshVideos: (typeof videos.$inferInsert & { chapterKey: string })[] =
     [];
   const freshNotes: (typeof notes.$inferInsert & { chapterKey: string })[] = [];
+  const freshMcqs: (typeof mcqQuestions.$inferInsert & {
+    chapterKey: string;
+  })[] = [];
+  const freshSubjs: (typeof subjectiveQuestions.$inferInsert & {
+    chapterKey: string;
+  })[] = [];
   for (const v of videoRows) {
     const key = `${v.chapterId}|${v.url}`;
     if (seenVideo.has(key)) continue;
@@ -416,27 +616,109 @@ async function main() {
       chapterKey: n.chapterKey,
     });
   }
+  for (const q of mcqRows) {
+    const key = `${q.chapterId}|${normalizeQtext(q.qtext)}`;
+    if (seenMcq.has(key)) continue;
+    seenMcq.add(key);
+    freshMcqs.push({
+      chapterId: q.chapterId,
+      qtext: q.qtext,
+      options: q.options,
+      correctIndex: q.correctIndex,
+      explanation: q.explanation,
+      isPyq: q.isPyq,
+      pyqTag: q.pyqTag,
+      chapterKey: q.chapterKey,
+    });
+  }
+  for (const q of subjRows) {
+    const key = `${q.chapterId}|${normalizeQtext(q.qtext)}`;
+    if (seenSubj.has(key)) continue;
+    seenSubj.add(key);
+    freshSubjs.push({
+      chapterId: q.chapterId,
+      qtext: q.qtext,
+      marks: q.marks,
+      rubric: q.rubric,
+      modelAnswer: q.modelAnswer,
+      chapterKey: q.chapterKey,
+    });
+  }
 
+  for (const w of warnings) console.log(`  ⚠ ${w}`);
+
+  const clip = (s: string) => (s.length > 76 ? `${s.slice(0, 73)}…` : s);
+  const duplicates =
+    planned.length -
+    freshVideos.length -
+    freshNotes.length -
+    freshMcqs.length -
+    freshSubjs.length;
   console.log(
-    `\n${dryRun ? "[dry run] Would import" : "Importing"}: ${freshVideos.length} video(s), ${freshNotes.length} note(s)` +
-      ` (${planned.length - freshVideos.length - freshNotes.length} duplicate or already present, skipped)`,
+    `\n${dryRun ? "[dry run] Would import" : "Importing"}: ${freshVideos.length} video(s), ${freshNotes.length} note(s), ${freshMcqs.length} MCQ(s), ${freshSubjs.length} subjective question(s)` +
+      ` (${duplicates} duplicate or already present, skipped)`,
   );
   for (const v of freshVideos)
     console.log(`  + [video] ${v.title} → ${v.chapterKey}`);
   for (const n of freshNotes)
     console.log(`  + [note ] ${n.title} → ${n.chapterKey}`);
+  for (const q of freshMcqs)
+    console.log(`  + [mcq  ] ${clip(q.qtext)} → ${q.chapterKey}`);
+  for (const q of freshSubjs)
+    console.log(
+      `  + [subj ] ${clip(q.qtext)} → ${q.chapterKey} (${q.marks} marks)`,
+    );
 
-  if (dryRun || (freshVideos.length === 0 && freshNotes.length === 0)) {
+  // The portal presents every objective test as a 20-question, 20-minute set;
+  // nudge the sheet's author when a touched chapter won't land on 20.
+  const existingMcqCount = new Map<number, number>();
+  for (const m of existingMcqs)
+    existingMcqCount.set(
+      m.chapterId,
+      (existingMcqCount.get(m.chapterId) ?? 0) + 1,
+    );
+  const idToKey = new Map<number, string>();
+  for (const q of mcqRows) if (q.chapterId > 0) idToKey.set(q.chapterId, q.chapterKey);
+  const mcqTotals = new Map<string, { existing: number; fresh: number }>();
+  for (const q of freshMcqs) {
+    const entry = mcqTotals.get(q.chapterKey) ?? { existing: 0, fresh: 0 };
+    entry.fresh++;
+    mcqTotals.set(q.chapterKey, entry);
+  }
+  for (const [id, key] of idToKey) {
+    const entry = mcqTotals.get(key);
+    if (entry) entry.existing += existingMcqCount.get(id) ?? 0;
+  }
+  for (const [key, t] of mcqTotals) {
+    const total = t.existing + t.fresh;
+    if (total !== 20)
+      console.log(
+        `  ℹ ${key}: ${total} MCQs after this import — every chapter is presented as a "20 MCQs" test, so top up (or trim) towards 20.`,
+      );
+  }
+
+  if (
+    dryRun ||
+    (freshVideos.length === 0 &&
+      freshNotes.length === 0 &&
+      freshMcqs.length === 0 &&
+      freshSubjs.length === 0)
+  ) {
     console.log(dryRun ? "\n[dry run] No changes were written." : "\nNothing new to import — everything is already up to date.");
     return;
   }
 
   // Batch inserts stay below SQLite's parameter limit.
-  const { chapterKey: _videoKey, ...videoColumns } = freshVideos[0] ?? {};
   const insertableVideos = freshVideos.map(
     ({ chapterKey: _key, ...columns }) => columns,
   );
   const insertableNotes = freshNotes.map(
+    ({ chapterKey: _key, ...columns }) => columns,
+  );
+  const insertableMcqs = freshMcqs.map(
+    ({ chapterKey: _key, ...columns }) => columns,
+  );
+  const insertableSubjs = freshSubjs.map(
     ({ chapterKey: _key, ...columns }) => columns,
   );
   for (let offset = 0; offset < insertableVideos.length; offset += 60)
@@ -447,9 +729,17 @@ async function main() {
     await database
       .insert(notes)
       .values(insertableNotes.slice(offset, offset + 60));
+  for (let offset = 0; offset < insertableMcqs.length; offset += 60)
+    await database
+      .insert(mcqQuestions)
+      .values(insertableMcqs.slice(offset, offset + 60));
+  for (let offset = 0; offset < insertableSubjs.length; offset += 60)
+    await database
+      .insert(subjectiveQuestions)
+      .values(insertableSubjs.slice(offset, offset + 60));
 
   console.log(
-    `\n✓ Done. Open a chapter page (e.g. /class/8/science) to verify the new content, then redeploy/restart so the production database shows it.`,
+    `\n✓ Done. Open a chapter page (e.g. /class/8/science → a chapter → the Objective / Subjective tabs) to verify the new content, then redeploy/restart so the production database shows it.`,
   );
 }
 

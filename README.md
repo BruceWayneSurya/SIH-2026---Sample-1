@@ -281,8 +281,10 @@ npm run content:dry-run -- content/my-content.csv       # preview first
 
 ## Bulk content upload (Classes 8–10)
 
-Chapter-wise material — YouTube lecture links from an Excel sheet and PDFs kept
-in Google Drive — is loaded with one CSV and one command:
+Chapter-wise material — YouTube lecture links from an Excel sheet, PDFs kept
+in Google Drive, and quiz questions (objective MCQs + subjective questions
+from a question-bank sheet) — is loaded with one CSV per sheet and one
+command:
 
 ```bash
 npx tsx scripts/import-content.ts content/my-content.csv --dry-run  # preview
@@ -293,9 +295,12 @@ The importer matches every row to the right class → subject → chapter (by
 number or title), accepts any YouTube link shape, requires Drive files shared
 as *Anyone with the link · Viewer*, skips duplicates so re-runs are safe, and
 creates any missing chapter rows from the curriculum. The full step-by-step
-process — including how to prepare Drive sharing and the Excel export — is in
-[`docs/CONTENT_UPLOAD_GUIDE.md`](docs/CONTENT_UPLOAD_GUIDE.md), with a
-ready-made template in [`content/content-template.csv`](content/content-template.csv).
+process — including how to prepare Drive sharing, the Excel export, and the
+quiz-question sheet — is in
+[`docs/CONTENT_UPLOAD_GUIDE.md`](docs/CONTENT_UPLOAD_GUIDE.md), with
+ready-made templates in
+[`content/content-template.csv`](content/content-template.csv) and
+[`content/questions-template.csv`](content/questions-template.csv).
 
 Integration tests create/delete uniquely named fixtures. Run them against a
 local test database using the same file and SESSION_SECRET as the running app,
