@@ -6,6 +6,7 @@ import {
   validateAiLanguage,
 } from "@/lib/ai/groq-client";
 import { aiErrorResponse, authorizeAi, chapterContext } from "@/lib/ai/server";
+import { recordLearningActivityBestEffort } from "@/lib/analytics/record";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -21,13 +22,19 @@ export async function POST(req: Request) {
     ) {
       throw new AiServiceError("Choose a valid chapter.", 400);
     }
-    const config = await authorizeAi();
+    const { config, userId } = await authorizeAi();
     const context = body.chapterId
       ? await chapterContext(body.chapterId)
       : undefined;
     const reply = await completeGroqChat(messages, config, fetch, {
       context,
       language,
+    });
+    // Analytics: an AI tutor conversation counts as a learning activity.
+    await recordLearningActivityBestEffort({
+      userId,
+      chapterId: body.chapterId ?? null,
+      aiSessions: 1,
     });
     return Response.json(
       { ok: true, reply },

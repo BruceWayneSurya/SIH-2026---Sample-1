@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { chapters, subjectiveAttempts, xpEvents } from "@/db/schema";
 import { and, count, eq } from "drizzle-orm";
 import { getActiveUser } from "@/lib/session";
+import { recordLearningActivityBestEffort } from "@/lib/analytics/record";
 
 async function handlePOST(
   req: Request,
@@ -60,6 +61,15 @@ async function handlePOST(
       note: `Subjective Practice · ${chapter.title}`,
     });
   }
+
+  // Event-driven analytics: daily rollup, streak cache, analytical-reasoning
+  // EMA and chapter coverage.
+  await recordLearningActivityBestEffort({
+    userId: user.id,
+    chapterId,
+    subjective: 1,
+    xp: xpEarned,
+  });
 
   return Response.json({ ok: true, xpEarned, firstTime });
 }

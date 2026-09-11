@@ -225,23 +225,41 @@ export async function seedDemoDatabase(): Promise<boolean> {
     if (mcqRows.length) await db.insert(mcqQuestions).values(mcqRows);
     if (subjectiveRows.length) await db.insert(subjectiveQuestions).values(subjectiveRows);
     const attempts: (typeof mcqAttempts.$inferInsert)[] = [];
+    // diya_m (the demo star student) practises on consecutive recent days so
+    // the analytics demo shows a live multi-day streak.
+    let diyaDay = 2;
     for (const [key, byUser] of Object.entries(ATTEMPTS)) {
       const total = bankSize[key] ?? 20;
       for (const [handle, score] of Object.entries(byUser)) {
+        // Spread demo attempts across the past months so the analytics
+        // heatmap and trend charts have a realistic history after backfill.
+        const at =
+          handle === "diya_m"
+            ? new Date(Date.now() - diyaDay-- * 86_400_000)
+            : new Date(
+                Date.now() - (5 + Math.floor(rnd() * 230)) * 86_400_000 -
+                  Math.floor(rnd() * 20) * 3_600_000,
+              );
         attempts.push({ userId: userIds[handle], chapterId: chapterIds[key], total, score,
           answers: Array.from({ length: total }, (_, i) => i < score ? pick(4) : (pick(4) + 1) % 4),
-          durationSec: 240 + pick(480), xpEarned: 10 * score });
+          durationSec: 240 + pick(480), xpEarned: 10 * score, createdAt: at });
         xpRows.push({ userId: userIds[handle], type: "objective", amount: 10 * score,
-          refType: "chapter", refId: chapterIds[key], note: `Objective Test · ${chapterTitles[key]} · ${score}/${total}` });
+          refType: "chapter", refId: chapterIds[key], note: `Objective Test · ${chapterTitles[key]} · ${score}/${total}`,
+          createdAt: at });
       }
     }
     if (attempts.length) await db.insert(mcqAttempts).values(attempts);
     const subjectiveDone: (typeof subjectiveAttempts.$inferInsert)[] = [];
     for (const entry of SUBJECTIVE_DONE) {
+      const at =
+        entry.handle === "diya_m" && diyaDay >= 0
+          ? new Date(Date.now() - diyaDay-- * 86_400_000)
+          : new Date(Date.now() - (2 + Math.floor(rnd() * 200)) * 86_400_000);
       subjectiveDone.push({ userId: userIds[entry.handle], chapterId: chapterIds[entry.chapter],
-        answers: { 1: "Self-reviewed against the model marking scheme." }, xpEarned: 30 });
+        answers: { 1: "Self-reviewed against the model marking scheme." }, xpEarned: 30, createdAt: at });
       xpRows.push({ userId: userIds[entry.handle], type: "subjective", amount: 30, refType: "chapter",
-        refId: chapterIds[entry.chapter], note: `Subjective Practice · ${chapterTitles[entry.chapter]}` });
+        refId: chapterIds[entry.chapter], note: `Subjective Practice · ${chapterTitles[entry.chapter]}`,
+        createdAt: at });
     }
     if (subjectiveDone.length) await db.insert(subjectiveAttempts).values(subjectiveDone);
     if (xpRows.length) await db.insert(xpEvents).values(xpRows);

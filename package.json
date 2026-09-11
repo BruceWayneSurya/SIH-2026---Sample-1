@@ -13,8 +13,9 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
-    "db:setup": "tsx scripts/migrate.ts && tsx scripts/seed.ts",
+    "db:setup": "tsx scripts/migrate.ts && tsx scripts/seed.ts && tsx scripts/backfill-analytics.ts",
     "db:check": "tsx scripts/check-db.ts",
+    "analytics:backfill": "tsx scripts/backfill-analytics.ts",
     "content:import": "tsx scripts/import-content.ts",
     "content:dry-run": "tsx scripts/import-content.ts --dry-run"
   },

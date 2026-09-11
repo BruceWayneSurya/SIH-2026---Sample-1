@@ -277,7 +277,24 @@ export function AiStudyTools({
               disabled={
                 Object.keys(answers).length !== questions.length || busy
               }
-              onClick={() => setGraded(true)}
+              onClick={() => {
+                setGraded(true);
+                // Record the recall drill for learning analytics (heatmap,
+                // retention competency). Fire-and-forget — never blocks UI.
+                const correct = questions.filter(
+                  (q, i) => answers[i] === q.correctIndex,
+                ).length;
+                void fetch("/api/analytics/study", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    chapterId,
+                    drills: questions.length,
+                    correct,
+                  }),
+                  keepalive: true,
+                }).catch(() => undefined);
+              }}
               className="rounded-lg bg-navy-800 px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
               <T>Check practice answers</T>

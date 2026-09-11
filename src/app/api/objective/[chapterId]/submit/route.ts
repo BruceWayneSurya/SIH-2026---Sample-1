@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { chapters, mcqAttempts, mcqQuestions, xpEvents } from "@/db/schema";
 import { and, count, eq } from "drizzle-orm";
 import { getActiveUser } from "@/lib/session";
+import { recordLearningActivityBestEffort } from "@/lib/analytics/record";
 
 async function handlePOST(
   req: Request,
@@ -70,6 +71,18 @@ async function handlePOST(
       note: `Objective Test · ${chapter.title} · ${score}/${questions.length}`,
     });
   }
+
+  // Event-driven analytics: daily rollup, streak cache, competency EMA,
+  // chapter coverage and the weekly accuracy trajectory (best-effort — a
+  // analytics hiccup must never lose a submitted test).
+  await recordLearningActivityBestEffort({
+    userId: user.id,
+    chapterId,
+    quizzes: 1,
+    xp: xpEarned,
+    minutes: Math.max(1, Math.min(30, Math.round(durationSec / 60))),
+    scoreRatio: questions.length > 0 ? score / questions.length : 0,
+  });
 
   return Response.json({
     ok: true,

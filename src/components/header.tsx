@@ -43,6 +43,7 @@ export async function SiteHeader() {
         >
           {[
             { href: "/home", label: "Dashboard" },
+            { href: "/analytics", label: "Analytics" },
             { href: "/leaderboard", label: "Leaderboard" },
             { href: "/account", label: "My Account" },
           ].map((l) => (

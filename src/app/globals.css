@@ -270,5 +270,53 @@ html.dark .note-scroll::-webkit-scrollbar-thumb,
   .vsv-enter, .vs-pulse { animation: none; }
 }
 
+/* ==========================================================================
+   Learning analytics — activity heatmap tiers.
+   Five discrete intensity tiers driven purely by CSS variables so the grid
+   restyles instantly across light, dark and high-contrast themes without a
+   re-render. Tier 0 is the muted "inactive" cell; tier 4 the deep-emerald
+   "ultra-active" cell.
+   ========================================================================== */
+:root {
+  --heat-0: #e6edf3;
+  --heat-1: #c8e6cf;
+  --heat-2: #93d5a3;
+  --heat-3: #4fae6a;
+  --heat-4: #1e6b30;
+  --heat-ring: #14212e;
+}
+html.dark, [data-theme="dark"] {
+  --heat-0: #17202e;
+  --heat-1: #14401f;
+  --heat-2: #1d6b34;
+  --heat-3: #2c9c4b;
+  --heat-4: #4ade80;
+  --heat-ring: #f1f5f9;
+}
+
+/* Crisp 1px-gap grid; hover focus ring uses the theme-aware outline colour. */
+.heat-cell {
+  shape-rendering: crispEdges;
+  rx: 2;
+}
+.heat-cell-hover {
+  stroke: var(--heat-ring);
+  stroke-width: 1;
+  outline: none;
+}
+
+/* Data-saver mode and reduced-motion: no transitions or hover fades. */
+.heat-cell, .heat-tip {
+  transition: opacity 0.15s ease;
+}
+[data-saver="1"] .heat-cell, [data-saver="1"] .heat-tip {
+  transition: none;
+}
+/* Data Saver also freezes loading skeletons. */
+[data-saver="1"] .animate-pulse { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .heat-cell, .heat-tip { transition: none; }
+}
+
 /* Indic compound words must wrap inside narrow cards/buttons on mobile. */
 html:not([lang="en"]) body { overflow-wrap: anywhere; }

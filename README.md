@@ -238,7 +238,8 @@ with separate accounts for separate votes and progress.
 - **AI Tutor** tab: chapter-scoped conversation.
 - **AI Quiz Generator**: 3/5/7/10 original practice questions on the objective tab,
   answer checking and explanations. Generated questions are **not official PYQs**
-  and do not award XP or change the stored assessment bank.
+  and do not award XP or change the stored assessment bank. Checking practice
+  answers records a recall drill for the student's analytics.
 - **AI Study Notes**: summary, key points or a simpler explanation in the learning tab.
 
 Browser requests go to same-origin `POST /api/ai/chat` or `/api/ai/study`.
@@ -252,6 +253,29 @@ sanitized errors and a **best-effort per-instance** 10-request/minute/account
 limit shared across AI endpoints. For a public deployment, also configure
 provider spending limits and distributed/gateway rate limiting; an in-process
 map does not enforce a global limit across Vercel instances.
+
+## Learning analytics
+
+`/analytics` gives every student a habit-forming view of their own practice:
+a GitHub-style **365-day activity heatmap** (5 intensity tiers driven by CSS
+variables, hover/tap tooltips with XP and top subjects), **streak metrics**
+(current, longest, active days, yearly sessions — including milestone XP at
+7/30/100/365-day streaks), a five-axis **competency radar** (conceptual
+depth, analytical reasoning, revision retention, curriculum coverage,
+consistency) with a holistic ⇄ per-subject switch, a smoothed **weekly
+accuracy trajectory** (3/6 months), a **practice-mix donut** and an
+encouraging, rank-free **class percentile**.
+
+Learning actions are events that increment pre-aggregated tables
+(`daily_activity`, `user_analytics`, `competency_scores`, `chapter_progress`,
+`weekly_scores`) — raw submission tables are never scanned at render time.
+Competency scores are exponential moving averages, so recent progress moves
+the radar. One `GET /api/analytics` returns the entire dashboard payload;
+charts are lightweight inline SVG rendered on the client from UTC day keys
+(hydration-safe, no chart library), and **Data Saver mode** freezes all
+animations. See [`docs/ANALYTICS.md`](docs/ANALYTICS.md) for the full
+architecture, and `npm run analytics:backfill` to rebuild the rollups from
+existing submission history.
 
 Faculty email verification proves mailbox ownership and institutional domain,
 but it is not a school identity service: there is no UID/Aadhaar or state

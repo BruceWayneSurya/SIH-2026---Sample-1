@@ -18,7 +18,7 @@ export async function authorizeAi() {
   const window = requests.get(user.id) ?? { count: 0, until: now + 60_000 };
   if (window.count >= 10) throw new AiServiceError("Too many AI requests. Please wait a minute.", 429);
   requests.set(user.id, { ...window, count: window.count + 1 });
-  return config;
+  return { config, userId: user.id };
 }
 
 export async function chapterContext(id: number) {

@@ -5,6 +5,7 @@ import {
   real,
   index,
   uniqueIndex,
+  primaryKey,
 } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
@@ -245,7 +246,7 @@ export const xpEvents = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     type: text("type", {
-      enum: ["objective", "subjective", "note_upvotes", "note_upload"],
+      enum: ["objective", "subjective", "note_upvotes", "note_upload", "streak_milestone"],
     }).notNull(),
     amount: integer("amount").notNull(),
     refType: text("ref_type"),
@@ -254,4 +255,124 @@ export const xpEvents = sqliteTable(
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
   },
   (t) => [index("xp_user").on(t.userId)],
+);
+
+/* ------------------------------------------------------------------ */
+/*  Learning analytics — pre-aggregated by event, never scanned from   */
+/*  the raw submission tables at render time.                          */
+/* ------------------------------------------------------------------ */
+
+/** One row per (student, UTC day) with the day's engagement totals. */
+export const dailyActivity = sqliteTable(
+  "daily_activity",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** UTC day key, YYYY-MM-DD. */
+    activityDate: text("activity_date").notNull(),
+    /** Objective tests submitted. */
+    quizzes: integer("quizzes").notNull().default(0),
+    /** Subjective written sets submitted. */
+    subjective: integer("subjective").notNull().default(0),
+    /** AI tutor conversations / study generations. */
+    aiSessions: integer("ai_sessions").notNull().default(0),
+    /** AI recall drills (practice-quiz flashcard-style questions) answered. */
+    drills: integer("drills").notNull().default(0),
+    /** Drill questions answered correctly (recall signal). */
+    drillsCorrect: integer("drills_correct").notNull().default(0),
+    xpEarned: integer("xp_earned").notNull().default(0),
+    /** Estimated focused minutes (quiz durations, clamped). */
+    minutesSpent: integer("minutes_spent").notNull().default(0),
+    /** { "<subjectSlug>": <activities> } — drives the "top subjects" tooltip. */
+    subjects: text("subjects", { mode: "json" })
+      .$type<Record<string, number>>()
+      .notNull()
+      .default({}),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.activityDate] }),
+    index("daily_activity_user_date").on(t.userId, t.activityDate),
+  ],
+);
+
+/** Exponential-moving-average score per competency dimension and scope. */
+export const competencyScores = sqliteTable(
+  "competency_scores",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** "all" or a subject slug — the radar's holistic vs per-subject view. */
+    scope: text("scope").notNull(),
+    /** conceptual | analytical | retention */
+    dimension: text("dimension").notNull(),
+    /** Normalized 0.0–100.0. */
+    score: real("score").notNull().default(0),
+    /** Observation count behind the score. */
+    dataPoints: integer("data_points").notNull().default(0),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.scope, t.dimension] }),
+    index("competency_user").on(t.userId),
+  ],
+);
+
+/** Chapters the student has practised — powers curriculum coverage cheaply. */
+export const chapterProgress = sqliteTable(
+  "chapter_progress",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    chapterId: integer("chapter_id")
+      .notNull()
+      .references(() => chapters.id, { onDelete: "cascade" }),
+    firstTouchedAt: integer("first_touched_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.chapterId] }),
+    index("chapter_progress_user").on(t.userId),
+  ],
+);
+
+/** Weekly objective-score rollup — the accuracy trajectory without raw scans. */
+export const weeklyScores = sqliteTable(
+  "weekly_scores",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** UTC Monday of the week, YYYY-MM-DD. */
+    weekStart: text("week_start").notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    correctSum: integer("correct_sum").notNull().default(0),
+    totalSum: integer("total_sum").notNull().default(0),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.weekStart] }),
+    index("weekly_scores_user").on(t.userId),
+  ],
+);
+
+/** Instantaneous streak + lifetime totals — one indexed row per student. */
+export const userAnalytics = sqliteTable(
+  "user_analytics",
+  {
+    userId: integer("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    currentStreak: integer("current_streak").notNull().default(0),
+    longestStreak: integer("longest_streak").notNull().default(0),
+    /** UTC day key of the last recorded activity. */
+    lastActiveDate: text("last_active_date"),
+    totalActiveDays: integer("total_active_days").notNull().default(0),
+    totalQuizzes: integer("total_quizzes").notNull().default(0),
+    totalSubjective: integer("total_subjective").notNull().default(0),
+    totalAiSessions: integer("total_ai_sessions").notNull().default(0),
+    totalDrills: integer("total_drills").notNull().default(0),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => [index("user_analytics_streak").on(t.currentStreak)],
 );
