@@ -56,11 +56,6 @@ export function SiteFooter() {
                 <T>Accessibility statement (WCAG 2.1 AA)</T>
               </Link>
             </li>
-            <li>
-              <Link className="underline underline-offset-2 hover:text-white" href="/about#faculty-verification">
-                Faculty verification policy
-              </Link>
-            </li>
             <li>• <T>Low-bandwidth data saver mode for rural connections</T></li>
           </ul>
         </div>

@@ -31,10 +31,8 @@ import { GoogleDrivePreview } from "./google-drive-preview";
 type Props = {
   chapterId: number;
   initial: RankedNote[];
-  /** Verified faculty only — pending accounts cannot sign off on notes. */
+  /** Faculty may sign off on community notes; students cannot. */
   canModerate: boolean;
-  /** Set when a faculty member is signed in but still awaiting review. */
-  moderationBlocked?: boolean;
   allowLocalUploads?: boolean;
 };
 
@@ -42,7 +40,6 @@ export function NotesSection({
   chapterId,
   initial,
   canModerate,
-  moderationBlocked = false,
   allowLocalUploads = true,
 }: Props) {
   const router = useRouter();
@@ -469,15 +466,6 @@ export function NotesSection({
             </T>
           </p>
         </form>
-      )}
-
-      {moderationBlocked && (
-        <p className="mt-3 rounded-md border border-saffron-200 bg-saffron-50 px-3 py-2 text-[13px] font-semibold text-saffron-700">
-          <T>
-            Your email is verified; note verification unlocks after a verified
-            reviewer confirms your institution.
-          </T>
-        </p>
       )}
 
       {sorted.length === 0 ? (

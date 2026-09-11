@@ -23,49 +23,9 @@ export const users = sqliteTable("users", {
   school: text("school"),
   subjectSpecialization: text("subject_specialization"),
   institutionId: text("institution_id"),
-  /** Mailbox proven with a one-time code. */
-  emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
-  emailVerifiedAt: integer("email_verified_at", { mode: "timestamp_ms" }),
-  /** Domain the address belongs to, kept for audit and review queues. */
-  emailDomain: text("email_domain"),
-  /** unverified → verified (institutional) | pending_review (personal mail). */
-  verificationStatus: text("verification_status", {
-    enum: ["unverified", "verified", "pending_review", "rejected"],
-  })
-    .notNull()
-    .default("unverified"),
-  /** Name of the reviewer who approved a pending institutional claim. */
-  verifiedBy: text("verified_by"),
   isGuest: integer("is_guest", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
 });
-
-/** One-time codes issued while proving ownership of a mailbox. */
-export const emailVerifications = sqliteTable(
-  "email_verifications",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    userId: integer("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    email: text("email").notNull(),
-    /** HMAC digest — the plain code is never stored. */
-    codeHash: text("code_hash").notNull(),
-    purpose: text("purpose", { enum: ["login", "register", "reverify"] })
-      .notNull()
-      .default("login"),
-    attempts: integer("attempts").notNull().default(0),
-    sends: integer("sends").notNull().default(1),
-    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
-    lastSentAt: integer("last_sent_at", { mode: "timestamp_ms" }),
-    consumedAt: integer("consumed_at", { mode: "timestamp_ms" }),
-    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
-  },
-  (t) => [
-    index("email_verifications_user").on(t.userId),
-    index("email_verifications_email").on(t.email),
-  ],
-);
 
 export const chapters = sqliteTable(
   "chapters",

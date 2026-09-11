@@ -21,7 +21,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Wordmark } from "@/components/ui";
-import { EmailVerifyCard, type Challenge } from "@/components/email-verify-card";
 
 import { DEMO_ACCOUNTS } from "@/lib/demo-accounts";
 
@@ -39,9 +38,6 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [challenge, setChallenge] = useState<
-    (Challenge & { name: string }) | null
-  >(null);
 
   const inFlight = useRef(false);
 
@@ -58,24 +54,11 @@ export function LoginForm({
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json().catch(() => null);
       if (!res.ok) {
+        const data = await res.json().catch(() => null);
         throw new Error(
           data?.error ?? t("Login failed. Please check your credentials."),
         );
-      }
-
-      // Faculty must prove ownership of the mailbox before a session is issued.
-      if (data?.requiresVerification) {
-        setChallenge({
-          challengeId: data.challengeId,
-          maskedEmail: data.maskedEmail,
-          resendAfter: data.resendAfter ?? 60,
-          delivered: !!data.delivered,
-          devCode: data.devCode,
-          name: data.name ?? "",
-        });
-        return;
       }
 
       router.push("/home");
@@ -101,7 +84,6 @@ export function LoginForm({
     setEmail(account.email);
     setPassword(account.pw);
     setError(null);
-    setChallenge(null);
     void signIn(account.email, account.pw);
   };
 
@@ -134,17 +116,6 @@ export function LoginForm({
       <div className="mt-8 grid gap-8 md:grid-cols-[1fr_360px]">
         {/* Main Login Box */}
         <div>
-          {challenge ? (
-            <EmailVerifyCard
-              challenge={challenge}
-              name={challenge.name}
-              onBack={() => {
-                setChallenge(null);
-                setPassword("");
-                setError(null);
-              }}
-            />
-          ) : (
             <div className="rounded-xl border border-line bg-white p-6 shadow-sm sm:p-8">
               {/* Role selector tabs */}
               <div className="mb-6 flex rounded-lg border border-line bg-paper p-1">
@@ -261,23 +232,6 @@ export function LoginForm({
                 </button>
               </form>
 
-              {role === "faculty" && (
-                <p className="mt-4 flex items-start gap-2 rounded-lg border border-navy-200 bg-navy-50 p-3 text-[13px] text-navy-700">
-                  <ShieldCheck
-                    className="mt-0.5 h-4 w-4 shrink-0 text-navy-600"
-                    aria-hidden="true"
-                  />
-                  <span>
-                    <T>
-                      Faculty sign-in sends a one-time code to your registered
-                      email ID. Institutional addresses are verified instantly;
-                      personal mailboxes are confirmed after an institutional
-                      check.
-                    </T>
-                  </span>
-                </p>
-              )}
-
               {/* Demo access */}
               <div className="mt-6 border-t border-line pt-5">
                 <p className="text-center text-xs font-extrabold uppercase tracking-wider text-saffron-700">
@@ -311,7 +265,6 @@ export function LoginForm({
                 </Link>
               </p>
             </div>
-          )}
         </div>
 
         {/* Demo Personas & Information */}
@@ -347,38 +300,6 @@ export function LoginForm({
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="rounded-xl border border-line bg-white p-4 text-xs text-slate-600 shadow-sm">
-            <p className="font-bold text-navy-900">
-              <T>Faculty verification</T>
-            </p>
-            <ul className="mt-1 list-disc space-y-1 pl-4 leading-relaxed">
-              <li>
-                <T>
-                  Sign in with the email ID issued by your school or
-                  department.
-                </T>
-              </li>
-              <li>
-                <T>
-                  A six-digit code is mailed to you; it expires in ten minutes
-                  and allows five attempts.
-                </T>
-              </li>
-              <li>
-                <T>
-                  …gov.in, …nic.in, …edu.in, …ac.in addresses are verified
-                  immediately.
-                </T>
-              </li>
-              <li>
-                <T>
-                  Gmail and other personal IDs are marked pending institutional
-                  review until a verified reviewer confirms your institution.
-                </T>
-              </li>
-            </ul>
           </div>
 
           <div className="rounded-xl border border-line bg-white p-4 text-xs text-slate-600 shadow-sm">

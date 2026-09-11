@@ -22,6 +22,13 @@
       "when": 1789107516330,
       "tag": "0002_classy_golden_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1789123289097,
+      "tag": "0003_tiresome_thena",
+      "breakpoints": true
     }
   ]
 }

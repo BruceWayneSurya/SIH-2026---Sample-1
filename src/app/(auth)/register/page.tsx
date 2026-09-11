@@ -19,10 +19,8 @@ import {
   MapPin,
   Building2,
   BookOpen,
-  ShieldCheck,
 } from "lucide-react";
 import { Wordmark } from "@/components/ui";
-import { EmailVerifyCard, type Challenge } from "@/components/email-verify-card";
 import { CLASSES } from "@/lib/curriculum";
 
 const STATES_AND_UTS = [
@@ -87,9 +85,6 @@ export default function RegisterPage() {
   const [institutionId, setInstitutionId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [challenge, setChallenge] = useState<
-    (Challenge & { name: string }) | null
-  >(null);
 
   const inFlight = useRef(false);
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,24 +118,11 @@ export default function RegisterPage() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json().catch(() => null);
       if (!res.ok) {
+        const data = await res.json().catch(() => null);
         throw new Error(
           data?.error ?? "Registration failed. Please check your details.",
         );
-      }
-
-      // Faculty must confirm the mailbox before the portal opens.
-      if (data?.requiresVerification) {
-        setChallenge({
-          challengeId: data.challengeId,
-          maskedEmail: data.maskedEmail,
-          resendAfter: data.resendAfter ?? 60,
-          delivered: !!data.delivered,
-          devCode: data.devCode,
-          name: data.name ?? name,
-        });
-        return;
       }
 
       router.push("/home");
@@ -176,15 +158,6 @@ export default function RegisterPage() {
       </div>
 
       <div className="mt-8 rounded-xl border border-line bg-white p-6 shadow-sm sm:p-8">
-        {challenge ? (
-          <EmailVerifyCard
-            challenge={challenge}
-            name={challenge.name}
-            onBack={() => setChallenge(null)}
-            backLabel="Back to the registration form"
-          />
-        ) : (
-          <>
         {/* Role toggle */}
         <div className="mb-6 flex rounded-lg border border-line bg-paper p-1">
           <button
@@ -435,21 +408,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <p className="flex items-start gap-2 rounded-lg border border-navy-200 bg-navy-50 p-3 text-[13px] text-navy-700">
-                <ShieldCheck
-                  className="mt-0.5 h-4 w-4 shrink-0 text-navy-600"
-                  aria-hidden="true"
-                />
-                <span>
-                  <T>
-                    Faculty registration verifies your email ID with a one-time
-                    code. Institutional addresses are verified instantly;
-                    personal mailboxes stay pending until a verified reviewer
-                    confirms your institution.
-                  </T>
-                </span>
-              </p>
-
               <div>
                 <label
                   htmlFor="register-state"
@@ -492,8 +450,6 @@ export default function RegisterPage() {
           </button>
         </form>
 
-          </>
-        )}
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Already registered?{" "}

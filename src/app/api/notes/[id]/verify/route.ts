@@ -3,7 +3,6 @@ import { db } from "@/db";
 import { notes } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getActiveUser } from "@/lib/session";
-import { canModerateNotes } from "@/lib/faculty-email";
 
 async function handlePOST(
   req: Request,
@@ -12,14 +11,9 @@ async function handlePOST(
   const user = await getActiveUser();
   if (!user)
     return Response.json({ error: "Please log in first." }, { status: 401 });
-  if (!canModerateNotes(user))
+  if (user.role !== "faculty")
     return Response.json(
-      {
-        error:
-          user.role !== "faculty"
-            ? "Only faculty members can verify notes."
-            : "Your faculty account is pending institutional review, so note verification is not available yet.",
-      },
+      { error: "Only faculty members can verify notes." },
       { status: 403 },
     );
 

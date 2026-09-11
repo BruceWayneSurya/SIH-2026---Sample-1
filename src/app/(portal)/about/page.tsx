@@ -1,5 +1,5 @@
 import { TranslatedText as T } from "@/components/language-provider";
-import { BadgeCheck, Mail, Phone, ShieldCheck } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -43,52 +43,6 @@ export default function About() {
           the national curriculum framework.
         </T>
       </p>
-
-      <section
-        id="faculty-verification"
-        className="vsv-enter mt-8 rounded-lg border border-line bg-white p-5 shadow-sm"
-      >
-        <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-          <ShieldCheck className="h-5 w-5 text-saffron-600" aria-hidden="true" />
-          <T>Faculty verification policy</T>
-        </h2>
-        <ol className="mt-3 list-decimal space-y-2 pl-5 text-[15px] text-slate-700">
-          <li>
-            <T>
-              A teacher signs in or registers with the email ID issued by the
-              school or department.
-            </T>
-          </li>
-          <li>
-            <T>
-              A six-digit one-time code is sent to that mailbox. The code is
-              valid for ten minutes, may be attempted five times and is never
-              stored in plain form.
-            </T>
-          </li>
-          <li>
-            <T>
-              Institutional addresses (…gov.in, …nic.in, …edu.in, …ac.in) are
-              marked verified as soon as the mailbox is confirmed, which
-              unlocks verification of community notes.
-            </T>
-          </li>
-          <li>
-            <T>
-              Personal mailboxes (Gmail and similar) are accepted with review:
-              the mailbox is confirmed, but a verified reviewer must confirm the
-              institution before moderation rights are granted.
-            </T>
-          </li>
-        </ol>
-        <p className="mt-3 inline-flex items-center gap-2 rounded-md border border-leaf-500/40 bg-leaf-50 px-3 py-2 text-[13px] font-bold text-leaf-700">
-          <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-          <T>
-            Verification is mandatory — an unverified account cannot publish a
-            verified note.
-          </T>
-        </p>
-      </section>
 
       <section
         id="policies"

@@ -7,7 +7,7 @@ export async function migrateDatabase(): Promise<void> {
   await initializeDatabase();
   // Historical PostgreSQL migrations in drizzle/ are deliberately not applied.
   await migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle", "sqlite") });
-  // Adopt SQLite files created before a column was introduced.
-  const added = await ensureSchemaColumns(client);
-  if (added.length) console.info(`[db] added missing columns: ${added.join(", ")}`);
+  // Adopt older SQLite files: add missing columns, retire stale ones.
+  const changed = await ensureSchemaColumns(client);
+  if (changed.length) console.info(`[db] schema columns updated: ${changed.join(", ")}`);
 }

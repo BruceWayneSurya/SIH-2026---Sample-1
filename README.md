@@ -10,7 +10,7 @@ floating AI assistant and chapter tools follow the supplied
 [Pragyan reference](https://pragyan-sih-2026.vercel.app/). The existing text/Drive
 PDF upload, embedded preview and concurrent voting fixes are retained.
 
-## Portal shell, faculty verification and class coverage
+## Portal shell and class coverage
 
 **Government-portal dashboard.** The portal chrome carries the official
 identification strip (Government of India · Ministry of Education · Department
@@ -21,31 +21,16 @@ circulars and announcements board, a Class 6–10 browser, the NCERT subject gri
 with progress, available assessments and recent XP activity. Hackathon
 branding ("SIH Edition", evaluator quick-access wording, team credits) is gone
 from the portal, the login screen, the landing page and the page metadata;
-`/about` publishes the policies, accessibility statement and the faculty
-verification policy.
+`/about` publishes the policies and the accessibility statement.
 
-**Faculty email verification.** A teacher signs in or registers with their
-email ID and proves the mailbox with a six-digit one-time code
-(`src/lib/otp.ts`, `src/lib/faculty-verification.ts`):
-
-| Step | Behaviour |
-| --- | --- |
-| Sign in / register | Password checked first; no session is issued until the mailbox is proven |
-| Code | CSPRNG six digits, stored only as an HMAC digest, valid 10 minutes, 5 attempts |
-| Resend | Throttled to one per 60 s and five per rolling hour |
-| Challenge token | Signed and bound to the address, so a code cannot be replayed on another challenge |
-| Institutional address (…gov.in / …nic.in / …edu.in / …ac.in / listed bodies) | Verified on confirmation — may verify community notes and confirm pending teachers |
-| Personal address (Gmail and similar) | Mailbox confirmed, account stays `pending_review` until a verified reviewer confirms the institution |
-
-Mail is sent through `MAIL_PROVIDER=smtp` (raw client, STARTTLS aware — works
-with a Gmail app password on 465/587), `MAIL_PROVIDER=resend` (single HTTPS
-call), or the default console provider, which logs the message and returns the
-code to the browser as `devCode` outside production so a local demo needs no
-credentials. `FACULTY_PERSONAL_EMAIL_POLICY=review|block|allow` controls how
-personal mailboxes are treated. Unverified or pending faculty cannot verify
-notes (`/api/notes/[id]/verify` returns 403 with an explanatory message), and a
-verified reviewer works through the pending list on the dashboard
-(`/api/faculty/review`).
+**Faculty access.** Faculty accounts register and sign in directly with any
+email address — there is no one-time-code email step and no review queue.
+Note moderation is granted by the faculty role itself: any signed-in faculty
+member can verify community notes (`/api/notes/[id]/verify`), students cannot
+(403). For a production deployment, gate account provisioning (invitations,
+SSO or an institutional directory) before trusting the faculty role, since
+the portal itself no longer distinguishes institutional and personal
+mailboxes.
 
 **Class 6 to 10.** `CLASSES` in `src/lib/curriculum.ts` drives registration,
 routing, the leaderboard tabs, the dashboard class browser and the demo seed.
@@ -277,12 +262,13 @@ animations. See [`docs/ANALYTICS.md`](docs/ANALYTICS.md) for the full
 architecture, and `npm run analytics:backfill` to rebuild the rollups from
 existing submission history.
 
-Faculty email verification proves mailbox ownership and institutional domain,
-but it is not a school identity service: there is no UID/Aadhaar or state
-roster check behind it, and the demo build ships public guest and faculty
-personas. Harden account provisioning and moderation before use with real
-student records. AI can make mistakes; confirm important answers against NCERT
-or a teacher, and do not enter private personal information.
+The portal does not run a school identity service: there is no UID/Aadhaar or
+state roster check behind any account, and the demo build ships public guest
+and faculty personas. Faculty accounts are trusted on registration with any
+mailbox, so harden account provisioning (invitations, SSO, an institutional
+directory) before use with real student records. AI can make mistakes; confirm
+important answers against NCERT or a teacher, and do not enter private
+personal information.
 
 ## Checks and database commands
 
@@ -332,13 +318,9 @@ not against a production deployment. `TEST_BASE_URL` defaults to
 `http://127.0.0.1:3000`. Groq and hosted-driver unit tests mock transport: they do
 not need real keys, spend credits, or claim to validate a live cloud database.
 
-`tests/faculty-verification.integration.ts` walks the real HTTP flow: a personal
-mailbox is held at pending review and its challenge survives the resend cooldown,
-note moderation stays locked (403) until a verified reviewer approves the
-institution and then unlocks (200) on the same cookie, an institutional mailbox
-reaches verified immediately, students are never challenged, and forged or unknown
-challenge ids are refused. It needs the console mail provider (the default when
-`MAIL_PROVIDER` is unset) because the one-time code is read from the response;
-against a real SMTP or Resend configuration the code-dependent cases skip.
+`tests/portal-api.integration.ts` also covers the faculty flow end to end: a
+faculty account registers with a personal mailbox, signs in directly (no
+one-time code is issued anywhere), and can immediately verify a community
+note; students attempting the same call are refused with 403.
 
 Next.js 16 · React 19 · SQLite/libSQL · Drizzle ORM · Tailwind CSS 4 · Groq.

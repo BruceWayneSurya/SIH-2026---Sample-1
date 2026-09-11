@@ -1,15 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { REQUIRED_COLUMNS, ensureSchemaColumns } from "../src/db/ensure-columns";
+import {
+  REQUIRED_COLUMNS,
+  STALE_COLUMNS,
+  ensureSchemaColumns,
+} from "../src/db/ensure-columns";
 
 function executor(existing: Record<string, string[]>) {
   const ran: string[] = [];
   return {
     ran,
     execute: async (query: string) => {
-      const text = query;
-      ran.push(text);
-      const table = text.match(/PRAGMA table_info\((\w+)\)/)?.[1];
+      ran.push(query);
+      const table = query.match(/PRAGMA table_info\((\w+)\)/)?.[1];
       if (table) return { rows: (existing[table] ?? []).map((name) => ({ name })) };
       return { rows: [] };
     },
@@ -17,33 +20,33 @@ function executor(existing: Record<string, string[]>) {
 }
 
 describe("adopting SQLite files from an earlier release", () => {
-  it("adds only the columns the database is missing", async () => {
-    const fake = executor({
-      users: ["id", "handle", "name", "email", "password_hash", "role", "is_guest"],
-    });
-    const added = await ensureSchemaColumns(fake);
-    assert.deepEqual(added, REQUIRED_COLUMNS.map((c) => `users.${c.column}`));
-    for (const column of REQUIRED_COLUMNS)
-      assert.ok(
-        fake.ran.includes(column.ddl),
-        `missing ALTER for ${column.column}`,
-      );
-  });
-
-  it("is a no-op on a database that already has the columns", async () => {
+  it("adds missing and drops stale columns in one pass", async () => {
+    // A pre-verification-removal database: it still carries the retired
+    // faculty-verification columns and lacks a hypothetical new one.
     const fake = executor({
       users: [
         "id",
-        ...REQUIRED_COLUMNS.map((c) => c.column),
+        "handle",
+        "name",
+        "email",
+        "password_hash",
+        "role",
+        "is_guest",
+        ...STALE_COLUMNS.map((c) => c.column),
       ],
     });
-    const added = await ensureSchemaColumns(fake);
-    assert.deepEqual(added, []);
-    assert.equal(fake.ran.filter((q) => q.startsWith("ALTER")).length, 0);
+    const touched = await ensureSchemaColumns(
+      fake,
+      [{ table: "users", column: "future_flag", ddl: "ALTER TABLE users ADD COLUMN future_flag integer" }],
+      [{ table: "users", column: "email_verified" }],
+    );
+    assert.deepEqual(touched, ["+users.future_flag", "-users.email_verified"]);
+    assert.ok(fake.ran.includes("ALTER TABLE users ADD COLUMN future_flag integer"));
+    assert.ok(fake.ran.includes("ALTER TABLE users DROP COLUMN email_verified"));
   });
 
-  it("covers every faculty verification column with a SQLite-safe default", async () => {
-    const columns = REQUIRED_COLUMNS.map((c) => c.column);
+  it("retires every faculty-verification column from older databases", async () => {
+    const columns = STALE_COLUMNS.map((c) => c.column);
     for (const name of [
       "email_verified",
       "email_verified_at",
@@ -51,11 +54,33 @@ describe("adopting SQLite files from an earlier release", () => {
       "verification_status",
       "verified_by",
     ])
-      assert.ok(columns.includes(name), `uncovered column: ${name}`);
-    for (const column of REQUIRED_COLUMNS) {
-      assert.match(column.ddl, /^ALTER TABLE \w+ ADD COLUMN /);
-      if (column.ddl.includes("NOT NULL"))
-        assert.match(column.ddl, /DEFAULT /, `${column.column} needs a default`);
+      assert.ok(columns.includes(name), `unretired column: ${name}`);
+    for (const column of STALE_COLUMNS) {
+      assert.equal(column.table, "users");
+      assert.match(column.column, /^[a-z_]+$/);
     }
+  });
+
+  it("is a no-op on an already-current database", async () => {
+    const fake = executor({ users: ["id", "handle", "name", "email"] });
+    const touched = await ensureSchemaColumns(fake);
+    assert.deepEqual(touched, []);
+    assert.equal(fake.ran.filter((q) => q.startsWith("ALTER")).length, 0);
+    // The shipped schema no longer requires any additive columns.
+    assert.deepEqual(REQUIRED_COLUMNS, []);
+  });
+
+  it("skips tables that do not exist", async () => {
+    const fake = executor({ users: ["id", "email_verified"] });
+    const touched = await ensureSchemaColumns(
+      fake,
+      [],
+      [
+        { table: "users", column: "email_verified" },
+        { table: "absent_table", column: "whatever" },
+      ],
+    );
+    assert.deepEqual(touched, ["-users.email_verified"]);
+    assert.ok(!fake.ran.some((q) => q.includes("absent_table DROP")));
   });
 });

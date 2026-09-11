@@ -259,8 +259,6 @@ describe("portal-wide translated surfaces", () => {
     "Chapter markers",
     "Uploaded by",
     "Faculty lecture",
-    "Verify your email address",
-    "Resend code in {seconds}s",
     "AI Quiz Generator",
     "AI Study Notes",
     "Practice result: {score}/{total}. No XP awarded.",

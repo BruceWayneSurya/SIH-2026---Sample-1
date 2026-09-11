@@ -102,4 +102,41 @@ describe("portal APIs on SQLite", () => {
     assert.equal(ranked.rankScore, 30);
     assert.equal((await post("/api/auth/logout", {})).status, 200);
   });
+
+  it("signs faculty in directly at registration and login — no email OTP", async () => {
+    // A personal mailbox must register, sign in and moderate notes with no
+    // one-time code step anywhere (the faculty OTP feature was removed).
+    const facultyEmail = `faculty-${runId}@gmail.com`;
+    const registration = await post("/api/auth/register", {
+      name: "Direct Faculty Test",
+      email: facultyEmail,
+      password,
+      role: "faculty",
+      subjectSpecialization: "Science",
+      institutionId: "SCH-TEST-1",
+      state: "Andhra Pradesh",
+    });
+    assert.equal(registration.status, 200, await registration.clone().text());
+    const registered = await registration.json();
+    assert.equal(registered.ok, true);
+    assert.equal(registered.user.role, "faculty");
+    assert.equal(registered.requiresVerification, undefined);
+    const facultySession = registration.headers.get("set-cookie")!.split(";")[0];
+    assert.match(facultySession, /^vs_session=/);
+
+    // Fresh login is equally direct.
+    const login = await post("/api/auth/login", { email: facultyEmail, password });
+    assert.equal(login.status, 200);
+    const loggedIn = await login.json();
+    assert.equal(loggedIn.ok, true);
+    assert.equal(loggedIn.requiresVerification, undefined);
+
+    // Moderation rights come with the faculty role, no review step.
+    const [note] = await db.insert(notes).values({ chapterId, title: "Direct faculty note", authorId: userId, authorName: "Portal Test Student", content: "Study notes" }).returning();
+    const verified = await post(`/api/notes/${note.id}/verify`, { verified: true }, facultySession);
+    assert.equal(verified.status, 200);
+    assert.equal((await verified.json()).facultyVerified, true);
+    await db.delete(notes).where(eq(notes.id, note.id));
+    await db.delete(users).where(eq(users.email, facultyEmail));
+  });
 });

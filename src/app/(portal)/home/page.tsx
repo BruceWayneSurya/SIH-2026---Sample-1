@@ -1,6 +1,5 @@
 import { TranslatedText as T } from "@/components/language-provider";
 import { DatabaseSetup } from "@/components/database-setup";
-import { FacultyReviewQueue } from "@/components/faculty-review-queue";
 import Link from "next/link";
 import {
   Trophy,
@@ -14,19 +13,12 @@ import {
   History,
   ClipboardCheck,
   Megaphone,
-  BadgeCheck,
-  Clock3,
 } from "lucide-react";
 import { getActiveUser } from "@/lib/session";
 import { db } from "@/db";
 import { chapters, notes } from "@/db/schema";
 import { count, desc, eq } from "drizzle-orm";
 import { CLASSES, SUBJECTS, classLabel } from "@/lib/curriculum";
-import {
-  canModerateNotes,
-  verificationLabel,
-} from "@/lib/faculty-email";
-import { getPendingFaculty } from "@/lib/faculty-verification";
 import { getChapterList, getUserStats } from "@/lib/queries";
 import { IconBox, ProgressBar, StatCard, SUBJECT_ICONS } from "@/components/ui";
 
@@ -42,9 +34,9 @@ const CIRCULARS = [
   },
   {
     date: "2026-09-02",
-    tag: "Faculty",
-    title: "Email verification is mandatory for faculty accounts",
-    body: "Teachers must confirm their institutional email ID before they can verify community notes.",
+    tag: "Analytics",
+    title: "Learning Analytics suite is live for every learner",
+    body: "Streaks, a year-long activity heatmap, skill radar and accuracy trends now track your practice automatically.",
   },
   {
     date: "2026-08-28",
@@ -61,7 +53,6 @@ export default async function Home() {
   const classNo = user.className ?? 8;
   const stats = await getUserStats(user.id, classNo);
   const isFaculty = user.role === "faculty";
-  const canModerate = canModerateNotes(user);
 
   const subjectData = [];
   const testableChapters = [];
@@ -118,15 +109,6 @@ export default async function Home() {
     }));
   }
 
-  const pendingFaculty = canModerate ? await getPendingFaculty(5) : [];
-
-  const verificationTone =
-    user.verificationStatus === "verified"
-      ? "border-leaf-500/50 bg-leaf-50 text-leaf-700"
-      : user.verificationStatus === "pending_review"
-        ? "border-saffron-300 bg-saffron-50 text-saffron-700"
-        : "border-rose-200 bg-rose-50 text-rose-700";
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="vsv-enter flex flex-wrap items-end justify-between gap-3">
@@ -171,33 +153,6 @@ export default async function Home() {
           <T>View Leaderboard</T>
         </Link>
       </div>
-
-      {isFaculty && (
-        <section
-          className={`vsv-enter mt-5 flex flex-wrap items-center gap-3 rounded-lg border px-4 py-3 ${verificationTone}`}
-        >
-          {user.verificationStatus === "verified" ? (
-            <BadgeCheck className="h-5 w-5 shrink-0" aria-hidden="true" />
-          ) : (
-            <Clock3 className="h-5 w-5 shrink-0" aria-hidden="true" />
-          )}
-          <div className="min-w-0">
-            <p className="text-[15px] font-extrabold">
-              <T>{verificationLabel(user.verificationStatus)}</T>
-              <span className="ml-2 font-semibold opacity-80">{user.email}</span>
-            </p>
-            <p className="text-[13px] font-semibold opacity-90">
-              <T>
-                {user.verificationStatus === "verified"
-                  ? "Your institutional mailbox is confirmed — you can verify community notes and review pending teachers."
-                  : user.verificationStatus === "pending_review"
-                    ? "Your mailbox is confirmed. A verified reviewer will confirm your institution before note verification is unlocked."
-                    : "Verify your email ID to continue using the faculty console."}
-              </T>
-            </p>
-          </div>
-        </section>
-      )}
 
       <div
         className="vsv-enter mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4"
@@ -291,19 +246,6 @@ export default async function Home() {
               toggle — verified notes jump to the top with a green tick.
             </T>
           </p>
-
-          {canModerate && (
-            <div className="mt-5 border-t border-line pt-4">
-              <h3 className="flex items-center gap-2 text-[15px] font-bold text-navy-900">
-                <BadgeCheck className="h-4 w-4 text-saffron-600" />
-                <T>Teachers awaiting institutional confirmation</T>
-                <span className="rounded-full bg-navy-50 px-2 py-0.5 text-[12px] font-bold text-navy-600">
-                  {pendingFaculty.length}
-                </span>
-              </h3>
-              <FacultyReviewQueue initial={pendingFaculty} />
-            </div>
-          )}
         </section>
       )}
 

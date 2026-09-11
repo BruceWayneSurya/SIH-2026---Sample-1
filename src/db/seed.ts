@@ -142,9 +142,6 @@ export async function seedDemoDatabase(): Promise<boolean> {
       handle: u.handle, name: u.name, email: u.email, passwordHash: pw, role: u.role,
       className: u.className ?? null, state: u.state ?? null, school: u.school ?? null,
       subjectSpecialization: u.spec ?? null, institutionId: u.inst ?? null, isGuest: !!u.guest,
-      emailVerified: true, emailVerifiedAt: new Date(), emailDomain: u.email.split("@")[1] ?? null,
-      verificationStatus: "verified" as const,
-      verifiedBy: u.role === "faculty" ? "Seeded institutional address" : "Student self-registration",
     }))).onConflictDoNothing().returning({ id: users.id, handle: users.handle });
     if (existing) return false;
     s = 42;

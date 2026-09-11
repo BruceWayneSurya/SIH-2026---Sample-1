@@ -3,7 +3,6 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { startSession, verifyPassword } from "@/lib/session";
-import { startVerification } from "@/lib/faculty-verification";
 
 import { DEMO_EMAIL_ALIASES } from "@/lib/demo-accounts";
 
@@ -43,27 +42,6 @@ async function handlePOST(req: Request) {
   if (!user || !verifyPassword(password, user.passwordHash))
     return Response.json({ error: INVALID }, { status: 401 });
 
-  // Faculty must prove they own the mailbox before a session is issued.
-  if (user.role === "faculty" && !user.emailVerified) {
-    const challenge = await startVerification(
-      { id: user.id, email: user.email, name: user.name },
-      "login",
-    );
-    if (!challenge.ok)
-      return Response.json({ error: challenge.error }, { status: challenge.status });
-    return Response.json({
-      ok: false,
-      requiresVerification: true,
-      role: user.role,
-      name: user.name,
-      challengeId: challenge.challengeId,
-      maskedEmail: challenge.maskedEmail,
-      resendAfter: challenge.resendAfter,
-      delivered: challenge.delivered,
-      devCode: challenge.devCode,
-    });
-  }
-
   await startSession(req, { id: user.id, role: user.role });
 
   // Return a relative path; the client navigates. Absolute redirects built from
@@ -74,7 +52,6 @@ async function handlePOST(req: Request) {
     user: {
       name: user.name,
       role: user.role,
-      verificationStatus: user.verificationStatus,
     },
   });
 }
