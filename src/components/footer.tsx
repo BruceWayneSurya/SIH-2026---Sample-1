@@ -65,6 +65,11 @@ export function SiteFooter() {
                 <T>Chapter search</T>
               </Link>
             </li>
+            <li>
+              <Link className="underline-offset-2 hover:text-white hover:underline" href="/report">
+                <T>Progress report</T>
+              </Link>
+            </li>
           </ul>
         </div>
 

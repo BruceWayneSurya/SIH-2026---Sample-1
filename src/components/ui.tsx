@@ -193,6 +193,77 @@ export function StatCard({
   );
 }
 
+/** Circular progress donut — subject headers, chapter progress. */
+export function ProgressRing({
+  value,
+  max,
+  size = 68,
+  stroke = 7,
+  tone = "saffron",
+  caption,
+}: {
+  value: number;
+  max: number;
+  size?: number;
+  stroke?: number;
+  tone?: "saffron" | "navy" | "leaf";
+  caption?: React.ReactNode;
+}) {
+  const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const tones = {
+    saffron: "var(--color-saffron-500)",
+    navy: "var(--color-navy-600)",
+    leaf: "var(--color-leaf-500)",
+  } as const;
+  return (
+    <div className="relative inline-flex shrink-0 items-center justify-center">
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="-rotate-90"
+        aria-hidden="true"
+      >
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="var(--color-navy-100)"
+          strokeWidth={stroke}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={tones[tone]}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c - (pct / 100) * c}
+        />
+      </svg>
+      <span
+        className="absolute flex flex-col items-center leading-none"
+        role="img"
+        aria-label={`${pct}% complete`}
+      >
+        <span className="text-[15px] font-extrabold tabular-nums text-navy-900 dark:text-white">
+          {pct}%
+        </span>
+        {caption && (
+          <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400">
+            {caption}
+          </span>
+        )}
+      </span>
+    </div>
+  );
+}
+
 export function PyqTag({ tag }: { tag: string }) {
   const isPractice = tag.toLowerCase().includes("practice");
   return (

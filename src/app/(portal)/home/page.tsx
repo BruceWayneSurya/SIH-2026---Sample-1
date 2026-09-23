@@ -10,16 +10,25 @@ import {
   ArrowRight,
   ShieldCheck,
   Sparkles,
-  History,
   ClipboardCheck,
   Megaphone,
   Flame,
   LineChart,
+  PlayCircle,
+  FileText,
 } from "lucide-react";
 import { getActiveUser } from "@/lib/session";
 import { db } from "@/db";
-import { chapters, notes, userAnalytics } from "@/db/schema";
-import { count, desc, eq } from "drizzle-orm";
+import {
+  chapters,
+  dailyActivity,
+  mcqAttempts,
+  notes,
+  userAnalytics,
+} from "@/db/schema";
+import { and, count, desc, eq, gte } from "drizzle-orm";
+import { dayKey, addDaysKey, dayVolume } from "@/lib/analytics/model";
+import { RecentActivityCard } from "@/components/recent-activity";
 import { CLASSES, SUBJECTS, classLabel } from "@/lib/curriculum";
 import { getChapterList, getUserStats } from "@/lib/queries";
 import { IconBox, ProgressBar, StatCard, SUBJECT_ICONS } from "@/components/ui";
@@ -103,6 +112,77 @@ export default async function Home() {
 
   const nextUntested =
     testableChapters.find((c) => c.best === null) ?? testableChapters[0];
+
+  // "Pick up where you left off" — the learner's most recent attempt.
+  let lastSession: {
+    href: string;
+    label: string;
+    subject: string;
+    score: number;
+    total: number;
+    when: string;
+  } | null = null;
+  if (!isFaculty) {
+    const [last] = await db
+      .select({
+        chapterId: mcqAttempts.chapterId,
+        score: mcqAttempts.score,
+        total: mcqAttempts.total,
+        createdAt: mcqAttempts.createdAt,
+        chapterTitle: chapters.title,
+        subjectName: chapters.subjectName,
+        num: chapters.num,
+        classNo: chapters.classNo,
+        slug: chapters.slug,
+        subjectSlug: chapters.subjectSlug,
+      })
+      .from(mcqAttempts)
+      .innerJoin(chapters, eq(mcqAttempts.chapterId, chapters.id))
+      .where(eq(mcqAttempts.userId, user.id))
+      .orderBy(desc(mcqAttempts.createdAt), desc(mcqAttempts.id))
+      .limit(1);
+    if (last) {
+      lastSession = {
+        href: `/class/${last.classNo}/${last.subjectSlug}/${last.slug}`,
+        label: `Ch ${last.num}: ${last.chapterTitle}`,
+        subject: last.subjectName,
+        score: last.score,
+        total: last.total,
+        when: new Date(last.createdAt).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+        }),
+      };
+    }
+  }
+
+  // Seven-day activity (for the mini chart).
+  const todayKey = dayKey();
+  const weekStart = addDaysKey(todayKey, -6);
+  const weekRows = await db
+    .select()
+    .from(dailyActivity)
+    .where(
+      and(
+        eq(dailyActivity.userId, user.id),
+        gte(dailyActivity.activityDate, weekStart),
+      ),
+    )
+    .orderBy(desc(dailyActivity.activityDate));
+  const weekDays: Array<{ label: string; volume: number; xp: number }> = [];
+  for (let i = 6; i >= 0; i--) {
+    const key = addDaysKey(todayKey, -i);
+    const row = weekRows.find((r) => r.activityDate === key);
+    weekDays.push({
+      label: new Date(`${key}T00:00:00Z`).toLocaleDateString("en-IN", {
+        weekday: "narrow",
+      }),
+      volume: row ? dayVolume(row) : 0,
+      xp: row ? row.xpEarned : 0,
+    });
+  }
+  const weekMax = Math.max(1, ...weekDays.map((d) => d.volume));
+  const weekXp = weekDays.reduce((sum, d) => sum + d.xp, 0);
 
   let facultyQueue: {
     id: number;
@@ -227,6 +307,13 @@ export default async function Home() {
                 <Trophy className="h-4 w-4 text-saffron-400" />
                 <T>Leaderboard</T>
               </Link>
+              <Link
+                href="/report"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10"
+              >
+                <FileText className="h-4 w-4 text-saffron-400" />
+                <T>Report card</T>
+              </Link>
             </div>
           </div>
         </div>
@@ -274,6 +361,112 @@ export default async function Home() {
           sub="Community contributions"
         />
       </div>
+
+      {/* ── Continue learning: resume card + week activity ─────────── */}
+      {!isFaculty && (
+        <div
+          className="vsv-enter mt-6 grid gap-4 lg:grid-cols-[1.4fr_1fr]"
+          style={{ animationDelay: "100ms" }}
+        >
+          <section className="card card-hover flex flex-col justify-between p-5 sm:flex-row sm:items-center">
+            <div className="flex items-start gap-3">
+              <span className="inline-flex shrink-0 rounded-lg border border-saffron-200 bg-saffron-50 p-2.5 text-saffron-700">
+                <PlayCircle className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-[15px] font-extrabold text-navy-900">
+                  <T>Pick up where you left off</T>
+                </h2>
+                {lastSession ? (
+                  <>
+                    <p className="mt-1 truncate text-[15px] font-bold text-navy-800">
+                      {lastSession.label}
+                    </p>
+                    <p className="mt-0.5 text-[13px] font-semibold text-slate-500">
+                      <T values={{ subject: lastSession.subject }}>
+                        {"{subject}"}
+                      </T>{" "}
+                      ·{" "}
+                      <T values={{ when: lastSession.when }}>
+                        {"Last attempted {when}"}
+                      </T>{" "}
+                      ·{" "}
+                      <span className="font-bold text-leaf-700">
+                        <T values={{ score: lastSession.score, total: lastSession.total }}>
+                          {"Best {score}/{total}"}
+                        </T>
+                      </span>
+                    </p>
+                  </>
+                ) : nextUntested ? (
+                  <>
+                    <p className="mt-1 truncate text-[15px] font-bold text-navy-800">
+                      {nextUntested.label}
+                    </p>
+                    <p className="mt-0.5 text-[13px] font-semibold text-slate-500">
+                      <T values={{ subject: nextUntested.subject }}>
+                        {"{subject}"}
+                      </T>{" "}
+                      · <T>Ready for your first attempt</T>
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-1 text-[14px] text-slate-600">
+                    <T>Assessments for your class are being uploaded by faculty. Check back soon!</T>
+                  </p>
+                )}
+              </div>
+            </div>
+            {(lastSession ?? nextUntested) && (
+              <Link
+                href={(lastSession ?? nextUntested)!.href}
+                className="btn-primary mt-4 shrink-0 px-4 py-2.5 text-sm sm:mt-0"
+              >
+                <T>Resume chapter</T> <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+          </section>
+
+          <section className="card p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[15px] font-extrabold text-navy-900">
+                <T>This week</T>
+              </h2>
+              <span className="rounded-full border border-saffron-200 bg-saffron-50 px-2.5 py-0.5 text-[12px] font-bold text-saffron-700">
+                +{weekXp} XP
+              </span>
+            </div>
+            <p className="mt-0.5 text-[12px] font-semibold text-slate-500">
+              <T>Activity, last 7 days</T>
+            </p>
+            <div
+              className="mt-3 flex h-20 items-end gap-1.5"
+              role="img"
+              aria-label={
+                weekDays
+                  .map((d) => `${d.label}: ${d.volume}`)
+                  .join(", ")
+              }
+            >
+              {weekDays.map((d, i) => (
+                <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
+                  <div
+                    className={`w-full max-w-[26px] rounded-t ${
+                      d.volume > 0
+                        ? i === 6
+                          ? "bg-saffron-500"
+                          : "bg-navy-500"
+                        : "bg-navy-100"
+                    }`}
+                    style={{ height: `${Math.max(8, (d.volume / weekMax) * 100)}%` }}
+                  />
+                  <span className="text-[10px] font-bold text-slate-400">{d.label}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
 
       {isFaculty && (
         <section
@@ -503,45 +696,18 @@ export default async function Home() {
           )}
         </section>
 
-        <section
-          className="card card-hover vsv-enter p-5"
-          style={{ animationDelay: "80ms" }}
-        >
-          <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-            <History className="h-5 w-5 text-saffron-600" />{" "}
-            <T>Recent XP activity</T>
-          </h2>
-          {stats.recent.length === 0 ? (
-            <p className="mt-3 text-sm text-slate-600">
-              <T>
-                No activity yet. Take your first objective test to start earning
-                XP!
-              </T>
-            </p>
-          ) : (
-            <ul className="mt-3 space-y-2.5">
-              {stats.recent.map((e) => (
-                <li key={e.id} className="flex items-start gap-3">
-                  <span className="mt-0.5 rounded-md bg-saffron-50 px-2 py-0.5 text-[13px] font-extrabold text-saffron-700">
-                    +{e.amount}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-[14px] font-semibold text-navy-800">
-                      {e.note}
-                    </p>
-                    <p className="text-[12px] text-slate-500">
-                      {e.type} ·{" "}
-                      {new Date(e.createdAt).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                      })}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <RecentActivityCard
+          entries={stats.recent.map((e) => ({
+            id: e.id,
+            note: e.note,
+            type: e.type,
+            amount: e.amount,
+            date: new Date(e.createdAt).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "short",
+            }),
+          }))}
+        />
       </div>
 
       <p className="mt-6 text-center text-[13px] text-slate-500">

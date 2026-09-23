@@ -85,6 +85,12 @@ describe("portal APIs on SQLite", () => {
     assert.equal(account.status, 200);
     assert.match(await account.text(), /Portal Test Student/);
     assert.equal((await fetch(`${base}/leaderboard`, { headers: { Cookie: session } })).status, 200);
+    // Printable progress report and chapter search render for signed-in users.
+    const report = await fetch(`${base}/report`, { headers: { Cookie: session } });
+    assert.equal(report.status, 200);
+    assert.match(await report.text(), /Progress Report/);
+    const search = await fetch(`${base}/search?q=a`, { headers: { Cookie: session } });
+    assert.equal(search.status, 200);
   });
 
   it("retains faculty-only verification and SQLite boolean/ranking updates", async () => {

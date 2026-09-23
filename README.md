@@ -48,6 +48,19 @@ Indian Government Websites, with these additions:
   quick actions (take today's test, analytics, leaderboard) above the
   existing stats, circulars, subject grid and activity feed.
 - **Leaderboard.** A podium for the top three learners above the full table.
+- **Printable Progress Report.** `/report` renders a Government-of-India-style
+  report card (bilingual masthead, learner identity, key metrics, subject-wise
+  performance table with accuracy bars, recent attempts, badges, ref. number
+  and issue date). A Print / Save-as-PDF button drives a dedicated `@media
+  print` layout (A4, certificate borders, page-break safe tables).
+- **Pick up where you left off.** The dashboard resumes the learner's most
+  recent chapter (one-click, like a winner's query-history restore) or points
+  at the first untested chapter, next to a 7-day activity bar with weekly XP.
+- **Learning history slide-over.** The Recent XP activity card opens a
+  keyboard-closable side panel with the full history and a shortcut to the
+  printable report.
+- **Subject & chapter pages.** Progress-ring headers, "New" / "Practiced"
+  status chips per chapter, and a "Your best" badge on chapter pages.
 - **Branding.** Generated app/OG imagery (`public/icon.svg`, `icon-192.png`,
   `icon-512.png`, `apple-touch-icon.png`, `og-image.png` — regenerate with
   `node scripts/generate-icons.mjs`) and a PWA manifest wired into the root

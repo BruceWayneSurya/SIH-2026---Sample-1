@@ -30,6 +30,7 @@ const ENTRIES: Entry[] = [
   { href: "/leaderboard", label: "Leaderboard", hint: "Class and chapter boards", group: "Pages" },
   { href: "/account", label: "My Account", hint: "Profile and preferences", group: "Pages" },
   { href: "/about", label: "About this portal", hint: "Vision and standards", group: "Pages" },
+  { href: "/report", label: "Progress Report", hint: "Printable report card", group: "Pages" },
   { href: "/login", label: "Sign In", hint: "Demo accounts available", group: "Pages" },
   ...CLASSES.map(
     (c) =>

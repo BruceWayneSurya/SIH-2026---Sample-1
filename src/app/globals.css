@@ -583,3 +583,33 @@ html.dark .btn-outline:hover, [data-theme="dark"] .btn-outline:hover {
   .card, .card-hover { box-shadow: none !important; border: 1px solid #999 !important; }
   main { min-height: auto !important; }
 }
+
+/* ── Printable Progress Report sheet ────────────────────────────────────
+   Screen: a white A4-style card on the portal background.
+   Print:  fills the page, certificate borders stay, everything else goes. */
+.report-sheet {
+  box-shadow: 0 4px 16px -6px rgba(12, 42, 67, 0.25);
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm 12mm 14mm;
+  }
+  body * { visibility: hidden; }
+  .report-sheet,
+  .report-sheet * { visibility: visible; }
+  .report-sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    margin: 0;
+    border-color: #0c2a43 !important;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .report-sheet table { page-break-inside: avoid; }
+  .report-sheet section { page-break-inside: avoid; }
+  .report-sheet a { text-decoration: none; color: inherit; }
+  html { font-size: 12.5px !important; }
+}

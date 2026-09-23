@@ -101,7 +101,7 @@ export default async function ChapterPage({
         </span>
       </nav>
 
-      <header className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm">
+      <header className="card card-hover vsv-enter p-5">
         <div className="flex flex-wrap items-start gap-4">
           <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-navy-800 text-2xl font-extrabold text-white">
             {ch.num}
@@ -130,6 +130,13 @@ export default async function ChapterPage({
               <span className="inline-flex items-center gap-1 rounded-sm border border-leaf-500/40 bg-leaf-50 px-1.5 py-0.5 font-mono text-[11px] font-bold text-leaf-700">
                 <MapPinned className="h-3 w-3" /> {ch.dikshaCode} · DIKSHA
               </span>
+              {best && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-leaf-500/15 px-2.5 py-0.5 text-[11px] font-bold text-leaf-700 ring-1 ring-leaf-500/30">
+                  <T values={{ score: best.score, total: best.total }}>
+                    {"Your best {score}/{total}"}
+                  </T>
+                </span>
+              )}
             </div>
           </div>
           <div className="hidden shrink-0 gap-2 text-right sm:flex">

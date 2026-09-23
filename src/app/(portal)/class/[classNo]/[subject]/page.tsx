@@ -20,7 +20,7 @@ import {
   validSubject,
 } from "@/lib/curriculum";
 import { getChapterList } from "@/lib/queries";
-import { IconBox, ProgressBar, SUBJECT_ICONS } from "@/components/ui";
+import { IconBox, ProgressRing, SUBJECT_ICONS } from "@/components/ui";
 import { SUBJECTS } from "@/lib/curriculum";
 
 export const dynamic = "force-dynamic";
@@ -78,24 +78,38 @@ export default async function SubjectIndex({
         <span className="text-navy-800">{subjectName(subject)}</span>
       </nav>
 
-      <header className="vsv-enter flex flex-wrap items-center gap-4 rounded-lg border border-line bg-white p-5 shadow-sm">
+      <header className="card card-hover vsv-enter flex flex-wrap items-center gap-5 p-5">
         <IconBox icon={Icon} tint={meta.tint} size="lg" />
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-bold uppercase tracking-wider text-saffron-600">
-            <T>Class</T> {cn} · <T>Chapter Index</T>
+          <p className="eyebrow">
+            <T values={{ classNo: cn }}>
+              {"Class {classNo} · Chapter Index"}
+            </T>
           </p>
-          <h1 className="text-2xl font-extrabold text-navy-900">
-            {subjectName(subject)}
+          <h1 className="mt-1 text-2xl font-extrabold text-navy-900">
+            <T>{subjectName(subject)}</T>
           </h1>
+          <p className="mt-1 text-[13px] font-semibold text-slate-500">
+            <T
+              values={{
+                total: dbList.length,
+                testable: dbList.filter((c) => c.mcqCount > 0 || c.subjCount > 0).length,
+              }}
+            >
+              {"{total} chapters · {testable} with assessments"}
+            </T>
+          </p>
         </div>
-        <div className="w-full sm:w-64">
-          <div className="mb-1 flex justify-between text-[13px] font-bold text-navy-600">
-            <span><T>Your progress</T></span>
-            <span>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-[12px] font-bold uppercase tracking-wide text-slate-500">
+              <T>Your progress</T>
+            </p>
+            <p className="text-lg font-extrabold tabular-nums text-navy-900">
               {practiced}/{dbList.length}
-            </span>
+            </p>
           </div>
-          <ProgressBar value={practiced} max={dbList.length} />
+          <ProgressRing value={practiced} max={dbList.length} tone="saffron" />
         </div>
       </header>
 
@@ -119,12 +133,23 @@ export default async function SubjectIndex({
                 <Link
                   key={row.title}
                   href={href}
-                  className={`group vsv-enter rounded-lg border bg-white p-4 shadow-sm transition ${
+                  className={`group vsv-enter relative rounded-lg border bg-white p-4 shadow-sm transition ${
                     data
                       ? "border-line hover:-translate-y-0.5 hover:border-navy-300 hover:shadow-md"
                       : "cursor-default border-dashed border-line opacity-70"
                   }`}
                 >
+                  {data &&
+                    (data.bestScore !== null && data.bestTotal ? (
+                      <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-leaf-50 px-2 py-0.5 text-[11px] font-bold text-leaf-700">
+                        <T>Practiced</T> ·{" "}
+                        {Math.round((data.bestScore / data.bestTotal) * 100)}%
+                      </span>
+                    ) : data.mcqCount > 0 || data.subjCount > 0 ? (
+                      <span className="absolute right-3 top-3 inline-flex items-center rounded-full bg-saffron-50 px-2 py-0.5 text-[11px] font-bold text-saffron-700">
+                        <T>New</T>
+                      </span>
+                    ) : null)}
                   <div className="flex items-start gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-navy-800 text-[15px] font-extrabold text-white">
                       {data?.num ?? "—"}

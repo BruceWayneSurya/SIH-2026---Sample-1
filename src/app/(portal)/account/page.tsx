@@ -8,6 +8,7 @@ import {
   BarChart3,
   BadgeCheck,
   Building2,
+  FileText,
   GraduationCap,
   Lock,
   Mail,
@@ -121,13 +122,22 @@ export default async function Account() {
         <StatCard icon={Award} label="Notes Shared" value={stats.notes} />
       </div>
 
-      <Link
-        href="/analytics"
-        className="mt-3 inline-flex items-center gap-2 rounded-lg border border-navy-200 bg-navy-50 px-4 py-2 text-sm font-bold text-navy-800 transition hover:border-navy-400"
-      >
-        <BarChart3 className="h-4 w-4" aria-hidden="true" />
-        <T>Open Learning Analytics — streaks, skills and trends</T>
-      </Link>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link
+          href="/analytics"
+          className="inline-flex items-center gap-2 rounded-lg border border-navy-200 bg-navy-50 px-4 py-2 text-sm font-bold text-navy-800 transition hover:border-navy-400"
+        >
+          <BarChart3 className="h-4 w-4" aria-hidden="true" />
+          <T>Open Learning Analytics — streaks, skills and trends</T>
+        </Link>
+        <Link
+          href="/report"
+          className="inline-flex items-center gap-2 rounded-lg border border-navy-200 bg-navy-50 px-4 py-2 text-sm font-bold text-navy-800 transition hover:border-navy-400"
+        >
+          <FileText className="h-4 w-4" aria-hidden="true" />
+          <T>Printable Progress Report</T>
+        </Link>
+      </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm">
