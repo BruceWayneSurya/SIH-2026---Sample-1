@@ -10,6 +10,8 @@ import { eq, sql } from "drizzle-orm";
 
 import { Wordmark } from "./ui";
 import { GovBanner } from "./gov-banner";
+import { MobileNav, SiteNav } from "./site-nav";
+import { SearchTrigger } from "./command-palette";
 export { Wordmark } from "./ui";
 
 export async function SiteHeader() {
@@ -32,32 +34,15 @@ export async function SiteHeader() {
     <GovBanner />
     <header className="sticky top-0 z-40 border-b-2 border-saffron-500/70 bg-white/95 backdrop-blur">
       <div className="tricolor-strip h-1.5 w-full" aria-hidden="true" />
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5">
+      <div className="mx-auto flex max-w-6xl items-center gap-x-4 px-4 py-2.5">
         <Link href="/" className="shrink-0" aria-label="Pragyan home">
           <Wordmark />
         </Link>
 
-        <nav
-          aria-label="Primary"
-          className="order-3 flex w-full min-w-0 flex-wrap items-center gap-1 text-[15px] font-semibold sm:order-none sm:w-auto sm:flex-1"
-        >
-          {[
-            { href: "/home", label: "Dashboard" },
-            { href: "/analytics", label: "Analytics" },
-            { href: "/leaderboard", label: "Leaderboard" },
-            { href: "/account", label: "My Account" },
-          ].map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="rounded-md px-2 py-1.5 sm:px-3 text-navy-700 transition hover:bg-navy-50 hover:text-navy-900"
-            >
-              <T>{l.label}</T>
-            </Link>
-          ))}
-        </nav>
+        <SiteNav />
 
-        <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2 sm:ml-0">
+        <div className="ml-auto flex items-center gap-2">
+          <SearchTrigger />
           <AppearanceControls />
           <DataSaverToggle />
           {user && (
@@ -70,7 +55,8 @@ export async function SiteHeader() {
               </span>
               <Link
                 href="/account"
-                className="inline-flex min-w-0 max-w-[155px] sm:max-w-[190px] items-center gap-2 rounded-full border border-line bg-white px-3 py-1"
+                aria-label="My account"
+                className="hidden min-w-0 max-w-[190px] items-center gap-2 rounded-full border border-line bg-white px-3 py-1 sm:inline-flex"
               >
                 <UserRound className="h-4 w-4 shrink-0 text-navy-600" />
                 <span className="truncate text-sm font-semibold text-navy-800">
@@ -82,6 +68,11 @@ export async function SiteHeader() {
               </Link>
             </>
           )}
+          <MobileNav
+            userName={user?.name ?? null}
+            role={user?.role ?? "visitor"}
+            isGuest={user?.isGuest ?? false}
+          />
         </div>
       </div>
     </header>

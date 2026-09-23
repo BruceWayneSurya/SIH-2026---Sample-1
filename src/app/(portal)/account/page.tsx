@@ -20,7 +20,7 @@ import {
 import { getActiveUser } from "@/lib/session";
 import { getUserStats } from "@/lib/queries";
 import { allBadges } from "@/lib/badges";
-import { StatCard } from "@/components/ui";
+import { Breadcrumbs, StatCard } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +66,13 @@ export default async function Account() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="vsv-enter flex flex-wrap items-center gap-4 rounded-lg border border-line bg-white p-5 shadow-sm">
+      <Breadcrumbs
+        items={[
+          { href: "/home", label: <T>Home</T> },
+          { label: "My Account" },
+        ]}
+      />
+      <div className="card-hover vsv-enter flex flex-wrap items-center gap-4 rounded-xl border border-line bg-white p-5 shadow-sm">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-navy-800 text-2xl font-extrabold text-white">
           {user.name.charAt(0)}
         </span>

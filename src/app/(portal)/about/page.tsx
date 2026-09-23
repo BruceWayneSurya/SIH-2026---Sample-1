@@ -1,5 +1,6 @@
 import { TranslatedText as T } from "@/components/language-provider";
 import { Mail, Phone } from "lucide-react";
+import { Breadcrumbs } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,12 @@ const POLICIES = [
 export default function About() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      <Breadcrumbs
+        items={[
+          { href: "/home", label: <T>Home</T> },
+          { label: <T>About</T> },
+        ]}
+      />
       <p className="text-sm font-bold uppercase tracking-wider text-saffron-600">
         <T>About this portal</T>
       </p>

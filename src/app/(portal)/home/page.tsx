@@ -13,10 +13,12 @@ import {
   History,
   ClipboardCheck,
   Megaphone,
+  Flame,
+  LineChart,
 } from "lucide-react";
 import { getActiveUser } from "@/lib/session";
 import { db } from "@/db";
-import { chapters, notes } from "@/db/schema";
+import { chapters, notes, userAnalytics } from "@/db/schema";
 import { count, desc, eq } from "drizzle-orm";
 import { CLASSES, SUBJECTS, classLabel } from "@/lib/curriculum";
 import { getChapterList, getUserStats } from "@/lib/queries";
@@ -81,6 +83,27 @@ export default async function Home() {
     .from(chapters)
     .where(eq(chapters.classNo, classNo));
 
+  let streak: { current: number; longest: number } = {
+    current: 0,
+    longest: 0,
+  };
+  try {
+    const [ua] = await db
+      .select({
+        current: userAnalytics.currentStreak,
+        longest: userAnalytics.longestStreak,
+      })
+      .from(userAnalytics)
+      .where(eq(userAnalytics.userId, user.id))
+      .limit(1);
+    if (ua) streak = { current: ua.current, longest: ua.longest };
+  } catch {
+    // Analytics table not provisioned yet — streak chips simply stay at 0.
+  }
+
+  const nextUntested =
+    testableChapters.find((c) => c.best === null) ?? testableChapters[0];
+
   let facultyQueue: {
     id: number;
     title: string;
@@ -111,48 +134,103 @@ export default async function Home() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="vsv-enter flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-sm font-bold uppercase tracking-wider text-saffron-600">
-            <T values={{ classNo }}>
-              {isFaculty
-                ? "Faculty Console"
-                : "Class {classNo} · Student Dashboard"}
-            </T>
-          </p>
-          <h1 className="mt-1 text-3xl font-extrabold text-navy-900">
-            <T
-              values={{
-                name: isFaculty ? user.name : user.name.split(" ")[0],
-              }}
-            >
-              {isFaculty ? "Welcome, {name}" : "Namaste, {name}!"}
-            </T>
-          </h1>
-          <p className="mt-1 text-[15px] text-slate-600">
-            {user.school ?? user.subjectSpecialization}
-            {user.state ? ` · ${user.state}` : ""}
-            {user.isGuest && (
-              <span className="ml-2 rounded-sm bg-navy-100 px-1.5 py-0.5 text-[12px] font-bold text-navy-700">
-                <T>Guest access</T>
-              </span>
-            )}
-          </p>
-          <p className="mt-0.5 text-[13px] text-slate-500">
-            <T>
-              Department of School Education &amp; Literacy · National Digital
-              Learning Portal
-            </T>
-          </p>
-        </div>
-        <Link
-          href="/leaderboard"
-          className="inline-flex items-center gap-2 rounded-md bg-navy-800 px-4 py-2.5 text-[15px] font-bold text-white transition hover:bg-navy-700"
+      {/* ── Greeting hero ──────────────────────────────────────────── */}
+      <section className="gov-grid vsv-enter relative overflow-hidden rounded-2xl bg-navy-900 text-white shadow-lg">
+        <div
+          className="chakra-watermark -right-16 -top-20 h-72 w-72 opacity-[0.10] rotate-12"
+          aria-hidden="true"
         >
-          <Trophy className="h-4 w-4 text-saffron-400" />{" "}
-          <T>View Leaderboard</T>
-        </Link>
-      </div>
+          <svg viewBox="0 0 40 40" className="h-full w-full text-saffron-400">
+            <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" strokeWidth="1.8" />
+            <circle cx="20" cy="20" r="3" fill="currentColor" />
+            {Array.from({ length: 24 }).map((_, i) => (
+              <line key={i} x1="20" y1="20" x2="20" y2="4.5" stroke="currentColor" strokeWidth="1" transform={`rotate(${i * 15} 20 20)`} />
+            ))}
+          </svg>
+        </div>
+        <div className="relative flex flex-wrap items-end justify-between gap-5 p-6 sm:p-7">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-2 rounded-full border border-saffron-400/30 bg-saffron-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-saffron-300">
+              <T values={{ classNo }}>
+                {isFaculty
+                  ? "Faculty Console"
+                  : "Class {classNo} · Student Dashboard"}
+              </T>
+            </p>
+            <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              <T
+                values={{
+                  name: isFaculty ? user.name : user.name.split(" ")[0],
+                }}
+              >
+                {isFaculty ? "Welcome, {name}" : "Namaste, {name}!"}
+              </T>
+            </h1>
+            <p className="mt-1.5 text-[14px] text-navy-100">
+              {user.school ?? user.subjectSpecialization}
+              {user.state ? ` · ${user.state}` : ""}
+              {user.isGuest && (
+                <span className="ml-2 rounded-sm bg-white/15 px-1.5 py-0.5 text-[12px] font-bold text-white">
+                  <T>Guest access</T>
+                </span>
+              )}
+            </p>
+            <p className="mt-0.5 text-[12.5px] text-navy-300">
+              <T>
+                Department of School Education &amp; Literacy · National Digital
+                Learning Portal
+              </T>
+            </p>
+          </div>
+
+          <div className="flex flex-col items-start gap-3 sm:items-end">
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm font-bold text-white ring-1 ring-white/15">
+                <Flame
+                  className={`h-4 w-4 ${streak.current > 0 ? "text-saffron-400" : "text-navy-300"}`}
+                  aria-hidden="true"
+                />
+                <T values={{ count: streak.current }}>{"{count}-day streak"}</T>
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm font-bold text-white ring-1 ring-white/15">
+                <Zap className="h-4 w-4 text-saffron-400" aria-hidden="true" />
+                {stats.xp} XP
+              </span>
+              {stats.rank && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm font-bold text-white ring-1 ring-white/15">
+                  <Trophy className="h-4 w-4 text-saffron-400" aria-hidden="true" />
+                  <T values={{ rank: `#${stats.rank}` }}>{"Rank {rank}"}</T>
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {!isFaculty && nextUntested && (
+                <Link
+                  href={nextUntested.href}
+                  className="btn-primary px-4 py-2 text-sm"
+                >
+                  <Target className="h-4 w-4" />
+                  <T>Take today’s test</T>
+                </Link>
+              )}
+              <Link
+                href="/analytics"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10"
+              >
+                <LineChart className="h-4 w-4" />
+                <T>View analytics</T>
+              </Link>
+              <Link
+                href="/leaderboard"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10"
+              >
+                <Trophy className="h-4 w-4 text-saffron-400" />
+                <T>Leaderboard</T>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div
         className="vsv-enter mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4"
@@ -199,7 +277,7 @@ export default async function Home() {
 
       {isFaculty && (
         <section
-          className="vsv-enter mt-6 rounded-lg border border-saffron-200 bg-white p-5 shadow-sm"
+          className="card-hover vsv-enter mt-6 rounded-xl border border-saffron-200 bg-white p-5 shadow-sm"
           style={{ animationDelay: "100ms" }}
         >
           <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
@@ -250,7 +328,7 @@ export default async function Home() {
       )}
 
       <div className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-        <section className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm">
+        <section className="card card-hover vsv-enter p-5">
           <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
             <Megaphone className="h-5 w-5 text-saffron-600" />{" "}
             <T>Circulars &amp; Announcements</T>
@@ -286,7 +364,7 @@ export default async function Home() {
         </section>
 
         <section
-          className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm"
+          className="card card-hover vsv-enter p-5"
           style={{ animationDelay: "60ms" }}
         >
           <h2 className="text-lg font-bold text-navy-900">
@@ -351,7 +429,7 @@ export default async function Home() {
               <Link
                 key={meta.slug}
                 href={`/class/${classNo}/${meta.slug}`}
-                className="vsv-enter group rounded-lg border border-line bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-navy-300 hover:shadow-md"
+                className="card card-hover vsv-enter group p-5"
                 style={{ animationDelay: `${140 + i * 50}ms` }}
               >
                 <div className="flex items-start justify-between">
@@ -383,7 +461,7 @@ export default async function Home() {
       </section>
 
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
-        <section className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm">
+        <section className="card card-hover vsv-enter p-5">
           <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
             <BookOpenCheck className="h-5 w-5 text-saffron-600" />{" "}
             <T>Assessments available for you</T>
@@ -426,7 +504,7 @@ export default async function Home() {
         </section>
 
         <section
-          className="vsv-enter rounded-lg border border-line bg-white p-5 shadow-sm"
+          className="card card-hover vsv-enter p-5"
           style={{ animationDelay: "80ms" }}
         >
           <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">

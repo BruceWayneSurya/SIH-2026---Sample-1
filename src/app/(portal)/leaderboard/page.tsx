@@ -10,6 +10,7 @@ import { eq, inArray } from "drizzle-orm";
 import { getClassLeaderboard, getChapterLeaderboard } from "@/lib/queries";
 import { BADGES } from "@/lib/badges";
 import { CLASSES, classNumber } from "@/lib/curriculum";
+import { Breadcrumbs } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +71,12 @@ export default async function Leaderboard({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      <Breadcrumbs
+        items={[
+          { href: "/home", label: <T>Home</T> },
+          { label: "Leaderboard" },
+        ]}
+      />
       <div className="vsv-enter flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm font-bold uppercase tracking-wider text-saffron-600">
@@ -119,8 +126,95 @@ export default async function Leaderboard({
         </div>
       </div>
 
+      {/* ── Podium — top three learners ─────────────────────────────── */}
+      {board.length >= 3 && (
+        <section
+          className="vsv-enter mt-6"
+          aria-label="Top three learners"
+          style={{ animationDelay: "60ms" }}
+        >
+          <div className="grid grid-cols-3 items-end gap-2.5 sm:gap-4">
+            {([1, 0, 2] as const).map((idx) => {
+              const r = board[idx];
+              const place = idx + 1;
+              const me = r.id === user.id;
+              const podiumStyles = [
+                {
+                  card: "border-saffron-400/70 bg-gradient-to-b from-saffron-50 to-white pt-6 sm:pt-7",
+                  avatar: "bg-saffron-500 text-navy-950 ring-4 ring-saffron-300/60",
+                  base: "h-2.5 sm:h-3 bg-gradient-to-r from-saffron-500 to-saffron-400",
+                  rank: "text-saffron-600",
+                },
+                {
+                  card: "border-navy-200 bg-gradient-to-b from-navy-50 to-white pt-4 sm:pt-5",
+                  avatar: "bg-navy-300 text-navy-950 ring-4 ring-navy-200/70",
+                  base: "h-2 sm:h-2.5 bg-gradient-to-r from-navy-400 to-navy-300",
+                  rank: "text-navy-500",
+                },
+                {
+                  card: "border-amber-700/30 bg-gradient-to-b from-amber-50 to-white pt-3.5 sm:pt-4",
+                  avatar: "bg-amber-700/80 text-white ring-4 ring-amber-700/20",
+                  base: "h-1.5 sm:h-2 bg-gradient-to-r from-amber-700 to-amber-600",
+                  rank: "text-amber-800",
+                },
+              ][idx];
+              const initials = r.name
+                .split(" ")
+                .map((w) => w[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase();
+              return (
+                <div
+                  key={r.id}
+                  className={`card card-hover relative flex flex-col items-center rounded-xl border text-center ${podiumStyles.card} ${
+                    me ? "ring-2 ring-saffron-500" : ""
+                  }`}
+                >
+                  {place === 1 && (
+                    <Trophy
+                      className="absolute -top-3.5 left-1/2 h-7 w-7 -translate-x-1/2 text-saffron-500 drop-shadow"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span
+                    className={`inline-flex h-12 w-12 items-center justify-center rounded-full text-sm font-extrabold sm:h-14 sm:w-14 sm:text-base ${podiumStyles.avatar}`}
+                    aria-hidden="true"
+                  >
+                    {initials}
+                  </span>
+                  <p className="mt-2 flex items-center gap-1.5 text-[13px] font-bold text-navy-900 sm:text-[15px]">
+                    <span className="truncate">@{r.handle}</span>
+                    {me && (
+                      <span className="shrink-0 rounded-sm bg-saffron-500 px-1 text-[9px] font-extrabold uppercase text-navy-950">
+                        <T>You</T>
+                      </span>
+                    )}
+                  </p>
+                  <p className={`text-xl font-extrabold tabular-nums sm:text-2xl ${podiumStyles.rank}`}>
+                    {r.xp}
+                    <span className="ml-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                      XP
+                    </span>
+                  </p>
+                  {r.accuracy !== null && (
+                    <p className="text-[11px] font-semibold text-slate-500">
+                      <T values={{ accuracy: r.accuracy }}>{"{accuracy}% accuracy"}</T>
+                    </p>
+                  )}
+                  <span
+                    className={`mt-3 w-full rounded-b-xl ${podiumStyles.base}`}
+                    aria-hidden="true"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
-        <section className="vsv-enter rounded-lg border border-line bg-white shadow-sm">
+        <section className="card vsv-enter overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3">
             <Medal className="h-5 w-5 text-saffron-600" />
             <h2 className="text-lg font-extrabold text-navy-900">
@@ -252,7 +346,7 @@ export default async function Leaderboard({
 
         <aside className="space-y-4">
           <section
-            className="vsv-enter rounded-lg border border-line bg-white p-4 shadow-sm"
+            className="card card-hover vsv-enter p-4"
             style={{ animationDelay: "60ms" }}
           >
             <h3 className="flex items-center gap-2 text-[15px] font-extrabold text-navy-900">
@@ -299,7 +393,7 @@ export default async function Leaderboard({
           </section>
 
           {chapterBoard && chapterMeta && (
-            <section className="vsv-enter rounded-lg border-2 border-saffron-500/60 bg-white p-4 shadow-sm">
+            <section className="card-hover vsv-enter rounded-xl border-2 border-saffron-500/60 bg-white p-4 shadow-sm">
               <h3 className="text-[15px] font-extrabold text-navy-900">
                 <T values={{ num: chapterMeta.num, title: chapterMeta.title }}>
                   {"Top Performers · Ch {num}: {title}"}

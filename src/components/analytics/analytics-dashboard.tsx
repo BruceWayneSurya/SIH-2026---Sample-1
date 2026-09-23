@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { TranslatedText as T, useTranslation } from "@/components/language-provider";
 import { BarChart3, CalendarRange, RefreshCcw } from "lucide-react";
+import { Breadcrumbs } from "@/components/ui";
 import { SUBJECTS } from "@/lib/curriculum";
 import type { AnalyticsPayload } from "@/lib/analytics/model";
 import { ActivityHeatmap } from "./activity-heatmap";
@@ -43,6 +44,12 @@ export function AnalyticsDashboard({ userName }: { userName: string }) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      <Breadcrumbs
+        items={[
+          { href: "/home", label: <T>Home</T> },
+          { label: "Learning Analytics" },
+        ]}
+      />
       <header className="mb-6 flex flex-wrap items-center gap-3">
         <span className="rounded-lg bg-navy-800 p-2.5 text-white">
           <BarChart3 className="h-6 w-6" aria-hidden="true" />

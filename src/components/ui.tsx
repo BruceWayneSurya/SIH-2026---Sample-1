@@ -1,5 +1,6 @@
 import { TranslatedText as T } from "@/components/language-provider";
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 import {
   Calculator,
   FlaskConical,
@@ -177,12 +178,12 @@ export function StatCard({
     leaf: "border-leaf-100 bg-leaf-50 text-leaf-700",
   } as const;
   return (
-    <div className={`rounded-lg border p-4 shadow-sm ${tones[tone]}`}>
-      <div className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-wide opacity-80">
+    <div className={`card-hover rounded-xl border p-4 shadow-sm ${tones[tone]}`}>
+      <div className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider opacity-80">
         <Icon className="h-4 w-4" />{" "}
         {typeof label === "string" ? <T>{label}</T> : label}
       </div>
-      <div className="mt-1 text-3xl font-extrabold">{value}</div>
+      <div className="mt-1.5 text-3xl font-extrabold tabular-nums">{value}</div>
       {sub && (
         <div className="mt-0.5 text-[13px] font-semibold opacity-70">
           {typeof sub === "string" ? <T>{sub}</T> : sub}
@@ -204,6 +205,74 @@ export function PyqTag({ tag }: { tag: string }) {
     >
       {tag}
     </span>
+  );
+}
+
+/**
+ * GIGW breadcrumb trail. The last item is the current page (plain text);
+ * earlier items are links. Labels can be any node (translated text, icons).
+ */
+export function Breadcrumbs({
+  items,
+}: {
+  items: Array<{ href?: string; label: React.ReactNode }>;
+}) {
+  return (
+    <nav aria-label="Breadcrumb" className="mb-3">
+      <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-semibold text-slate-500">
+        {items.map((item, i) => {
+          const last = i === items.length - 1;
+          return (
+            <li key={i} className="flex items-center gap-1.5">
+              {i > 0 && (
+                <span aria-hidden="true" className="text-slate-400">
+                  /
+                </span>
+              )}
+              {last || !item.href ? (
+                <span aria-current={last ? "page" : undefined} className="text-navy-800">
+                  {item.label}
+                </span>
+              ) : (
+                <Link href={item.href} className="hover:text-navy-800 hover:underline">
+                  {item.label}
+                </Link>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
+/** Section heading with eyebrow, title and tricolor rule — shared page rhythm. */
+export function SectionHeading({
+  eyebrow,
+  title,
+  sub,
+}: {
+  eyebrow?: string;
+  title: string;
+  sub?: string;
+}) {
+  return (
+    <div className="vsv-enter">
+      {eyebrow && (
+        <p className="eyebrow">
+          <T>{eyebrow}</T>
+        </p>
+      )}
+      <h1 className="mt-1.5 text-3xl font-extrabold tracking-tight text-navy-900">
+        <T>{title}</T>
+      </h1>
+      {sub && (
+        <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-slate-600">
+          <T>{sub}</T>
+        </p>
+      )}
+      <div className="tricolor-rule mt-3" aria-hidden="true" />
+    </div>
   );
 }
 

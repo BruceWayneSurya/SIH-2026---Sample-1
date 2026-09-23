@@ -21,7 +21,45 @@ circulars and announcements board, a Class 6–10 browser, the NCERT subject gri
 with progress, available assessments and recent XP activity. Hackathon
 branding ("SIH Edition", evaluator quick-access wording, team credits) is gone
 from the portal, the login screen, the landing page and the page metadata;
-`/about` publishes the policies and the accessibility statement.
+`/about` publishes the portal story and the statutory policy pages live at
+`/policies` (accessibility, privacy, terms of use, hyperlinking).
+
+## Government-portal experience (GIGW)
+
+The UI follows the Government of India look-and-feel and the Guidelines for
+Indian Government Websites, with these additions:
+
+- **Accessibility toolbar (GIGW requirement).** The masthead carries the
+  A- / A / A+ text-size steps and a high-contrast toggle
+  (`src/components/a11y-toolbar.tsx`). Both persist per device and are
+  re-applied before first paint by the inline script in
+  `src/app/layout.tsx`; high-contrast mode is a full forced-palette in
+  `src/app/globals.css` and works over both themes.
+- **Global search (Ctrl/Cmd+K).** `src/components/command-palette.tsx` offers
+  an instant destination palette with keyboard navigation; free-text queries
+  fall through to the full chapter search at `/search`.
+- **Breadcrumbs and page rhythm.** Every portal page renders a breadcrumb
+  trail (`Breadcrumbs` in `src/components/ui.tsx`) and the shared card/section
+  components, giving the GOI service a consistent information architecture.
+- **Landing page.** Live portal statistics from the database, an
+  NCERT/DIKSHA/NDEAR/NEP/GIGW alignment strip, a "How it works" section and
+  the standard footer.
+- **Dashboard.** Navy greeting hero with streak/XP/rank chips and
+  quick actions (take today's test, analytics, leaderboard) above the
+  existing stats, circulars, subject grid and activity feed.
+- **Leaderboard.** A podium for the top three learners above the full table.
+- **Branding.** Generated app/OG imagery (`public/icon.svg`, `icon-192.png`,
+  `icon-512.png`, `apple-touch-icon.png`, `og-image.png` — regenerate with
+  `node scripts/generate-icons.mjs`) and a PWA manifest wired into the root
+  layout metadata.
+- **Auth screens.** The sign-in/register pages sit in a Government-portal
+  frame (tricolor rule, chakra watermark, statutory footer with policy links
+  and helpline) around the unchanged forms.
+- **i18n.** The new surfaces (toolbar, search, policies, breadcrumbs,
+  dashboard hero, podium, footer) are translated into all five Indian
+  languages in `src/lib/i18n/messages.ts`; statutory policy *bodies* are
+  published in English, per Government of India convention, while their
+  headings and navigation are translated.
 
 **Faculty access.** Faculty accounts register and sign in directly with any
 email address — there is no one-time-code email step and no review queue.
